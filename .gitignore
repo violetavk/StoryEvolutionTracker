@@ -1,0 +1,7 @@
+# Latex related
+*.log
+*.aux
+*.synctex.gz
+
+# Node 
+node_modules

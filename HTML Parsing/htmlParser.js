@@ -31,10 +31,17 @@ http.get(options, function(response) {
 function parse(buffer) {
     var pageData = buffer.toString();
     var $ = cheerio.load(pageData); // parse into DOM
-    
-    var headline = $('.story-body__h1').text();
-    console.log("Headline: " + headline);
 
-    var intro = $('.story-body__introduction').text();
-    console.log("Bolded: " + intro);
+    var pageObject = { };
+
+    // BBC
+    pageObject.date = parseInt($('.date').attr('data-seconds'));
+    console.log("Date: " + pageObject.date); 
+    pageObject.headline = $('.story-body__h1').text();
+    console.log("Headline: " + pageObject.headline);
+    pageObject.intro = $('.story-body__introduction').text();
+    console.log("Bolded: " + pageObject.intro);
+    var storybodyinner = $(".story-body__inner").find('p');
+    console.log("Num of paragraphs: " + storybodyinner.length);
+
 }
