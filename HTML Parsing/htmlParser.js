@@ -1,14 +1,19 @@
 #!/usr/bin/env node
-var http = require('http');
-var url = require('url');
-var bl = require('bl');
-var cheerio = require('cheerio');
+"use strict";
 
-var bufferlist = bl();
+let http = require("http");
+let url = require("url");
+let bl = require("bl");
+let cheerio = require("cheerio");
+let natural = require("natural");
 
-var link = url.parse(process.argv[2]);
+let sentenceTokenizer = new natural.SentenceTokenizer();
 
-var options = {
+let bufferlist = bl();
+
+let link = url.parse(process.argv[2]);
+
+let options = {
     host: link.host,
     port: 80,
     path: link.path
@@ -16,32 +21,52 @@ var options = {
 
 http.get(options, function(response) {
     
-    response.on('data', function(data) {
+    response.on("data", function(data) {
         bufferlist.append(data);
     });
-    response.on('end', function(data) {
+    response.on("end", function(data) {
         parse(bufferlist);
     })
-    response.on('error', function(err) {
+    response.on("error", function(err) {
         console.error(err);
     })
 
 });
 
 function parse(buffer) {
-    var pageData = buffer.toString();
-    var $ = cheerio.load(pageData); // parse into DOM
+    let pageData = buffer.toString();
+    
+    let pageObject = getBasics(pageData);
+    console.log(pageObject);
 
-    var pageObject = { };
+    let sentences = [];
+    for(let par of pageObject.paragraphs) {
+        sentences.push(sentenceTokenizer.tokenize(par));
+    }
+
+}
+
+function getBasics(pageData) {
+    let $ = cheerio.load(pageData); // parse into DOM
+
+    let pageObject = { };
 
     // BBC
-    pageObject.date = parseInt($('.date').attr('data-seconds'));
-    console.log("Date: " + pageObject.date); 
-    pageObject.headline = $('.story-body__h1').text();
-    console.log("Headline: " + pageObject.headline);
-    pageObject.intro = $('.story-body__introduction').text();
-    console.log("Bolded: " + pageObject.intro);
-    var storybodyinner = $(".story-body__inner").find('p');
-    console.log("Num of paragraphs: " + storybodyinner.length);
+    pageObject.date = parseInt($(".date").attr("data-seconds"));
+    pageObject.headline = $(".story-body__h1").text();
+    pageObject.bolded = $(".story-body__introduction").text();
+    let paragraphs = [];
+    $(".story-body__inner").find("p").each(function(i, element) {
+        if(i == 0) {
+            let currText = $(this).text();
+            if(currText !== pageObject.bolded) {
+                paragraphs.push(currText);
+            }
+        }
+        else
+            paragraphs.push($(this).text());
+    });
+    pageObject.paragraphs = paragraphs;
 
+    return pageObject;
 }
