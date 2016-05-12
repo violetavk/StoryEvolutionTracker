@@ -37,13 +37,12 @@ function parse(buffer) {
     let pageData = buffer.toString();
     
     let pageObject = getBasics(pageData);
-    console.log(pageObject);
 
-    let sentences = [];
-    for(let par of pageObject.paragraphs) {
-        sentences.push(sentenceTokenizer.tokenize(par));
-    }
-
+    pageObject.sentences = getSentences(pageObject);
+    pageObject.article = concatSentences(pageObject);
+    pageObject.frequencies = getWordFrequencies(pageObject);
+    // console.log(pageObject.frequencies);
+    getTfIdf(pageObject);
 }
 
 function getBasics(pageData) {
@@ -69,4 +68,87 @@ function getBasics(pageData) {
     pageObject.paragraphs = paragraphs;
 
     return pageObject;
+}
+
+function getSentences(pageObject) {
+    let sentences = [];
+    for(let par of pageObject.paragraphs) {
+        let currSent = sentenceTokenizer.tokenize(par);
+        for(let s of currSent) {
+            if(s.includes("\"")) {
+                let numQuotes = s.match(/"/g).length;
+                if(numQuotes % 2 === 0) 
+                    sentences.push(s);
+            }
+            else
+                sentences.push(s);
+        }
+    }
+
+    return sentences;
+}
+
+function getWordFrequencies(pageObject) {
+    let freq = {};
+    let wordTokenizer = new natural.WordTokenizer();
+
+    let bolded = pageObject.bolded.toLowerCase();
+    if(bolded != null) {
+        let words = wordTokenizer.tokenize(bolded);
+        for(let word of words) {
+            if(!(word in freq)) {
+                freq[word] = 1;
+            } else {
+                freq[word] = (freq[word] + 1);
+            }
+        }
+    }
+
+    let sentences = pageObject.sentences;
+    for(let s of sentences) {
+        s = s.toLowerCase();
+        let words = wordTokenizer.tokenize(s);
+        for(let word of words) {
+            if(!(word in freq)) {
+                freq[word] = 1;
+            } else {
+                freq[word] = (freq[word] + 1);
+            }
+        }
+    }
+    
+    return freq;
+}
+
+function getTfIdf(pageObject) {
+    let tfidf = new natural.TfIdf();
+    let article = pageObject.article;
+    let freq = pageObject.frequencies;
+    tfidf.addDocument(article);
+    let tfidfs = { };
+
+    for(let word in freq) {
+        tfidf.tfidfs(word,function(i, measure) {
+            // console.log(word, measure);
+            tfidfs[word] = measure;
+        });
+    }
+
+    let sortedTfidfs = {};
+    let sortable = [];
+    for (let word in tfidfs)
+          sortable.push([word, tfidfs[word]]);
+    sortable.sort(function(a, b) {return b[1] - a[1]});
+    console.log(sortable);
+}
+
+function concatSentences(pageObject) {
+    let doc = "";
+    if(pageObject.bolded != null) {
+        doc += (pageObject.bolded + " ");
+    }
+    for(let s of pageObject.sentences) {
+        doc += (s + " ");
+    }
+    return doc;
 }
