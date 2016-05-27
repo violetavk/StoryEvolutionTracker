@@ -1,0 +1,39 @@
+<html>
+<head>
+   <title>HTML Parser</title>
+   <link rel="stylesheet" href="stylesheets/style.css">
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+   <script type="text/javascript">
+        $(document).ready(function() {
+            $("#form").submit(function() {
+                event.preventDefault();
+                $("#resp").html("Loading...");
+                jQuery.ajax({
+                    url: "http://127.0.0.1:3000/process_post",
+                    type: "POST",
+                    data: $("#form").serialize(),
+                    success: function(result){
+                        formatResponse(result);
+                    }
+                });
+            });
+
+            function formatResponse(result) {
+                console.log(typeof result);
+                $("#resp").html("<b>URL:</b> " + result.url);
+            }
+        });
+   </script>
+</head>
+
+<body>
+
+   <form method="POST" id="form">
+      Enter URL: <input type="text" name="url_field" id="textfield">
+      <input type="button" value="Submit" class="btn" id="submitLink">
+  </form>
+
+  <div id="resp">
+  </div>
+</body>
+</html>

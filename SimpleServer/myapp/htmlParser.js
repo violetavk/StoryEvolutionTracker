@@ -10,6 +10,7 @@ let natural = require("natural");
 let sentenceTokenizer = new natural.SentenceTokenizer();
 
 let htmlParser = function(toParse) {
+    console.log("---Beginning Parsing---");
     let bufferlist = bl();
 
     let link = url.parse(toParse);
