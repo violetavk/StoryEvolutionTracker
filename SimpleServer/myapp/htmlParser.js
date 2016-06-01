@@ -7,8 +7,6 @@ let bl = require("bl");
 let cheerio = require("cheerio");
 let natural = require("natural");
 
-let sentenceTokenizer = new natural.SentenceTokenizer();
-
 let htmlParser = function(toParse, callback) {
     console.log("---Beginning Parsing---");
     let bufferlist = bl();
@@ -39,18 +37,13 @@ let htmlParser = function(toParse, callback) {
 
 };
 
-// htmlParser(process.argv[2]); // testing only
-
 function parse(buffer) {
     let pageData = buffer.toString();
     
     let pageObject = getBasics(pageData);
-
     pageObject.sentences = getSentences(pageObject);
     pageObject.article = concatSentences(pageObject);
-    pageObject.frequencies = getWordFrequencies(pageObject);
-    // console.log(pageObject.frequencies);
-    // getTfIdf(pageObject);
+    // pageObject.frequencies = getWordFrequencies(pageObject);
 
     return pageObject;
 }
@@ -82,8 +75,15 @@ function getBasics(pageData) {
 }
 
 function getSentences(pageObject) {
+    let sentenceTokenizer = new natural.SentenceTokenizer();
     let sentences = [];
     for(let par of pageObject.paragraphs) {
+        // if a paragraph does not have a period, do not include
+        if(par.indexOf(".") < 0) {
+            console.log("Skipping this one");
+            continue; 
+        }
+        // tokenize paragraph into individual sentences
         let currSent = sentenceTokenizer.tokenize(par);
         for(let s of currSent) {
             if(s.includes("\"")) {
@@ -97,60 +97,6 @@ function getSentences(pageObject) {
     }
 
     return sentences;
-}
-
-function getWordFrequencies(pageObject) {
-    let freq = {};
-    let wordTokenizer = new natural.WordTokenizer();
-
-    let bolded = pageObject.bolded.toLowerCase();
-    if(bolded != null) {
-        let words = wordTokenizer.tokenize(bolded);
-        for(let word of words) {
-            if(!(word in freq)) {
-                freq[word] = 1;
-            } else {
-                freq[word] = (freq[word] + 1);
-            }
-        }
-    }
-
-    let sentences = pageObject.sentences;
-    for(let s of sentences) {
-        s = s.toLowerCase();
-        let words = wordTokenizer.tokenize(s);
-        for(let word of words) {
-            if(!(word in freq)) {
-                freq[word] = 1;
-            } else {
-                freq[word] = (freq[word] + 1);
-            }
-        }
-    }
-    
-    return freq;
-}
-
-function getTfIdf(pageObject) {
-    let tfidf = new natural.TfIdf();
-    let article = pageObject.article;
-    let freq = pageObject.frequencies;
-    tfidf.addDocument(article);
-    let tfidfs = { };
-
-    for(let word in freq) {
-        tfidf.tfidfs(word,function(i, measure) {
-            // console.log(word, measure);
-            tfidfs[word] = measure;
-        });
-    }
-
-    let sortedTfidfs = {};
-    let sortable = [];
-    for (let word in tfidfs)
-          sortable.push([word, tfidfs[word]]);
-    sortable.sort(function(a, b) {return b[1] - a[1]});
-    // console.log(sortable);
 }
 
 function concatSentences(pageObject) {

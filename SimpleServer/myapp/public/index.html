@@ -4,8 +4,10 @@
    <link rel="stylesheet" href="stylesheets/style.css">
    <script type="text/javascript" src="./javascripts/jquery-latest.js"></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+   <script src="./javascripts/sorttable.js"></script>
    <script type="text/javascript">
         $(document).ready(function() {
+
 
             if(localStorage.recentLinks !== undefined) {
                 console.log("had previously stored links");
@@ -29,6 +31,7 @@
                 event.preventDefault();
                 console.log("Triggered submit");
                 $("#pageObject").html("Loading...");
+                $("#textObject").html("");
                 jQuery.ajax({
                     url: "http://127.0.0.1:3000/process_post",
                     type: "POST",
@@ -36,7 +39,7 @@
                     success: function(result){
                         formatRecentsResponse(result);
                         formatResponse(result.pageObject,"#pageObject");
-                        // formatResponse(result.textObject,"#textObject");
+                        formatResponse(result.textObject,"#textObject");
                     }
                 });
                 return false;
@@ -53,7 +56,6 @@
             function formatResponse(result,tag) {
                 let nsource = "";
                 for(let attr in result) {
-                    console.log(attr);
                     let obj = result[attr];
                     nsource += ("<b>" + attr + ":</b>  ");
                     
@@ -65,8 +67,7 @@
                         str += "</ol>"
                         nsource += str;
                     } else if(obj instanceof Object) {
-                        console.log("Is instance of object");
-                        let str = "<table id=\"table\" class=\"tablesorter\">";
+                        let str = "<table id=\"table\" class=\"sortable\">";
                         str += ("<thead><th>Word</th><th>Frequency</th></thead><tbody>");
                         for(let prop in obj) {
                             str += "<tr>";
@@ -80,9 +81,22 @@
                         nsource += (obj + "<br>");
                     }
                 }
+                nsource += "<hr>";
                 $(tag).html(nsource);
+
+                // adding sortable functionality to the tables on the page
+                let newTableObject = document.getElementById("table");
+                let tables = document.getElementsByClassName("sortable");
+                if(tables.length > 0) {
+                    for(let i = 0; i < tables.length; i++) {
+                        console.log(tables[i]);
+                        sorttable.makeSortable(tables[i]);
+                    }
+                    // sorttable.makeSortable(newTableObject); // TODO what if there are multiple tables
+                }
             }
         });
+
    </script>
 </head>
 

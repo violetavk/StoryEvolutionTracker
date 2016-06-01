@@ -28,3 +28,11 @@ input[type=text] {
 #recents{
     font:12px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
+
+/* Sortable tables */
+table.sortable thead {
+    background-color:#eee;
+    color:#666666;
+    font-weight: bold;
+    cursor: default;
+}
