@@ -1,6 +1,6 @@
 body {
     padding: 25px;
-    font: 20px "Lucida Grande", Helvetica, Arial, sans-serif;
+    font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
 a {
@@ -25,3 +25,6 @@ input[type=text] {
   padding: 10px 14px 10px 14px;
 }
 
+#recents{
+    font:12px "Lucida Grande", Helvetica, Arial, sans-serif;
+}

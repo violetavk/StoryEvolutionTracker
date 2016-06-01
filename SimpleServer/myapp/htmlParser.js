@@ -9,11 +9,13 @@ let natural = require("natural");
 
 let sentenceTokenizer = new natural.SentenceTokenizer();
 
-let htmlParser = function(toParse) {
+let htmlParser = function(toParse, callback) {
     console.log("---Beginning Parsing---");
     let bufferlist = bl();
 
     let link = url.parse(toParse);
+
+    let pageObject;
 
     let options = {
         host: link.host,
@@ -27,13 +29,14 @@ let htmlParser = function(toParse) {
             bufferlist.append(data);
         });
         response.on("end", function(data) {
-            parse(bufferlist);
+            pageObject = parse(bufferlist);
+            callback(pageObject);
         })
         response.on("error", function(err) {
             console.error(err);
         })
-
     });
+
 };
 
 // htmlParser(process.argv[2]); // testing only
@@ -47,7 +50,9 @@ function parse(buffer) {
     pageObject.article = concatSentences(pageObject);
     pageObject.frequencies = getWordFrequencies(pageObject);
     // console.log(pageObject.frequencies);
-    getTfIdf(pageObject);
+    // getTfIdf(pageObject);
+
+    return pageObject;
 }
 
 function getBasics(pageData) {
@@ -57,6 +62,7 @@ function getBasics(pageData) {
 
     // BBC
     pageObject.date = parseInt($(".date").attr("data-seconds"));
+    pageObject.formattedDate = $(".date").attr("data-datetime");
     pageObject.headline = $(".story-body__h1").text();
     pageObject.bolded = $(".story-body__introduction").text();
     let paragraphs = [];
@@ -144,7 +150,7 @@ function getTfIdf(pageObject) {
     for (let word in tfidfs)
           sortable.push([word, tfidfs[word]]);
     sortable.sort(function(a, b) {return b[1] - a[1]});
-    console.log(sortable);
+    // console.log(sortable);
 }
 
 function concatSentences(pageObject) {
