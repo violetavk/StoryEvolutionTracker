@@ -1,0 +1,15 @@
+What I have so far:
+- HTML is parsed
+- word frequencies are calculated
+- words are stemmed 
+- tf-idf's calculated
+- top n "important" words are found
+
+Need to recalculate tf-idf's, because now I need to choose an approach:
+- use original words to calculate tf-idf's, with words like "apartments", and "apartment" remaining (as-is)
+- or, for use the stemmed words to calculate tf-idf's
+- or, re-calculate tf-idf's for each stemmed word, where the tf-idf value is average of all of its original words
+- or, for each original word, stem it, get it's other forms, get tf-idf values of those, and take average (good that it keeps the main original important word as the form to use)
+
+Other things to consider:
+- proper nouns consisting of several words, eg. "City Park Apartments" should stay together

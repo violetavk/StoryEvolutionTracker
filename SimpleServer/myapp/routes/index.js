@@ -30,7 +30,7 @@ router.post('/process_post', urlencodedParser, function (req, res) {
                recentLinks: recentLinks,
                textObject: textObject
             };
-            console.log(response);
+            // console.log(response);
 
             // send the response
             res.setHeader('Content-Type', 'application/json');

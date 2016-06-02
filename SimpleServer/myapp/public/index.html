@@ -67,8 +67,8 @@
                         str += "</ol>"
                         nsource += str;
                     } else if(obj instanceof Object) {
-                        let str = "<table id=\"table\" class=\"sortable\">";
-                        str += ("<thead><th>Word</th><th>Frequency</th></thead><tbody>");
+                        let str = "<table class=\"sortable\">";
+                        str += ("<thead><th class=\"sorttable_alpha\">Word</th><th>Value</th></thead><tbody>");
                         for(let prop in obj) {
                             str += "<tr>";
                             str += ("<td>" + prop + "</td>");
@@ -85,7 +85,6 @@
                 $(tag).html(nsource);
 
                 // adding sortable functionality to the tables on the page
-                let newTableObject = document.getElementById("table");
                 let tables = document.getElementsByClassName("sortable");
                 if(tables.length > 0) {
                     for(let i = 0; i < tables.length; i++) {

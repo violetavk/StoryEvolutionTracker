@@ -8,7 +8,7 @@ let cheerio = require("cheerio");
 let natural = require("natural");
 
 let htmlParser = function(toParse, callback) {
-    console.log("---Beginning Parsing---");
+    console.log("-- HTML Parsing --");
     let bufferlist = bl();
 
     let link = url.parse(toParse);
@@ -43,7 +43,6 @@ function parse(buffer) {
     let pageObject = getBasics(pageData);
     pageObject.sentences = getSentences(pageObject);
     pageObject.article = concatSentences(pageObject);
-    // pageObject.frequencies = getWordFrequencies(pageObject);
 
     return pageObject;
 }
@@ -80,9 +79,9 @@ function getSentences(pageObject) {
     for(let par of pageObject.paragraphs) {
         // if a paragraph does not have a period, do not include
         if(par.indexOf(".") < 0) {
-            console.log("Skipping this one");
             continue; 
         }
+
         // tokenize paragraph into individual sentences
         let currSent = sentenceTokenizer.tokenize(par);
         for(let s of currSent) {
