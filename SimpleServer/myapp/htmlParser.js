@@ -95,6 +95,60 @@ function getSentences(pageObject) {
         }
     }
 
+    sentences = fixNames(sentences);
+    sentences = fixImproperSplits(sentences);
+
+    return sentences;
+}
+
+function fixNames(sentences) {
+    let titles = ["Mr", "Mrs", "Ms", "Miss", "Mx", "Dr", "Prof"];
+
+    // process sentences to make sure that names like "Mr. Name" are not tokenized into separate sentences
+    for(let i = 0; i < sentences.length; i++) {
+        let curr = sentences[i];
+
+        // case 1: sentence contains a title, like Mr.
+        for(let title of titles) {
+            let index = curr.indexOf(title);
+            if(index > -1) {
+                // there is a name title in this sentence
+                let toVerify = index + title.length;
+                if(toVerify <= curr.length) {
+                    if(curr.charAt(toVerify) === "." && toVerify === (curr.length-1) && (i+1) < sentences.length) {
+                        // merge this sentence and the next to put the name back together
+                        curr = curr.concat(" ", sentences[i+1]);
+                        sentences[i] = curr;
+                        sentences.splice(i+1,1);
+                        i--;
+                    }
+                }
+            }
+        }
+    }
+    return sentences; 
+}
+
+function fixImproperSplits(sentences) {
+    // if a sentence was tokenized incorrectly, like on a url, the next sentence begins with a lowercase letter
+    for(let i = 0; i < sentences.length; i++) {
+        let curr = sentences[i];
+        let firstChar = curr[0];
+        let isLowerCase = /^[a-z0-9]+$/.test(curr[0]);
+        if(isLowerCase && i-1 >= 0) {
+            // the first letter of the sentence is lowercase, so it must be merged with previous sentence
+            let prevIndex = i - 1;
+            let prevSentence = sentences[prevIndex];
+            let newSentence = "";
+            if(prevSentence.charAt(prevSentence.length-1) === ".")
+                newSentence = prevSentence.concat(curr);
+            else
+                newSentence = prevSentence.concat(" ", curr);
+            sentences[prevIndex] = newSentence;
+            sentences.splice(i,1);
+            i--;
+        }
+    }
     return sentences;
 }
 
