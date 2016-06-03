@@ -4,15 +4,60 @@ let stemmer = require("porter-stemmer").stemmer;
 
 let textProcessor = function(pageObject) {
     console.log("-- Text Processing --");
-    let textObject = getWordFrequencies(pageObject);
+    let textObject = {};
+    textObject.sentenceWordsArray = processWords(pageObject);
+    textObject.wordFrequencies = getWordFrequencies(pageObject);
     textObject.stemmedWords = stemWords(textObject);
     textObject.tfidfs = getTfIdf(pageObject, textObject);
     textObject.importantWords = getTopNImportantWords(textObject, 8);
     return textObject;
 };
 
+function processWords(pageObject) {
+    let sentences = pageObject.sentences;
+    let sentenceWords = detectCompoundNouns(sentences);
+
+    return sentenceWords;
+}
+
+function detectCompoundNouns(sentences) {
+    let sentenceWords = [];
+    let capsStart = -1;
+    let wordTokenizer = new natural.WordPunctTokenizer();
+    for(let s = 0; s < sentences.length; s++) {
+        let sent = sentences[s];
+        let words = wordTokenizer.tokenize(sent);
+        for(let i = 0; i < words.length; i++) {
+            let word = words[i];
+            let isAlphaNum = /^[A-Za-z0-9]/.test(word[0]);
+            let isUpperCase = (/^[A-Z]+$/.test(word[0]));
+            let isstopword = isStopWord(word.toLowerCase());
+            if(isUpperCase && isAlphaNum && !isstopword) {
+                if(capsStart === -1) {
+                    capsStart = i;
+                }
+            } else {
+                let difference = i - capsStart;
+                if(capsStart !== -1 && difference > 1) {
+                    let compoundWord = getWordFromArray(capsStart, i-1, words);
+                    console.log("--------- Found: " + compoundWord);
+                    words[capsStart] = compoundWord;
+                    words.splice(capsStart+1, difference-1);
+                    i--;
+                }   
+                capsStart = -1;
+            }
+        }
+        sentenceWords.push(words);
+    }
+    return sentenceWords;
+}
+
+function detectPeople(sentenceWords) {
+    
+}
+
 function getWordFrequencies(pageObject) {
-    let textObject = {};
     let freq = {};
     let wordTokenizer = new natural.WordTokenizer();
 
@@ -27,18 +72,52 @@ function getWordFrequencies(pageObject) {
         freq = resp;
     }
 
-    freq = removeStopWords(freq);
+    // freq = removeStopWords(freq);
     // freq = stemWords(freq);
     
-    textObject.wordFrequencies = freq;
-    return textObject;
+    return freq;
 }
 
 function sentenceWordFrequency(str, freq, wordTokenizer) {
-    let nounInflector = new natural.NounInflector();
-    str = str.toLowerCase();
+    // str = str.toLowerCase();
     let words = wordTokenizer.tokenize(str);
 
+    // determine which words should remain together
+    // consider ["The","Queen", "visits", "New York City"]
+    // --> the tokenization should be ["The","Queen","visits","New York City"]
+    // for now, only consider capitalization as 
+
+    // let capsStart = -1;
+    // for(let i = 0; i < words.length; i++) {
+    //     let word = words[i];
+    //     // let isUpperCase = !(/^[a-z0-9]+$/.test(word[0]));
+    //     let isAlphaNum = /^[A-Za-z0-9]/.test(word[0]);
+    //     let isUpperCase = (/^[A-Z]+$/.test(word[0]));
+    //     console.log("processing " + word + ", is upper case = " + isUpperCase);
+    //     if(isUpperCase) {
+    //         if(capsStart === -1)
+    //             capsStart = i;
+    //     } else {
+    //         let difference = i - capsStart;
+    //         if(capsStart !== -1 && difference > 1) {
+    //             let compoundWord = getWordFromArray(capsStart, i-1, words);
+    //             console.log("Think there's a word starting at " + words[capsStart] + " to " + words[i-1]);
+    //             console.log("Word is: " + compoundWord);
+    //         }   
+    //         capsStart = -1;
+    //     }
+    // }
+
+    // // remove stop words here first, to prevent words like "The" showing up as part of word
+    // for(let i = 0; i < words.length; i++) {
+    //     let word = words[i].toLowerCase();
+    //     if(isStopWord(word)) {
+    //         words.splice(i, 1);
+    //         i--;
+    //     } 
+    // }
+
+    // calculate frequency
     for(let word of words) {
         if(!(word in freq)) {
             freq[word] = 1;
@@ -56,10 +135,15 @@ function getTfIdf(pageObject, textObject) {
 
     tfidf.addDocument(article);
     let tfidfs = { };
+    let temp = "JP Morgan";
+    tfidf.tfidfs(temp,function(i,measure) {
+        console.log("--- tf-idf for "+ temp +" ---");
+        console.log("measure: " + measure);
+        console.log("---------------------------------------");
+    });
 
     for(let word in freq) {
         tfidf.tfidfs(word,function(i, measure) {
-            // console.log(word, measure);
             tfidfs[word] = measure;
         });
     }
@@ -67,14 +151,23 @@ function getTfIdf(pageObject, textObject) {
 }
 
 function removeStopWords(freq) {
-    // thanks to the list at http://xpo6.com/list-of-english-stop-words/
-    let stopwords = ["a", "about", "above", "above", "across", "after", "afterwards", "again", "against", "all", "almost", "alone", "along", "already", "also","although","always","am","among", "amongst", "amoungst", "amount",  "an", "and", "another", "any","anyhow","anyone","anything","anyway", "anywhere", "are", "around", "as",  "at", "back","be","became", "because","become","becomes", "becoming", "been", "before", "beforehand", "behind", "being", "below", "beside", "besides", "between", "beyond", "bill", "both", "bottom","but", "by", "call", "can", "cannot", "cant", "co", "con", "could", "couldnt", "cry", "de", "describe", "detail", "do", "done", "down", "due", "during", "each", "eg", "eight", "either", "eleven","else", "elsewhere", "empty", "enough", "etc", "even", "ever", "every", "everyone", "everything", "everywhere", "except", "few", "fifteen", "fify", "fill", "find", "fire", "first", "five", "for", "former", "formerly", "forty", "found", "four", "from", "front", "full", "further", "get", "give", "go", "had", "has", "hasnt", "have", "he", "hence", "her", "here", "hereafter", "hereby", "herein", "hereupon", "hers", "herself", "him", "himself", "his", "how", "however", "hundred", "ie", "if", "in", "inc", "indeed", "interest", "into", "is", "it", "its", "itself", "keep", "last", "latter", "latterly", "least", "less", "ltd", "made", "many", "may", "me", "meanwhile", "might", "mill", "mine", "more", "moreover", "most", "mostly", "move", "much", "must", "my", "myself", "name", "namely", "neither", "never", "nevertheless", "next", "nine", "no", "nobody", "none", "noone", "nor", "not", "nothing", "now", "nowhere", "of", "off", "often", "on", "once", "one", "only", "onto", "or", "other", "others", "otherwise", "our", "ours", "ourselves", "out", "over", "own","part", "per", "perhaps", "please", "put", "rather", "re", "same", "see", "seem", "seemed", "seeming", "seems", "serious", "several", "she", "should", "show", "side", "since", "sincere", "six", "sixty", "so", "some", "somehow", "someone", "something", "sometime", "sometimes", "somewhere", "still", "such", "system", "take", "ten", "than", "that", "the", "their", "them", "themselves", "then", "thence", "there", "thereafter", "thereby", "therefore", "therein", "thereupon", "these", "they", "thickv", "thin", "third", "this", "those", "though", "three", "through", "throughout", "thru", "thus", "to", "together", "too", "top", "toward", "towards", "twelve", "twenty", "two", "un", "under", "until", "up", "upon", "us", "very", "via", "was", "we", "well", "were", "what", "whatever", "when", "whence", "whenever", "where", "whereafter", "whereas", "whereby", "wherein", "whereupon", "wherever", "whether", "which", "while", "whither", "who", "whoever", "whole", "whom", "whose", "why", "will", "with", "within", "without", "would", "yet", "you", "your", "yours", "yourself", "yourselves", "the"];
+    // thanks to the list at http://www.lextek.com/manuals/onix/stopwords1.html
+    let stopwords = ["a","about","above","across","after","again","against","all","almost","alone","along","already","also","although","always","among","an","and","another","any","anybody","anyone","anything","anywhere","are","area","areas","around","as","ask","asked","asking","asks","at","away","b","back","backed","backing","backs","be","became","because","become","becomes","been","before","began","behind","being","beings","best","better","between","big","both","but","by","c","came","can","cannot","case","cases","certain","certainly","clear","clearly","come","could","d","did","differ","different","differently","do","does","done","down","down","downed","downing","downs","during","e","each","early","either","end","ended","ending","ends","enough","even","evenly","ever","every","everybody","everyone","everything","everywhere","f","face","faces","fact","facts","far","felt","few","find","finds","first","for","four","from","full","fully","further","furthered","furthering","furthers","g","gave","general","generally","get","gets","give","given","gives","go","going","good","goods","got","great","greater","greatest","group","grouped","grouping","groups","h","had","has","have","having","he","her","here","herself","high","high","high","higher","highest","him","himself","his","how","however","i","if","important","in","interest","interested","interesting","interests","into","is","it","its","itself","j","just","k","keep","keeps","kind","knew","know","known","knows","l","large","largely","last","later","latest","least","less","let","lets","likely","long","longer","longest","m","made","make","making","man","many","may","me","member","members","men","might","more","most","mostly","much","must","my","myself","n","necessary","need","needed","needing","needs","never","newer","newest","next","no","nobody","non","noone","not","nothing","now","nowhere","number","numbers","o","of","off","often","old","older","oldest","on","once","one","only","open","opened","opening","opens","or","order","ordered","ordering","orders","other","others","our","out","over","p","part","parted","parting","parts","per","perhaps","place","places","point","pointed","pointing","points","possible","present","presented","presenting","presents","problem","problems","put","puts","q","quite","r","rather","really","right","right","room","rooms","s","said","same","saw","say","says","second","seconds","see","seem","seemed","seeming","seems","sees","several","shall","she","should","show","showed","showing","shows","side","sides","since","small","smaller","smallest","so","some","somebody","someone","something","somewhere","state","states","still","still","such","sure","t","take","taken","than","that","the","their","them","then","there","therefore","these","they","thing","things","think","thinks","this","those","though","thought","thoughts","three","through","thus","to","today","together","too","took","toward","turn","turned","turning","turns","two","u","under","until","up","upon","us","use","used","uses","v","very","w","want","wanted","wanting","wants","was","way","ways","we","well","wells","went","were","what","when","where","whether","which","while","who","whole","whose","why","will","with","within","without","work","worked","working","works","would","x","y","year","years","yet","you","young","younger","youngest","your","yours","z"]
     for(let word in freq) {
         if(stopwords.indexOf(word) > 0) {
             delete freq[word];
         } 
     }
     return freq;
+}
+
+function isStopWord(word) {
+    let stopwords = ["a","about","above","across","after","again","against","all","almost","alone","along","already","also","although","always","among","an","and","another","any","anybody","anyone","anything","anywhere","are","area","areas","around","as","ask","asked","asking","asks","at","away","b","back","backed","backing","backs","be","became","because","become","becomes","been","before","began","behind","being","beings","best","better","between","big","both","but","by","c","came","can","cannot","case","cases","certain","certainly","clear","clearly","come","could","d","did","differ","different","differently","do","does","done","down","down","downed","downing","downs","during","e","each","early","either","end","ended","ending","ends","enough","even","evenly","ever","every","everybody","everyone","everything","everywhere","f","face","faces","fact","facts","far","felt","few","find","finds","first","for","four","from","full","fully","further","furthered","furthering","furthers","g","gave","general","generally","get","gets","give","given","gives","go","going","good","goods","got","great","greater","greatest","group","grouped","grouping","groups","h","had","has","have","having","he","her","here","herself","high","high","high","higher","highest","him","himself","his","how","however","i","if","important","in","interest","interested","interesting","interests","into","is","it","its","itself","j","just","k","keep","keeps","kind","knew","know","known","knows","l","large","largely","last","later","latest","least","less","let","lets","likely","long","longer","longest","m","made","make","making","man","many","may","me","member","members","men","might","more","most","mostly","much","must","my","myself","n","necessary","need","needed","needing","needs","never","newer","newest","next","no","nobody","non","noone","not","nothing","now","nowhere","number","numbers","o","of","off","often","old","older","oldest","on","once","one","only","open","opened","opening","opens","or","order","ordered","ordering","orders","other","others","our","out","over","p","part","parted","parting","parts","per","perhaps","place","places","point","pointed","pointing","points","possible","present","presented","presenting","presents","problem","problems","put","puts","q","quite","r","rather","really","right","right","room","rooms","s","said","same","saw","say","says","second","seconds","see","seem","seemed","seeming","seems","sees","several","shall","she","should","show","showed","showing","shows","side","sides","since","small","smaller","smallest","so","some","somebody","someone","something","somewhere","state","states","still","still","such","sure","t","take","taken","than","that","the","their","them","then","there","therefore","these","they","thing","things","think","thinks","this","those","though","thought","thoughts","three","through","thus","to","today","together","too","took","toward","turn","turned","turning","turns","two","u","under","until","up","upon","us","use","used","uses","v","very","w","want","wanted","wanting","wants","was","way","ways","we","well","wells","went","were","what","when","where","whether","which","while","who","whole","whose","why","will","with","within","without","work","worked","working","works","would","x","y","year","years","yet","you","young","younger","youngest","your","yours","z"]
+
+    if(stopwords.indexOf(word) > -1)
+        return true;
+    else
+        return false;
 }
 
 function stemWords(textObject) {
@@ -108,6 +201,18 @@ function getTopNImportantWords(textObject, num) {
         imp[curr[0]] = curr[1];
     }
     return imp;
+}
+
+function getWordFromArray(startIndex, endIndex, wordsArray) {
+    let word = "";
+    for(let i = startIndex; i <= endIndex; i++) {
+        let curr = wordsArray[i];
+        word += curr;
+        if(i !== endIndex) {
+            word += " ";
+        }
+    }
+    return word;
 }
 
 module.exports = textProcessor;
