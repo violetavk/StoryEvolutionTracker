@@ -102,26 +102,25 @@ function getSentences(pageObject) {
 }
 
 function fixNames(sentences) {
-    let titles = ["Mr", "Mrs", "Ms", "Miss", "Mx", "Dr", "Prof"];
-
-    // process sentences to make sure that names like "Mr. Name" are not tokenized into separate sentences
+    let titles = ["Mrs", "Mr", "Ms", "Miss", "Mx", "Dr", "Prof", "Hon", "Rev"];
+    // process sentences to make sure they're correctly tokenized
     for(let i = 0; i < sentences.length; i++) {
         let curr = sentences[i];
+        let lastChars = curr.substring((curr.length-5),curr.length);
 
         // case 1: sentence contains a title, like Mr.
         for(let title of titles) {
-            let index = curr.indexOf(title);
+            let index = lastChars.indexOf(title);
             if(index > -1) {
                 // there is a name title in this sentence
-                let toVerify = index + title.length;
-                if(toVerify <= curr.length) {
-                    if(curr.charAt(toVerify) === "." && toVerify === (curr.length-1) && (i+1) < sentences.length) {
-                        // merge this sentence and the next to put the name back together
-                        curr = curr.concat(" ", sentences[i+1]);
-                        sentences[i] = curr;
-                        sentences.splice(i+1,1);
-                        i--;
-                    }
+                let isPeriod = lastChars[lastChars.length-1];
+                if(isPeriod === "." && (i+1) < sentences.length) {
+                    // merge this sentence and the next to put the name back together
+                    curr = curr.concat(" ", sentences[i+1]);
+                    sentences[i] = curr;
+                    sentences.splice(i+1,1);
+                    i--;
+                    break;
                 }
             }
         }
