@@ -76,6 +76,16 @@ function getBasics(pageData) {
 function getSentences(pageObject) {
     let sentenceTokenizer = new natural.SentenceTokenizer();
     let sentences = [];
+
+    if(pageObject.headline !== null) {
+        let headline = pageObject.headline + ".";
+        sentences.push(headline);
+    }
+
+    if(pageObject.bolded !== null) {
+        sentences.push(pageObject.bolded);
+    }
+
     for(let par of pageObject.paragraphs) {
         // if a paragraph does not have a period, do not include
         if(par.indexOf(".") < 0) {
@@ -87,6 +97,13 @@ function getSentences(pageObject) {
         for(let s of currSent) {
             if(s.includes("\"")) {
                 let numQuotes = s.match(/"/g).length;
+
+                // remove all quotes of people saying things, bad for summaries... obv. do better than this
+                if(numQuotes >= 2 && s.indexOf("said") > -1) continue;
+                if(numQuotes >= 2 && s.indexOf("explained") > -1) continue;
+                if(numQuotes >= 2 && s.indexOf("commented") > -1) continue;
+
+
                 if(numQuotes % 2 === 0) 
                     sentences.push(s);
             }
@@ -132,7 +149,6 @@ function fixImproperSplits(sentences) {
     // if a sentence was tokenized incorrectly, like on a url, the next sentence begins with a lowercase letter
     for(let i = 0; i < sentences.length; i++) {
         let curr = sentences[i];
-        let firstChar = curr[0];
         let isLowerCase = /^[a-z0-9]+$/.test(curr[0]);
         if(isLowerCase && i-1 >= 0) {
             // the first letter of the sentence is lowercase, so it must be merged with previous sentence

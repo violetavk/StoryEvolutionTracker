@@ -37,6 +37,7 @@
                     type: "POST",
                     data: $("#form").serialize(),
                     success: function(result){
+                        console.log(result);
                         formatRecentsResponse(result);
                         formatResponse(result.pageObject,"#pageObject");
                         formatResponse(result.textObject,"#textObject");

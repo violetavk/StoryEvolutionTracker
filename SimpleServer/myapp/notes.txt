@@ -47,3 +47,6 @@ Considered detecting four different classes of words: contractions, like I'm, sh
 Spent some time doing them all in a single method, took too long to realize that doing that was a bad idea... too many things going on in a single method... also realized that detecting words like I'm and she's are of no use to me when generating a signature for the article... will only consider the last 3 cases, and will do them in separate methods, where different methods of tokenization may be appropriate..
 
 On a broader spectrum, need to consider how a single article will be represented, what data structure, etc. What data needs to be stored, like timestamp, individual signature, topic words perhaps. Even broader, how to represent a story, eg. Brexit, and maybe what articles go under it, what the topic words are for all, progression of signatures, its own main signature (summary of all articles combined, to this day)
+
+Orrrr... I should look into some of these topics: Named Entity Recognition, n-grams, tries. 
+So maybe step 1 could be my manual approach, but then step 2 could be a more sophisticated approach
