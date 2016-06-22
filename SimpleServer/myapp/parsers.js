@@ -8,31 +8,34 @@ exports.bbcParser = function(data) {
     pageObject.formattedDate = $(".date").attr("data-datetime");
     pageObject.section = $(".mini-info-list__section").text();
     pageObject.headline = $(".story-body__h1").text();
-    pageObject.bolded = $(".story-body__introduction").text();
+    pageObject.bolded = $(".story-body__introduction").first().text();
 
     let paragraphs = [];
-    $(".story-body__inner").children().each(function(i,element) {
+    let storyBody = $(".story-body__inner");
+    let numHrElements = storyBody.find("hr").length;
+    let insideHr = false;
+
+    storyBody.children().each(function(i,element) {
         let isParagraph = $(this).is("p");
-        let isFigure = $(this).is("figure");
-        let isDiv = $(this).is("div");
-        let isEmpty = $(this).html().length === 0;
         let isHrElement = $(this).is("hr");
         let hasStrongTag = $(this).find("strong").html() !== null;
 
-        // console.log("Current element: ",$(this).html().length);
-        // console.log("isParagraph: ",isParagraph," isFigure: ",isFigure," isDiv: ",isDiv," isHr: ",isHrElement);
-
-        if(!isEmpty && isHrElement) {
-            console.log("---Stopping Loop, found HR---");
+        if(isHrElement && numHrElements % 2 === 0 && !insideHr && numHrElements > 0) {
+            // entered an hr block that we expect to end somewhere, contents of this block not included
+            insideHr = true;
+        } else if(!isHrElement && insideHr) {
+            // just continue
+        } else if(isHrElement && insideHr) {
+            // left an hr block that was started before
+            numHrElements = numHrElements - 2;
+            insideHr = false;
+        } else if(isHrElement && numHrElements === 1) {
+            // found a single hr, any text below it is irrelevant so do not include
             return false;
-        }
-
-        // add to list of paragraphs if currently looking at a paragraph
-        if(isParagraph && !hasStrongTag) {
-            // console.log("-Adding this");
+        } else if(isParagraph && !hasStrongTag) {
+            // add to list of paragraphs if currently looking at a paragraph
             paragraphs.push($(this).text());
         }
-
     });
     pageObject.paragraphs = paragraphs;
 

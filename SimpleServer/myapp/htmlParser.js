@@ -69,7 +69,6 @@ exports.parseHTML = function(objects) {
 
 function parse(buffer,options) {
     let pageData = buffer.toString();
-    
     let pageObject = getBasics(pageData,options);
     pageObject.sentences = getSentences(pageObject);
     pageObject.article = concatSentences(pageObject);
