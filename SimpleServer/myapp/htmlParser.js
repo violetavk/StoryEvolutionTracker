@@ -6,84 +6,95 @@ let url = require("url");
 let bl = require("bl");
 let cheerio = require("cheerio");
 let natural = require("natural");
+let fs = require("fs");
+let parsers = require("./parsers.js");
 
-let htmlParser = function(toParse, callback) {
-    console.log("-- HTML Parsing --");
-    let bufferlist = bl();
+exports.parseHTML = function(objects) {
+    return new Promise(function(resolve, reject) {
+        console.log("-- HTML Parsing (with promises) --");
+        let bufferList = bl();
 
-    let link = url.parse(toParse);
+        let link = url.parse(objects[1]);
 
-    let pageObject;
+        let pageObject;
 
-    let options = {
-        host: link.host,
-        port: 80,
-        path: link.path
-    };
+        let options = {
+            host: link.host,
+            port: 80,
+            path: link.path
+        };
 
-    http.get(options, function(response) {
+        if(link.protocol === "file:") {
+            // open file
+            let path = decodeURIComponent(link.path);
+            options.path = path;
+            let file = fs.readFileSync(path).toString();
 
-        response.on("data", function(data) {
-            bufferlist.append(data);
-        });
-        response.on("end", function(data) {
-            pageObject = parse(bufferlist);
-            callback(pageObject);
-        })
-        response.on("error", function(err) {
-            console.error(err);
-        })
+            // get the original URL from the saved file
+            let result = file.match(/<!-- saved from url.* -->/g)[0];
+            if(!result)
+                reject(new Error("Could not locate URL in stored HTML code"));
+            let originalURL = result.match(/http:\S*/g)[0];
+            if(!originalURL)
+                reject(new Error("Could not locate URL in matched HTML snippet"));
+            let retrievedURL = url.parse(originalURL);
+            options.host = retrievedURL.host;
+            options.path = retrievedURL.path;
+
+            // parse file as normal
+            pageObject = parse(file,options);
+            objects.push(pageObject);
+            resolve(objects);
+
+        } else if(link.protocol === "http:") {
+            // use GET request to get from internet
+            http.get(options, function(response) {
+                response.on("data", function(data) {
+                    bufferList.append(data);
+                });
+                response.on("end", function(data) {
+                    pageObject = parse(bufferList,options);
+                    objects.push(pageObject);
+                    resolve(objects);
+                });
+                response.on("error", function(err) {
+                    console.error(err);
+                })
+            });
+        } else {
+            reject(new Error("Neither a file or http"));
+        }
     });
+}
 
-};
-
-function parse(buffer) {
+function parse(buffer,options) {
     let pageData = buffer.toString();
     
-    let pageObject = getBasics(pageData);
+    let pageObject = getBasics(pageData,options);
     pageObject.sentences = getSentences(pageObject);
     pageObject.article = concatSentences(pageObject);
 
     return pageObject;
 }
 
-function getBasics(pageData) {
-    let $ = cheerio.load(pageData); // parse into DOM
+function getBasics(pageData,options) {
+    let section = options.path.split("/")[1];
 
-    let pageObject = { };
+    if(options.host === "www.bbc.co.uk" && section === "news")
+        return parsers.bbcParser(pageData);
+    if(options.host === "www.bbc.co.uk" && section === "sport")
+        return parsers.bbcSportsParser(pageData);
 
-    // BBC
-    pageObject.date = parseInt($(".date").attr("data-seconds"));
-    pageObject.formattedDate = $(".date").attr("data-datetime");
-    pageObject.headline = $(".story-body__h1").text();
-    pageObject.bolded = $(".story-body__introduction").text();
-    let paragraphs = [];
-    $(".story-body__inner").find("p").each(function(i, element) {
-        if(i == 0) {
-            let currText = $(this).text();
-            if(currText !== pageObject.bolded) {
-                paragraphs.push(currText);
-            }
-        }
-        else
-            paragraphs.push($(this).text());
-    });
-    pageObject.paragraphs = paragraphs;
-
-    return pageObject;
+    return {};
 }
 
 function getSentences(pageObject) {
     let sentenceTokenizer = new natural.SentenceTokenizer();
     let sentences = [];
 
-    if(pageObject.headline !== null) {
+    if(pageObject.headline) {
         let headline = pageObject.headline + ".";
         sentences.push(headline);
-    }
-
-    if(pageObject.bolded !== null) {
-        sentences.push(pageObject.bolded);
     }
 
     for(let par of pageObject.paragraphs) {
@@ -94,19 +105,33 @@ function getSentences(pageObject) {
 
         // tokenize paragraph into individual sentences
         let currSent = sentenceTokenizer.tokenize(par);
+        let openQuotes = false;
         for(let s of currSent) {
             if(s.includes("\"")) {
                 let numQuotes = s.match(/"/g).length;
 
-                // remove all quotes of people saying things, bad for summaries... obv. do better than this
-                if(numQuotes >= 2 && s.indexOf("said") > -1) continue;
-                if(numQuotes >= 2 && s.indexOf("explained") > -1) continue;
-                if(numQuotes >= 2 && s.indexOf("commented") > -1) continue;
+                // do not include all sentences within a pair of quotes
+                if(openQuotes) continue;
+                if(!openQuotes && numQuotes === 1) {
+                    openQuotes = true;
+                    continue;
+                } else if(openQuotes && numQuotes === 1) {
+                    openQuotes = false;
+                    continue;
+                }
 
+                // do not include sentences where someone is being quoted
+                if(isSpeakingSentence(s, numQuotes)) continue;
 
+                // do not include sentences that begin with a " and end with a "
+                if(s.charAt(0) === "\"" && s.charAt(s.length-1) === "\"") continue;
+
+                // add the sentence if either no quotes, or num quotes is even (something may be simply quoted for emphasis)
                 if(numQuotes % 2 === 0) 
                     sentences.push(s);
             }
+            else if(openQuotes)
+                continue; // skip over the sentence if currently inside a quote
             else
                 sentences.push(s);
         }
@@ -169,7 +194,7 @@ function fixImproperSplits(sentences) {
 
 function concatSentences(pageObject) {
     let doc = "";
-    if(pageObject.bolded != null) {
+    if(pageObject.bolded) {
         doc += (pageObject.bolded + " ");
     }
     for(let s of pageObject.sentences) {
@@ -178,4 +203,16 @@ function concatSentences(pageObject) {
     return doc;
 }
 
-module.exports = htmlParser;
+function isSpeakingSentence(sentence, numQuotes) {
+    if(numQuotes < 2)
+        return false;
+    let speakingWords = ["said","explained","read","commented"];
+    for(let word of speakingWords) {
+        if(sentence.indexOf(word) > -1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// module.exports = htmlParser;

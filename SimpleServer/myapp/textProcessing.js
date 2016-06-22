@@ -3,41 +3,39 @@ let natural = require("natural");
 let stemmer = require("porter-stemmer").stemmer;
 let nlp = require('nlp_compromise');
 
-let textProcessor = function(pageObject) {
-    console.log("-- Text Processing --");
-    let textObject = {};
-    textObject.sentenceWordsArray = processWords(pageObject);
-    textObject.article = concatSentences(textObject);
-    textObject.wordFrequencies = getWordFrequencies(textObject);
-    textObject.tfidfs = getTfIdf(pageObject, textObject);
-    textObject.stemmedWords = stemWords(textObject);
+exports.processText = function(objects) {
+    console.log("-- Text Processing (with promise) --");
+    return new Promise(function(resolve,reject) {
+        let pageObject = objects[2];
 
-    textObject.sentenceTfIdfs = getSentenceTfIdfs(textObject.sentenceWordsArray,textObject.tfidfs);
-    textObject.topSentences = getTopNSentences(textObject.sentenceTfIdfs, pageObject, 3);
+        let textObject = {};
+        textObject.sentenceWordsArray = processWords(pageObject);
+        textObject.article = concatSentences(textObject);
+        textObject.wordFrequencies = getWordFrequencies(textObject);
+        textObject.tfidfs = getTfIdf(textObject);
+        textObject.stemmedWords = stemWords(textObject);
 
-    // textObject.stemmedWords = getWordRoots(textObject);
-    // textObject.stemmedWords = getStemmedTfIdfs(textObject,pageObject.article);
-    // textObject.tfidfsNew = getCondensedTfidfs(textObject);    
-    
-    // textObject.importantWords = getTopNImportantWords(textObject, 8);
-    return textObject;
+        textObject = adjustTopicWords(textObject);
+        objects.push(textObject);
+        resolve(objects);
+    });
 };
 
-function processWords(pageObject) {
+function processWords(pageObject) { // process words to detect certain classes of words
     let sentences = pageObject.sentences;
     
-    // process words of each sentence to detect certain classes of words
-    let sentenceWords = detectCompoundNouns(sentences);
+    let sentenceWords = detectProperNouns(sentences);
     sentenceWords = detectNames(sentenceWords);
     sentenceWords = detectHyphenatedWords(sentenceWords);
     sentenceWords = detectURLs(sentenceWords);
     sentenceWords = detectNumbers(sentenceWords);
+    // detectCompoundNouns(sentenceWords);
     sentenceWords = removePunctuation(sentenceWords);
     
     return sentenceWords;
 }
 
-function detectCompoundNouns(sentences) {
+function detectProperNouns(sentences) {
     let sentenceWords = [];
     let capsStart = -1;
     let wordTokenizer = new natural.WordPunctTokenizer();
@@ -53,6 +51,8 @@ function detectCompoundNouns(sentences) {
                 if(capsStart === -1) {
                     capsStart = i;
                 }
+            } else if(capsStart !== -1 && isNumeric(word)) {
+                continue;
             } else {
                 let difference = i - capsStart;
                 if(capsStart !== -1 && difference > 1) {
@@ -166,7 +166,28 @@ function removePunctuation(sentenceWords) {
     return sentenceWords;
 }
 
-function concatSentences(textObject) {
+function detectCompoundNouns(sentenceWords) {
+    let followsMatrix = {};
+    for(let s = 0; s < sentenceWords.length; s++) {
+        let sentence = sentenceWords[s];
+        for(let i = 0; i < sentence.length; i++) {
+            let word = sentence[i];
+            if(isStopWord(word.toLowerCase())) continue;
+            if(i + 1 < sentence.length) {
+                let followingWord = sentence[i+1];
+                if(isStopWord(followingWord)) continue;
+                console.log("After",word," comes ",followingWord);
+                let isAlNum = isAlphaNum(followingWord.toLowerCase());
+                let stopWord = isStopWord(followingWord.toLowerCase());
+                if(isAlNum && !stopWord) {
+                    console.log("--Registering this");
+                }
+            }
+        }
+    }
+}
+
+function concatSentences(textObject) { // represents entire article as array of words
     let article = [];
     let sentences = textObject.sentenceWordsArray;
     for(let sentence of sentences) {
@@ -176,72 +197,6 @@ function concatSentences(textObject) {
         article[i] = article[i].toLowerCase();
     }
     return article;
-}
-
-function getWordRoots(textObject) {
-    let sentences = textObject.sentenceWordsArray;
-    let stemmed = {};
-
-    for(let sentence of sentences) {
-        for(let word of sentence) {
-            word = word.toLowerCase();
-
-            if(isStopWord(word)) continue;
-            if(!isAlphaNum(word)) continue;
-
-            let stemmedWord = word;
-            if(isNormalWord(word)) {
-                // stemmedWord = stemmer(word); // stem word only if a normal word, not a name, hyphenated, etc.
-                stemmedWord = nlp.text(stemmedWord).root(); // getting human-readable root of word
-            }
-            if(!(stemmedWord in stemmed)) {
-                stemmed[stemmedWord] = {}; // will hold list and total tf-idf
-                stemmed[stemmedWord].list = {}; // list of related words is an object list
-                stemmed[stemmedWord].list[word] = {}; // for tf-idf's and such
-            } else {
-                // if(stemmed[stemmedWord].list.indexOf(word) < 0)
-                //     stemmed[stemmedWord].list.push(word);
-                if(!(word in stemmed[stemmedWord].list)) {
-                    stemmed[stemmedWord].list[word] = {};
-                }
-            }
-        }
-    }
-
-    return stemmed;
-}
-
-function getStemmedTfIdfs(textObject, article) { // would be textObject.stemmed
-    let stemmed = textObject.stemmedWords;
-    let tfidf = new natural.TfIdf();
-    tfidf.addDocument(article);
-
-    for(let stem in stemmed) {
-        console.log(stem);
-        let totalTfidf = 0;
-        let obj = stemmed[stem].list;
-        for(let word in obj) {
-            // console.log("    " + word);
-            tfidf.tfidfs(word,function(i,measure) {
-                // console.log("      measure: " + measure);
-                stemmed[stem].list[word].tfidf = measure;
-                totalTfidf += measure;
-            });
-        }
-        stemmed[stem].totalTfidf = totalTfidf;
-    }
-    console.log(stemmed);
-    return stemmed;
-}
-
-function getCondensedTfidfs(textObject) {
-    let tfidfs = {};
-    let stemmed = textObject.stemmedWords;
-    for(let stem in stemmed) {
-        // console.log(stemmed[stem].totalTfidf);
-        tfidfs[stem] = stemmed[stem].totalTfidf;
-    }
-    return tfidfs;
 }
 
 function getWordFrequencies(textObject) {
@@ -264,20 +219,17 @@ function getWordFrequencies(textObject) {
     return freq;
 }
 
-function getTfIdf(pageObject, textObject) {
+function getTfIdf(textObject) {
     let tfidf = new natural.TfIdf();
     let article = textObject.article;
     let freq = textObject.wordFrequencies;
 
     tfidf.addDocument(article);
-    console.log(article);
 
     let tfidfs = { };
     for(let word in freq) {
         if(isNumeric(word)) continue;
-        // tfidf.tfidfs(word,function(i, measure) {
-        //     tfidfs[word] = measure;
-        // });
+        
         let toTest = [];
         toTest.push(word);
         tfidfs[word] = tfidf.tfidf(toTest, 0);
@@ -285,17 +237,24 @@ function getTfIdf(pageObject, textObject) {
     return tfidfs;
 }
 
-function isStopWord(word) {
-    let stopwords = ["a","about","above","across","after","again","against","all","almost","alone","along","already","also","although","always","among","an","and","another","any","anybody","anyone","anything","anywhere","are","area","areas","around","as","ask","asked","asking","asks","at","away","b","back","backed","backing","backs","be","became","because","become","becomes","been","before","began","behind","being","beings","best","better","between","big","both","but","by","c","came","can","cannot","case","cases","certain","certainly","clear","clearly","come","could","d","did","differ","different","differently","do","does","done","down","down","downed","downing","downs","during","e","each","early","either","end","ended","ending","ends","enough","even","evenly","ever","every","everybody","everyone","everything","everywhere","f","face","faces","fact","facts","far","felt","few","find","finds","first","for","four","from","full","fully","further","furthered","furthering","furthers","g","gave","general","generally","get","gets","give","given","gives","go","going","good","goods","got","great","greater","greatest","group","grouped","grouping","groups","h","had","has","have","having","he","her","here","herself","high","high","high","higher","highest","him","himself","his","how","however","i","if","important","in","interest","interested","interesting","interests","into","is","it","its","itself","j","just","k","keep","keeps","kind","knew","know","known","knows","l","large","largely","last","later","latest","least","less","let","lets","likely","long","longer","longest","m","made","make","making","man","many","may","me","member","members","men","might","more","most","mostly","much","must","my","myself","n","necessary","need","needed","needing","needs","never","newer","newest","next","no","nobody","non","noone","not","nothing","now","nowhere","number","numbers","o","of","off","often","old","older","oldest","on","once","one","only","open","opened","opening","opens","or","order","ordered","ordering","orders","other","others","our","out","over","p","part","parted","parting","parts","per","perhaps","place","places","point","pointed","pointing","points","possible","present","presented","presenting","presents","problem","problems","put","puts","q","quite","r","rather","really","right","right","room","rooms","s","said","same","saw","say","says","second","seconds","see","seem","seemed","seeming","seems","sees","several","shall","she","should","show","showed","showing","shows","side","sides","since","small","smaller","smallest","so","some","somebody","someone","something","somewhere","state","states","still","still","such","sure","t","take","taken","than","that","the","their","them","then","there","therefore","these","they","thing","things","think","thinks","this","those","though","thought","thoughts","three","through","thus","to","today","together","too","took","toward","turn","turned","turning","turns","two","u","under","until","up","upon","us","use","used","uses","v","very","w","want","wanted","wanting","wants","was","way","ways","we","well","wells","went","were","what","when","where","whether","which","while","who","whole","whose","why","will","with","within","without","work","worked","working","works","would","x","y","year","years","yet","you","young","younger","youngest","your","yours","z"]
-
-    if(stopwords.indexOf(word) > -1)
-        return true;
-    else
-        return false;
+function adjustTopicWords(textObject) {
+    // there will be a variety of processes in here
+    let sentences = textObject.sentenceWordsArray;
+    let tfidfs = textObject.tfidfs;
+    let headline = sentences[0];
+    for(let word of headline) {
+        word = word.toLowerCase();
+        if(isStopWord(word)) continue;
+        let currTfidf = tfidfs[word];
+        if(currTfidf) {
+            tfidfs[word] = tfidfs[word] + 1.5; // increase importance of word if it's in headline
+        }
+    }
+    textObject.tfidfs = tfidfs;
+    return textObject;
 }
 
-function stemWords(textObject) {
-    // let freq = textObject.wordFrequencies;
+function stemWords(textObject) { // stem words using porter-stemmer
     let sentences = textObject.sentenceWordsArray;
     let stemmed = {};
 
@@ -341,6 +300,49 @@ function getDisplayWord(textObject, word) {
     return displayWord;
 }
 
+function getSentenceTfIdfs(sentences, tfidfs) {
+    let values = [];
+    for(let i = 1; i < sentences.length; i++) {
+        let sentenceValue = 0;
+        let sentence = sentences[i];
+        for(let word of sentence) {
+            let curr = tfidfs[word.toLowerCase()];
+            if(curr)
+                sentenceValue += curr;
+        }
+        sentenceValue = sentenceValue / (sentence.length); // test
+        values.push([i, sentence, sentenceValue]);
+    }
+    values.sort(function(a,b) {return b[2] - a[2]});
+    return values;
+}
+
+function getTopNSentences(sentenceTfIdfs, pageObject, n) {
+    let actualSentences = pageObject.sentences;
+    let temp = [];
+    let topSentences = [];
+    for(let i = 0; i < n && i < actualSentences.length; i++) {
+        let tfIdfSentence = sentenceTfIdfs[i];
+        // let id = tfIdfSentence[0];
+        temp.push(tfIdfSentence);
+        // topSentences.push(actualSentences[id]);
+    }
+    temp.sort(function(a,b) {return a[0] - b[0]});
+    for(let i = 0; i < temp.length; i++) {
+        topSentences.push(temp[i][1]);
+    }
+    return topSentences;
+}
+
+function isStopWord(word) {
+    let stopwords = ["a","ago","about","above","across","after","again","against","all","almost","alone","along","already","also","although","always","among","an","and","another","any","anybody","anyone","anything","anywhere","are","area","areas","around","as","ask","asked","asking","asks","at","away","b","back","backed","backing","backs","be","became","because","become","becomes","been","before","began","behind","being","beings","best","better","between","big","both","but","by","c","came","can","cannot","case","cases","certain","certainly","clear","clearly","come","could","d","did","differ","different","differently","do","does","done","down","down","downed","downing","downs","during","e","each","early","either","end","ended","ending","ends","enough","even","evenly","ever","every","everybody","everyone","everything","everywhere","f","face","faces","fact","facts","far","felt","few","find","finds","first","for","four","from","full","fully","further","furthered","furthering","furthers","g","gave","general","generally","get","gets","give","given","gives","go","going","good","goods","got","great","greater","greatest","group","grouped","grouping","groups","h","had","has","have","having","he","her","here","herself","high","high","high","higher","highest","him","himself","his","how","however","i","if","important","in","interest","interested","interesting","interests","into","is","it","its","itself","j","just","k","keep","keeps","kind","knew","know","known","knows","l","large","largely","last","later","latest","least","less","let","lets","likely","long","longer","longest","m","made","make","making","man","many","may","me","member","members","men","might","more","most","mostly","much","must","my","myself","n","necessary","need","needed","needing","needs","never","newer","newest","next","no","nobody","non","noone","not","nothing","now","nowhere","number","numbers","o","of","off","often","old","older","oldest","on","once","one","only","open","opened","opening","opens","or","order","ordered","ordering","orders","other","others","our","out","over","p","part","parted","parting","parts","per","perhaps","place","places","point","pointed","pointing","points","possible","present","presented","presenting","presents","problem","problems","put","puts","q","quite","r","rather","really","right","right","room","rooms","s","said","same","saw","say","says","second","seconds","see","seem","seemed","seeming","seems","sees","several","shall","she","should","show","showed","showing","shows","side","sides","since","small","smaller","smallest","so","some","somebody","someone","something","somewhere","state","states","still","still","such","sure","t","take","taken","than","that","the","their","them","then","there","therefore","these","they","thing","things","think","thinks","this","those","though","thought","thoughts","three","through","thus","to","today","together","too","took","toward","turn","turned","turning","turns","two","u","under","until","up","upon","us","use","used","uses","v","very","w","want","wanted","wanting","wants","was","way","ways","we","well","wells","went","were","what","when","where","whether","which","while","who","whole","whose","why","will","with","within","without","work","worked","working","works","would","x","y","year","years","yet","you","young","younger","youngest","your","yours","z"]
+
+    if(stopwords.indexOf(word) > -1)
+        return true;
+    else
+        return false;
+}
+
 function isAlphaNum(word) {
     return /^[A-Za-z0-9]/.test(word[0]);
 }
@@ -360,24 +362,6 @@ function isNormalWord(word) {
         return false;
 }
 
-function getTopNImportantWords(textObject, num) {
-    let imp = {};
-
-    // take all tf-idfs and return sorted array, in decreasing order
-    let sortable = [];
-    let tfidfs = textObject.tfidfs;
-    for (let word in tfidfs)
-          sortable.push([word, tfidfs[word]]);
-    sortable.sort(function(a, b) {return b[1] - a[1]});
-
-    // now get the top n words, as specified by the argument
-    for(let i = 0; i < num && !(i >= sortable.length); i++) {
-        let curr = sortable[i];
-        imp[curr[0]] = curr[1];
-    }
-    return imp;
-}
-
 function getWordFromArray(startIndex, endIndex, wordsArray) {
     let word = "";
     for(let i = startIndex; i <= endIndex; i++) {
@@ -390,31 +374,4 @@ function getWordFromArray(startIndex, endIndex, wordsArray) {
     return word;
 }
 
-function getSentenceTfIdfs(sentences, tfidfs) {
-    let values = [];
-    for(let i = 0; i < sentences.length; i++) {
-        let sentenceValue = 0;
-        let sentence = sentences[i];
-        for(let word of sentence) {
-            let curr = tfidfs[word.toLowerCase()];
-            if(curr)
-                sentenceValue += curr;
-        }
-        values.push([i, sentence, sentenceValue]);
-    }
-    values.sort(function(a,b) {return b[2] - a[2]});
-    return values;
-}
-
-function getTopNSentences(sentenceTfIdfs, pageObject, n) {
-    let actualSentences = pageObject.sentences;
-    let topSentences = [];
-    for(let i = 0; i < n && i < actualSentences.length; i++) {
-        let tfIdfSentence = sentenceTfIdfs[i];
-        let id = tfIdfSentence[0];
-        topSentences.push(actualSentences[id]);
-    }
-    return topSentences;
-}
-
-module.exports = textProcessor;
+// module.exports = textProcessor;
