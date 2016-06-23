@@ -19,6 +19,7 @@ exports.bbcParser = function(data) {
         let isParagraph = $(this).is("p");
         let isHrElement = $(this).is("hr");
         let hasStrongTag = $(this).find("strong").html() !== null;
+        let numChildren = $(this).children().length;
 
         if(isHrElement && numHrElements % 2 === 0 && !insideHr && numHrElements > 0) {
             // entered an hr block that we expect to end somewhere, contents of this block not included
@@ -32,7 +33,7 @@ exports.bbcParser = function(data) {
         } else if(isHrElement && numHrElements === 1) {
             // found a single hr, any text below it is irrelevant so do not include
             return false;
-        } else if(isParagraph && !hasStrongTag) {
+        } else if(isParagraph && !hasStrongTag && numChildren === 0) {
             // add to list of paragraphs if currently looking at a paragraph
             paragraphs.push($(this).text());
         }

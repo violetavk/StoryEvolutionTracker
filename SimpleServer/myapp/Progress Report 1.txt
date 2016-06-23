@@ -1,0 +1,58 @@
+Progress Report 1
+
+Intro:
+-Since the last report, the following has been completed
+- language of choice for this project is javascript, since the main sources of information come from the web, and javascript is created for that kind of processing environment
+
+HTML retrieval:
+- first used only get requests with real URLs from the internet
+- now can do offline files, as long as their "urls" are copied from a browser window and pasted into web client, ie: "file:///Users/violet/websites/Solar%20Impulse.htm"; the necessary url decoding is performed and the file is read
+- retrieves all html code that the page is made up of
+
+HTML parsing and extraction:
+- current supported sites are BBC news and BBC sport, had to do those separately because BBC sport had different names for parts of the article (like headline and article body)
+- have a separate file where all parsers would be coded, each parser exported as a parsing function for use by the main parsing file
+- all parsers use library called cheerio, which functions very similarly to jQuery but it is made for the node server-side
+- load in the html code, which was retrieved in the previous step, and query it to get certain fields of the html document; for example, on the bbc, the headline is always a div with the class "story-body__h1". The text of that element is retrieved and the headline is therefore extracted
+- next, article tokenized into sentences; sentences which were too aggressively split (i.e. on urls, on people's names) are put back together
+- sentences with quotes from people are removed (including sentences that are inside a pair of quotes but are not directly surrounded by quotes themselves), but not sentences that use quotes for emphasis of some words; this is because if whole sentences are to be used in summaries, then quotes would ruin cohesion
+
+Processing text:
+- next step after extracting and parsing the article
+- each sentence gets tokenized into words, punctuation gets kept; each sentence is an array, where each index is a single word or punctuation
+- a series of processing steps gets performed on the sentence arrays
+- processing steps as modular as possible, each processing step takes the sentence word arrays as argument and returns a modified sentence words array; just add more processing steps at any time
+- currently 6 steps
+- detecting proper nouns: making assumption that words that are adjacent and begin with capital letter are related, i.e. New York City
+- detecting names: detecting names like "Mr. Name", "Mrs. Name", etc.
+- detecting hyphenated words: eg. lithium-ion
+- detecting URLs in text: simple URLs like yelp.com should be one entity
+- detecting numbers: large numbers, like 2,123,123 stay as one number
+- removing punctuation: so things that are not words, like punctuation, do not get assigned a tf-idf
+- word frequencies are calculated next
+- tf-idf is calculated for each term
+- words are stemmed but currently not used for anything
+- topic word weights are then adjusted by increasing the importance of words that are also present in the headline; more is to be done on this in the near future, can also use the bolded part of a bbc article for important terms
+- will also try to detect compount nouns that are important, but are not proper nouns, eg "EU referendum", and give them more importance
+
+Signature generation:
+- after each word is given an importance, each sentence can be weighed to determine its cumulative importance
+- for each sentence, for each word (except stop words), the tf-idf values are added and the sentence importance is assigned to that sum
+- to try to prevent only the longest sentences from being picked, each sentence tf-idf is divided by the sentence's length (in words), although this number can be played with
+- finally, the top n sentences are taken, n being given by a parameter, to form the summary
+- currently chose not to add the headline to the summary because it ruins cohesion and readability
+- maybe planning to perform some sort of iterative shortening on the final summary so unnecessary words and/or clauses are not included in the summary, to make it even shorter and more concise
+
+Web client:
+- aids development
+- simple html page, has a textfield to paste urls into; using express as support for the front-end
+- does a post request to the node server backend
+- uses ajax to populate page after request is completed
+- to avoid callback nesting in javascript, learned how to use Javascript ES6 promises and replaced 15+ lines of code with only 4 in the main POST request processing method; modularity greatly improved; processing steps are chained in the following order: parseHTML, textProcess, generateSignatures, sendResponse (show code snippet maybe)
+- to avoid copy-pasting links into webapp all the time, using HTML5 localstorage in the browser to store links, so they are persistent when refresing the server & page
+
+Overall progress and next steps:
+- thinking of the future (how to represent stories, topics, etc.)
+- progress has been slower that i would have liked, so therefore a revised gantt chart perhaps
+- aim to finish signatures by the end of the month; will try to have more optimizations for topic word detection
+- will move onto actual story tracking and multi-doc summariztion next

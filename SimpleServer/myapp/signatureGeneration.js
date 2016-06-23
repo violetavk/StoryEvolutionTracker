@@ -7,6 +7,7 @@ exports.generateSignatures = function(objects) {
         let pageObject = objects[2];
         let textObject = objects[3];
 
+        signatures.topicWord = getMainTopicWord(textObject.tfidfs);
         signatures.sentenceTfIdfs = getSentenceTfIdfs(textObject.sentenceWordsArray,textObject.tfidfs);
         signatures.topSentences = getTopNSentences(signatures.sentenceTfIdfs, pageObject, 3);
         // console.log(signatures);
@@ -14,6 +15,20 @@ exports.generateSignatures = function(objects) {
         resolve(objects);
     });
 };
+
+function getMainTopicWord(tfidfs) {
+    // TODO assumptions are too strong here; not only words with spaces are proper nouns! Need to get back at caps
+    let currLargestTfidf = 0;
+    let topicWord = "";
+    for(let word in tfidfs) {
+        let currTfidf = tfidfs[word];
+        if(currTfidf > currLargestTfidf && isProperNoun(word)) {
+            currLargestTfidf = currTfidf;
+            topicWord = word;
+        }
+    }
+    return topicWord;
+}
 
 function getSentenceTfIdfs(sentences, tfidfs) {
     let values = [];
@@ -52,4 +67,8 @@ function getTopNSentences(sentenceTfIdfs, pageObject, n) {
         topSentences.push(temp[i][1]);
     }
     return topSentences;
+}
+
+function isProperNoun(word) {
+    return word.indexOf(" ") > -1;
 }

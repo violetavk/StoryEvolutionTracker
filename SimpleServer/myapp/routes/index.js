@@ -31,7 +31,6 @@ router.post('/process_post', urlencodedParser, function (req, res) {
     }
     else
         console.log("Error, link was undefined");
-
 });
 
 function sendResponse(objects) {

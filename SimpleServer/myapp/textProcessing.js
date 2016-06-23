@@ -29,7 +29,7 @@ function processWords(pageObject) { // process words to detect certain classes o
     sentenceWords = detectHyphenatedWords(sentenceWords);
     sentenceWords = detectURLs(sentenceWords);
     sentenceWords = detectNumbers(sentenceWords);
-    // detectCompoundNouns(sentenceWords);
+    detectCompoundNouns(sentenceWords);
     sentenceWords = removePunctuation(sentenceWords);
     
     return sentenceWords;
@@ -173,18 +173,23 @@ function detectCompoundNouns(sentenceWords) {
         for(let i = 0; i < sentence.length; i++) {
             let word = sentence[i];
             if(isStopWord(word.toLowerCase())) continue;
+            if(!isAlphaNum(word.toLowerCase())) continue;
+            followsMatrix[word] = [];
             if(i + 1 < sentence.length) {
                 let followingWord = sentence[i+1];
                 if(isStopWord(followingWord)) continue;
-                console.log("After",word," comes ",followingWord);
+                // console.log("After",word," comes ",followingWord);
                 let isAlNum = isAlphaNum(followingWord.toLowerCase());
                 let stopWord = isStopWord(followingWord.toLowerCase());
                 if(isAlNum && !stopWord) {
-                    console.log("--Registering this");
+                    // console.log("--Registering this");
+                    followsMatrix[word].push(followingWord);
                 }
             }
         }
     }
+    console.log(followsMatrix);
+    return followsMatrix;
 }
 
 function concatSentences(textObject) { // represents entire article as array of words
@@ -298,40 +303,6 @@ function getDisplayWord(textObject, word) {
     }
 
     return displayWord;
-}
-
-function getSentenceTfIdfs(sentences, tfidfs) {
-    let values = [];
-    for(let i = 1; i < sentences.length; i++) {
-        let sentenceValue = 0;
-        let sentence = sentences[i];
-        for(let word of sentence) {
-            let curr = tfidfs[word.toLowerCase()];
-            if(curr)
-                sentenceValue += curr;
-        }
-        sentenceValue = sentenceValue / (sentence.length); // test
-        values.push([i, sentence, sentenceValue]);
-    }
-    values.sort(function(a,b) {return b[2] - a[2]});
-    return values;
-}
-
-function getTopNSentences(sentenceTfIdfs, pageObject, n) {
-    let actualSentences = pageObject.sentences;
-    let temp = [];
-    let topSentences = [];
-    for(let i = 0; i < n && i < actualSentences.length; i++) {
-        let tfIdfSentence = sentenceTfIdfs[i];
-        // let id = tfIdfSentence[0];
-        temp.push(tfIdfSentence);
-        // topSentences.push(actualSentences[id]);
-    }
-    temp.sort(function(a,b) {return a[0] - b[0]});
-    for(let i = 0; i < temp.length; i++) {
-        topSentences.push(temp[i][1]);
-    }
-    return topSentences;
 }
 
 function isStopWord(word) {
