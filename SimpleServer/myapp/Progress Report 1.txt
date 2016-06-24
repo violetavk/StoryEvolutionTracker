@@ -1,5 +1,8 @@
 Progress Report 1
 
+INSTRUCTIONS:
+report should summarise the progress made on the project (e.g., findings (such as analysis results, algorithms, computer simulations/programs, methodologies, theories and ect), development, results, conclusion, what you have done, what you have achieved, etc) since the last report and should measure the progress made against the project's gantt chart in the preliminary report.
+
 Intro:
 -Since the last report, the following has been completed
 - language of choice for this project is javascript, since the main sources of information come from the web, and javascript is created for that kind of processing environment
@@ -56,3 +59,9 @@ Overall progress and next steps:
 - progress has been slower that i would have liked, so therefore a revised gantt chart perhaps
 - aim to finish signatures by the end of the month; will try to have more optimizations for topic word detection
 - will move onto actual story tracking and multi-doc summariztion next
+
+
+taxonomy of words
+eg words related to weather
+ontology
+what concept of words all important --> how they're all related perhaps

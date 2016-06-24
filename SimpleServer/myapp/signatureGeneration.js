@@ -1,4 +1,5 @@
 'use strict';
+let util = require("./util.js");
 
 exports.generateSignatures = function(objects) {
     console.log("-- Generating Signatures --");
@@ -10,7 +11,7 @@ exports.generateSignatures = function(objects) {
         signatures.topicWord = getMainTopicWord(textObject.tfidfs);
         signatures.sentenceTfIdfs = getSentenceTfIdfs(textObject.sentenceWordsArray,textObject.tfidfs);
         signatures.topSentences = getTopNSentences(signatures.sentenceTfIdfs, pageObject, 3);
-        // console.log(signatures);
+        signatures.plainSignature = getPlainSignature(signatures);
         objects.push(signatures);
         resolve(objects);
     });
@@ -60,13 +61,55 @@ function getTopNSentences(sentenceTfIdfs, pageObject, n) {
             continue;
         }
         temp.push(tfIdfSentence);
-        // topSentences.push(actualSentences[id]);
     }
     temp.sort(function(a,b) {return a[0] - b[0]});
     for(let i = 0; i < temp.length; i++) {
         topSentences.push(temp[i][1]);
     }
     return topSentences;
+}
+
+function getPlainSignature(signatures) {
+    let topSentences = signatures.topSentences;
+    let signature = "";
+
+    for(let i = 0; i < topSentences.length; i++) {
+        let sentence = "";
+        let curr = topSentences[i];
+        let insideQuotes = false;
+        for(let j = 0; j < curr.length; j++) {
+            let word = curr[j].trim();
+            sentence += word;
+
+            if(word === "\"") continue;
+
+            // test whether to add space
+            if(j+1 >= curr.length) continue;
+            let nextWord = curr[j+1].trim();
+
+            if(util.isAlpha(word) && util.isNumeric(nextWord)) {
+                sentence += " ";
+            }
+            else if(nextWord === "." || nextWord === "," || util.isNumeric(nextWord)) {
+                // just continue
+            }
+            else if(nextWord === "\"" && !insideQuotes) {
+                insideQuotes = true;
+                sentence += " ";
+                console.log("entering quotes, curr word:",word,", next word:",nextWord);
+            }
+            else if(nextWord === "\"" && insideQuotes) {
+                insideQuotes = false;
+                console.log("leaving quotes, curr word:",word,", next word:",nextWord);
+            }
+            else {
+                sentence += " ";
+            }
+        }
+        signature += (sentence + " ");
+    }
+
+    return signature;
 }
 
 function isProperNoun(word) {

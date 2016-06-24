@@ -9,13 +9,16 @@ exports.processText = function(objects) {
         let pageObject = objects[2];
 
         let textObject = {};
-        textObject.sentenceWordsArray = processWords(pageObject);
+        let processedWords = processWords(pageObject);
+        textObject.sentenceWordsArray = processedWords.sentenceWords;
+        textObject.properNouns = processedWords.properNouns;
         textObject.article = concatSentences(textObject);
         textObject.wordFrequencies = getWordFrequencies(textObject);
         textObject.tfidfs = getTfIdf(textObject);
         textObject.stemmedWords = stemWords(textObject);
+        textObject.tfidfAvg = getTfIdfAverage(textObject.tfidfs);
 
-        textObject = adjustTopicWords(textObject);
+        textObject = adjustTopicWords(textObject,pageObject);
         objects.push(textObject);
         resolve(objects);
     });
@@ -23,20 +26,28 @@ exports.processText = function(objects) {
 
 function processWords(pageObject) { // process words to detect certain classes of words
     let sentences = pageObject.sentences;
-    
-    let sentenceWords = detectProperNouns(sentences);
+
+    let properNounsArray = detectProperNouns(sentences);
+    let sentenceWords = properNounsArray.sentenceWords;
+    let properNouns = properNounsArray.properNouns;
+
     sentenceWords = detectNames(sentenceWords);
     sentenceWords = detectHyphenatedWords(sentenceWords);
     sentenceWords = detectURLs(sentenceWords);
     sentenceWords = detectNumbers(sentenceWords);
-    detectCompoundNouns(sentenceWords);
-    sentenceWords = removePunctuation(sentenceWords);
+    // detectCompoundNouns(sentenceWords);
+
+    detectCompoundNounsSentence(sentenceWords[0]);
+    detectCompoundNounsSentence(sentenceWords[1]);
     
-    return sentenceWords;
+    // sentenceWords = removePunctuation(sentenceWords);
+
+    return {sentenceWords, properNouns};
 }
 
 function detectProperNouns(sentences) {
     let sentenceWords = [];
+    let properNouns = [];
     let capsStart = -1;
     let wordTokenizer = new natural.WordPunctTokenizer();
     for(let s = 0; s < sentences.length; s++) {
@@ -58,16 +69,17 @@ function detectProperNouns(sentences) {
                 if(capsStart !== -1 && difference > 1) {
                     let compoundWord = getWordFromArray(capsStart, i-1, words);
                     console.log("--------- Found: " + compoundWord);
+                    properNouns.push(compoundWord);
                     words[capsStart] = compoundWord;
                     words.splice(capsStart+1, difference-1);
                     i--;
-                }   
+                }
                 capsStart = -1;
             }
         }
         sentenceWords.push(words);
     }
-    return sentenceWords;
+    return {sentenceWords,properNouns};
 }
 
 function detectNames(sentenceWords) {
@@ -166,6 +178,23 @@ function removePunctuation(sentenceWords) {
     return sentenceWords;
 }
 
+function detectCompoundNounsSentence(sentence) {
+    console.log("Detecting inside: ",sentence);
+    for(let i = 0; i < sentence.length; i++) {
+        let word = sentence[i];
+        if(isStopWord(word.toLowerCase())) continue;
+        if(!isAlphaNum(word.toLowerCase())) continue;
+        if(i+1 < sentence.length) {
+            let followingWord = sentence[i+1];
+            let isAlNum = isAlphaNum(followingWord.toLowerCase());
+            let stopWord = isStopWord(followingWord.toLowerCase());
+            if(isAlNum && !stopWord) {
+                console.log("Compound word: ",word,followingWord);
+            }
+        }
+    }
+}
+
 function detectCompoundNouns(sentenceWords) {
     let followsMatrix = {};
     for(let s = 0; s < sentenceWords.length; s++) {
@@ -234,7 +263,7 @@ function getTfIdf(textObject) {
     let tfidfs = { };
     for(let word in freq) {
         if(isNumeric(word)) continue;
-        
+
         let toTest = [];
         toTest.push(word);
         tfidfs[word] = tfidf.tfidf(toTest, 0);
@@ -242,21 +271,72 @@ function getTfIdf(textObject) {
     return tfidfs;
 }
 
-function adjustTopicWords(textObject) {
+function adjustTopicWords(textObject, pageObject) {
     // there will be a variety of processes in here
     let sentences = textObject.sentenceWordsArray;
     let tfidfs = textObject.tfidfs;
+
+    tfidfs = weighHeadline(textObject,pageObject);
+    tfidfs = weighSection(tfidfs,pageObject.section);
+    tfidfs = weighBolded(textObject,pageObject);
+
+    textObject.tfidfs = tfidfs;
+    return textObject;
+}
+
+function weighHeadline(textObject,pageObject) {
+    if(!pageObject.headline) return textObject.tfidfs;
+    let tfidfs = textObject.tfidfs;
+    let sentences = textObject.sentenceWordsArray;
+
     let headline = sentences[0];
+    if(!headline) return tfidfs;
     for(let word of headline) {
         word = word.toLowerCase();
         if(isStopWord(word)) continue;
         let currTfidf = tfidfs[word];
         if(currTfidf) {
-            tfidfs[word] = tfidfs[word] + 1.5; // increase importance of word if it's in headline
+            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg; // increase importance of word if it's in headline, avg?
         }
     }
-    textObject.tfidfs = tfidfs;
-    return textObject;
+    return tfidfs;
+}
+
+function weighSection(tfidfs, section) {
+    console.log("Testing section: ",section);
+    section = section.toLowerCase();
+    let sectionTfidf = tfidfs[section];
+    if(sectionTfidf) {
+        tfidfs[sectionTfidf] = tfidfs[section] + 0.5;
+
+    }
+    return tfidfs;
+}
+
+function weighBolded(textObject,pageObject) {
+    if(!pageObject.bolded) return textObject.tfidfs;
+    let tfidfs = textObject.tfidfs;
+    let sentences = textObject.sentenceWordsArray;
+    let bolded  = sentences[1];
+    for(let word of bolded) {
+        word = word.toLowerCase();
+        if(isStopWord(word)) continue;
+        if(!isAlphaNum(word)) continue;
+        if(tfidfs[word]) {
+            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg * 0.75; // a proportion of avg (as important but not quite)
+        }
+    }
+    return tfidfs;
+}
+
+function getTfIdfAverage(tfidfs) {
+    let sum = 0;
+    let number = 0;
+    for(let word in tfidfs) {
+        sum += tfidfs[word];
+        number++;
+    }
+    return sum / number;
 }
 
 function stemWords(textObject) { // stem words using porter-stemmer
@@ -271,7 +351,7 @@ function stemWords(textObject) { // stem words using porter-stemmer
 
             let isNormal = isNormalWord(word);
             let stemmedWord = word;
-            if(isNormal) 
+            if(isNormal)
                 stemmedWord = stemmer(word); // stem word only if a normal word, not a name, hyphenated, etc.
             if(!(stemmedWord in stemmed)) {
                 stemmed[stemmedWord] = [];

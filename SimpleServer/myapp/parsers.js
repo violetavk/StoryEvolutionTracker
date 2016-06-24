@@ -6,7 +6,7 @@ exports.bbcParser = function(data) {
     let pageObject = {};
     pageObject.date = parseInt($(".date").attr("data-seconds"));
     pageObject.formattedDate = $(".date").attr("data-datetime");
-    pageObject.section = $(".mini-info-list__section").text();
+    pageObject.section = $(".mini-info-list__section").first().text();
     pageObject.headline = $(".story-body__h1").text();
     pageObject.bolded = $(".story-body__introduction").first().text();
 
