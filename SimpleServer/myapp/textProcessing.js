@@ -12,10 +12,11 @@ exports.processText = function(objects) {
         let processedWords = processWords(pageObject);
         textObject.sentenceWordsArray = processedWords.sentenceWords;
         textObject.properNouns = processedWords.properNouns;
+        determineRelatedWords(textObject);
         textObject.article = concatSentences(textObject);
         textObject.wordFrequencies = getWordFrequencies(textObject);
         textObject.tfidfs = getTfIdf(textObject);
-        textObject.stemmedWords = stemWords(textObject);
+        // textObject.stemmedWords = stemWords(textObject);
         textObject.tfidfAvg = getTfIdfAverage(textObject.tfidfs);
 
         textObject = adjustTopicWords(textObject,pageObject);
@@ -92,8 +93,7 @@ function detectNames(sentenceWords) {
                 // found a title, like Mr
                 if((i + 1) < sentence.length && sentence[i+1] === "." && (i + 2) < sentence.length) {
                     // found a period after the title, so join the name following it
-                    let name = word + sentence[i+1] + " " + sentence[i+2];
-                    sentence[i] = name;
+                    sentence[i] = word + sentence[i+1] + " " + sentence[i+2];;
                     sentence.splice(i+1,2);
                     i--;
                 }
@@ -108,7 +108,6 @@ function detectHyphenatedWords(sentenceWords) {
     for(let s = 0; s < sentenceWords.length; s++) {
         let sentence = sentenceWords[s];
         for(let i = 0; i < sentence.length; i++) {
-            let word = sentence[i];
             if((i + 1) < sentence.length && sentence[i+1] === "-" && (i+2) < sentence.length) {
                 let hyphenated = sentence[i] + sentence[i+1] + sentence[i+2];
                 console.log("Found hyphenated: " + hyphenated);
@@ -176,6 +175,36 @@ function removePunctuation(sentenceWords) {
         sentenceWords[s] = sentence;
     }
     return sentenceWords;
+}
+
+function determineRelatedWords(textObject) {
+    let titles = ["Mr", "Mrs", "Ms", "Miss", "Mx", "Dr", "Prof", "Hon", "Rev"];
+    let properNouns = textObject.properNouns;
+    let locations = [];
+    // first split on space
+    for(let i = 0; i < properNouns.length; i++) {
+        let noun = properNouns[i];
+        noun = noun.split(" ");
+        properNouns[i] = noun;
+    }
+
+    for(let i = 0; i < properNouns.length; i++) {
+        let noun = properNouns[i];
+        let nounLocations = [];
+        for(let j = 0; j < properNouns.length; j++) {
+            if(i === j) continue;
+            let curr = properNouns[j];
+            for(let word of noun) {
+                if(titles.indexOf(word) > -1) continue;
+                if(curr.indexOf(word) > -1) {
+                    nounLocations.push(j);
+                }
+            }
+        }
+        locations.push(nounLocations);
+    }
+    console.log(properNouns);
+    console.log(locations);
 }
 
 function detectCompoundNounsSentence(sentence) {
@@ -273,26 +302,40 @@ function getTfIdf(textObject) {
 
 function adjustTopicWords(textObject, pageObject) {
     // there will be a variety of processes in here
-    let sentences = textObject.sentenceWordsArray;
     let tfidfs = textObject.tfidfs;
 
-    tfidfs = weighHeadline(textObject,pageObject);
+    tfidfs = weighHeadline(tfidfs,textObject,pageObject);
     tfidfs = weighSection(tfidfs,pageObject.section);
-    tfidfs = weighBolded(textObject,pageObject);
+    tfidfs = weighBolded(tfidfs,textObject,pageObject);
 
-    getMainWordsDistribution(tfidfs);
+    tfidfs = getMainWordsDistribution(tfidfs,textObject);
 
     textObject.tfidfs = tfidfs;
     return textObject;
 }
 
-function getMainWordsDistribution(tfidfs) {
+function getMainWordsDistribution(tfidfs, textObject) {
+    let article = textObject.article;
+    let avg = textObject.tfidfAvg;
+    console.log(article.indexOf("shadow")/article.length*100);
+    // let ranges = {};
+    for(let word in tfidfs) {
+        word = word.toLowerCase();
+        // let locations = util.getAllIndexes(article,word);
+        // let range = locations[locations.length-1] - locations[0];
+        // console.log("Range of",word,"is",locations);
+        let perc = article.indexOf(word)/article.length;
+        console.log(word,perc);
+        if(perc < .5) {
+            tfidfs[word] = tfidfs[word] + avg*0.75;
+        }
+    }
 
+    return tfidfs;
 }
 
-function weighHeadline(textObject,pageObject) {
+function weighHeadline(tfidfs,textObject,pageObject) {
     if(!pageObject.headline) return textObject.tfidfs;
-    let tfidfs = textObject.tfidfs;
     let sentences = textObject.sentenceWordsArray;
 
     let headline = sentences[0];
@@ -302,7 +345,7 @@ function weighHeadline(textObject,pageObject) {
         if(util.isStopWord(word)) continue;
         let currTfidf = tfidfs[word];
         if(currTfidf) {
-            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg; // increase importance of word if it's in headline, avg?
+            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg*2; // increase importance of word if it's in headline, avg?
         }
     }
     return tfidfs;
@@ -319,9 +362,8 @@ function weighSection(tfidfs, section) {
     return tfidfs;
 }
 
-function weighBolded(textObject,pageObject) {
+function weighBolded(tfidfs,textObject,pageObject) {
     if(!pageObject.bolded) return textObject.tfidfs;
-    let tfidfs = textObject.tfidfs;
     let sentences = textObject.sentenceWordsArray;
     let bolded  = sentences[1];
     for(let word of bolded) {
@@ -329,7 +371,7 @@ function weighBolded(textObject,pageObject) {
         if(util.isStopWord(word)) continue;
         if(!util.isAlphaNum(word)) continue;
         if(tfidfs[word]) {
-            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg * 0.75; // a proportion of avg (as important but not quite)
+            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg; // a proportion of avg (as important but not quite)
         }
     }
     return tfidfs;

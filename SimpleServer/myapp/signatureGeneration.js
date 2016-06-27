@@ -74,15 +74,17 @@ function getTopNSentences(sentenceTfIdfs, pageObject, n) {
 
 function adjustSentences(signatures,textObject) {
     // testing with only first sentence for now
-    let top = signatures.topSentences;
     let tfidfs = textObject.tfidfs;
+    let avg = textObject.tfidfAvg;
     let tagged = signatures.taggedSentences;
 
     tagged = removeBlacklistWords(tagged);
+    // tagged = removeDeterminers(tagged);
     tagged = removePastParticiples(tagged);
     tagged = removePossessives(tagged);
-    tagged = removeAdjectives(tagged);
-    // removeClausePhrases(top);
+    tagged = removeAdjectives(tagged,textObject);
+    tagged = removeClausePhrases(tagged,textObject);
+    removeOtherPhrases(tagged,textObject);
     tagged = fixFormat(tagged);
 
     return tagged;
@@ -102,6 +104,7 @@ function tagSentences(sentences) {
         }
         tagged.push(taggedSentence);
     }
+    console.log(tagged);
     return tagged;
 }
 
@@ -119,8 +122,22 @@ function removeBlacklistWords(tagged) {
     return tagged;
 }
 
+function removeDeterminers(tagged) {
+    for(let i = 0; i < tagged.length; i++) {
+        let sentence = tagged[i];
+        for(let j = 0; j < sentence.length; j++) {
+            if(sentence[j][1] === "DT") {
+                sentence.splice(j,1);
+                j--;
+            }
+        }
+        tagged[i] = sentence;
+    }
+    return tagged;
+}
+
 function removePastParticiples(tagged) {
-    let pastParticiples = {had:"had",done:"did",said:"said",gone:"went",got:"got",gotten:"got",made:"made",known:"knew", thought:"thought",taken:"took",seen:"saw",come:"came",wanted:"wanted",used:"used",found:"found",given:"gave",told:"told", worked:"worked",called:"called",tried:"tried",asked:"asked",needed:"needed",felt:"felt",become:"became",left:"left",voted:"voted",managed:"managed",put:"put",meant:"meant",kept:"kept",let:"let",begun:"began",seemed:"seemed",helped:"helped",shown:"showed",heard:"heard",played:"played",run:"ran",moved:"moved",lived:"lived",believed:"believed",brought:"brought",happened:"happened",written:"wrote",sat:"sat",stood:"stood",lost:"lost",paid:"paid",met:"met",included:"included",continued:"continued",set:"set",learnt:"learnt",learned:"learned",changed:"changed",led:"led",understood:"understood",watched:"watched",followed:"followed",stopped:"stopped",created:"created",spoken:"spoke",read:"read",spent:"spent",grown:"grew",opened:"opened",walked:"walked",won:"won",taught:"taught",offered:"offered",remembered:"remembered",considered:"considered",appeared:"appeared",bought:"bought",served:"served",died:"died",sent:"sent",built:"built",stayed:"stayed",fallen:"fell",cut:"cut",reached:"reached",killed:"killed",raised:"raised",passed:"passed",sold:"sold",decided:"decided",returned:"returned",explained:"explained",hoped:"hoped",developed:"developed",carried:"carried",broken:"broke",received:"received",agreed:"agreed",supported:"supported",hit:"hit",produced:"produced",eaten:"ate",covered:"covered",caught:"caught",drawn:"drew",chosen:"chose"};
+    let pastParticiples = {removed:"removed",had:"had",done:"did",said:"said",gone:"went",got:"got",gotten:"got",made:"made",known:"knew", thought:"thought",taken:"took",seen:"saw",come:"came",wanted:"wanted",used:"used",found:"found",given:"gave",told:"told", worked:"worked",called:"called",tried:"tried",asked:"asked",needed:"needed",felt:"felt",become:"became",left:"left",voted:"voted",managed:"managed",put:"put",meant:"meant",kept:"kept",let:"let",begun:"began",seemed:"seemed",helped:"helped",shown:"showed",heard:"heard",played:"played",run:"ran",moved:"moved",lived:"lived",believed:"believed",brought:"brought",happened:"happened",written:"wrote",sat:"sat",stood:"stood",lost:"lost",paid:"paid",met:"met",included:"included",continued:"continued",set:"set",learnt:"learnt",learned:"learned",changed:"changed",led:"led",understood:"understood",watched:"watched",followed:"followed",stopped:"stopped",created:"created",spoken:"spoke",read:"read",spent:"spent",grown:"grew",opened:"opened",walked:"walked",won:"won",taught:"taught",offered:"offered",remembered:"remembered",considered:"considered",appeared:"appeared",bought:"bought",served:"served",died:"died",sent:"sent",built:"built",stayed:"stayed",fallen:"fell",cut:"cut",reached:"reached",killed:"killed",raised:"raised",passed:"passed",sold:"sold",decided:"decided",returned:"returned",explained:"explained",hoped:"hoped",developed:"developed",carried:"carried",broken:"broke",received:"received",agreed:"agreed",supported:"supported",hit:"hit",produced:"produced",eaten:"ate",covered:"covered",caught:"caught",drawn:"drew",chosen:"chose"};
     for(let i = 0; i < tagged.length; i++) {
         let sentence = tagged[i];
         for(let j = 0; j < sentence.length; j++) {
@@ -148,6 +165,12 @@ function removePossessives(tagged) {
             let tag = pair[1];
             if(tag === "PP$" || tag === "PRP$") {
                 console.log("Found possessive:",word);
+                if(j - 1 >= 0) {
+                    let prevWord = sentence[j-1];
+                    let prevTag = prevWord[1];
+                    if(prevTag === "VBN" || prevTag === "VBD")
+                        continue;
+                }
                 sentence.splice(j,1);
                 j--;
             }
@@ -157,7 +180,9 @@ function removePossessives(tagged) {
     return tagged;
 }
 
-function removeAdjectives(tagged) {
+function removeAdjectives(tagged, textObject) {
+    let tfidfs = textObject.tfidfs;
+    let avg = textObject.tfidfAvg;
     for(let i = 0; i < tagged.length; i++) {
         let sentence = tagged[i];
         for(let j = 0; j < sentence.length; j++) {
@@ -165,6 +190,21 @@ function removeAdjectives(tagged) {
             let word = pair[0];
             let tag = pair[1];
             if((tag === "JJ" || tag === "JJR" || tag === "JJS") && !util.isProperNoun(word)) {
+                // perform various tests first because maybe it should not be removed
+                if(j-1 >= 0) {
+                    let prevWord = sentence[j-1][0];
+                    if(prevWord === "not" || prevWord === "is" ||
+                        prevWord === "are" || prevWord === "was" || prevWord === "were") continue;
+                }
+                if(j+1 < sentence.length) {
+                    let nextWord = sentence[j+1][0];
+                    let nextTag = sentence[j+1][1];
+                    if(nextTag === "MD" || nextTag === "VBN") continue;
+                }
+                if(tfidfs[word] > avg) {
+                    continue;
+                }
+
                 sentence.splice(j,1);
                 j--;
             }
@@ -174,8 +214,113 @@ function removeAdjectives(tagged) {
     return tagged;
 }
 
-function removeClausePhrases(sentences) {
+function removeClausePhrases(tagged,textObject) {
+    let tfidfs = textObject.tfidfs;
+    let avg = textObject.tfidfAvg;
+    for(let i = 0; i < tagged.length; i++) {
+        let sentence = tagged[i];
+        let clause = false;
+        let startIndex = -1, endIndex = -1;
+        let sentenceClauses = [];
+        for(let j = 0; j < sentence.length; j++) {
+            let word = sentence[j][0].trim();
+            let tag = sentence[j][1];
+            if(tag === "IN" && !clause) {
+                if(j-1 >= 0) {
+                    let prev = sentence[j-1];
+                    let prevTag = prev[1];
+                    if(prevTag === "VBN") continue;
+                }
+                startIndex = j;
+                clause = true;
+            } else if(clause && (tag === "NN" || tag === "NNS")) {
+                if(j+1 < sentence.length) {
+                    let nextTag = sentence[j+1][1];
+                    if(nextTag === "NN" || nextTag === "NNS") { /* continue */ }
+                    else {
+                        endIndex = j;
+                        sentenceClauses.push([startIndex,endIndex]);
+                        clause = false;
+                    }
+                } else {
+                    endIndex = j;
+                    sentenceClauses.push([startIndex,endIndex]);
+                    clause = false;
+                }
+            } else if(clause && (word === "," )) {
+                endIndex = j-1;
+                sentenceClauses.push([startIndex,endIndex]);
+                clause = false;
+            }
+        }
+        tagged[i] = removeSentenceClauses(sentence,sentenceClauses,tfidfs,avg);
+    }
+    return tagged;
+}
 
+function removeSentenceClauses(sentence,sentenceClauses,tfidfs,avg) {
+    for(let clause of sentenceClauses) {
+        let start = clause[0];
+        let end = clause[1];
+
+        // blacklist some prepositions
+        let first = sentence[start][0];
+        if(first === "that" || first === "after" || first === "about" || first === "if") continue;
+
+        // check if any are important; if yes, must include this clause
+        // let important = false;
+        // for(let i = start; i <= end; i++) {
+        //     if(tfidfs[sentence[i][0]] > avg*4) {
+        //         console.log("deemed",sentence[i][0],"is important");
+        //         important = true;
+        //
+        //     }
+        // }
+        // if(important) continue;
+        // console.log("not important");
+
+        for(let i = start; i <= end; i++) {
+            console.log(sentence[i][0]);
+            sentence[i].toDelete = true;
+        }
+        console.log("---");
+    }
+    for(let i = 0; i < sentence.length; i++) {
+        if(sentence[i].toDelete) {
+            sentence.splice(i,1);
+            i--;
+        }
+    }
+    return sentence;
+}
+
+function removeOtherPhrases(tagged,textObject) {
+    for(let i = 0; i < tagged.length; i++) {
+        let sentence = tagged[i];
+
+        // find various punctuation in sentence
+        let commas = [], otherSeparators = [], k;
+        for(k = 0; k < sentence.length; k++) {
+            let test = sentence[k][0].trim();
+            if (test === ",")
+                commas.push(k);
+            else if(test === "-")
+                otherSeparators.push(k);
+        }
+        console.log(i,"commas:",commas);
+        console.log(i,"others:",otherSeparators);
+
+        if(commas.length === 1) {
+            let pos = commas[0]/sentence.length;
+            console.log("comma at",pos);
+            if(pos >= 0.5) {
+                sentence.splice(commas[0]);
+                sentence.push([".","."]);
+            } else {
+                sentence.splice(0,commas[0]+1);
+            }
+        }
+    }
 }
 
 function fixFormat(tagged) {
@@ -191,7 +336,6 @@ function fixFormat(tagged) {
 }
 
 function getPlainSignature(signatures) {
-    // let topSentences = signatures.topSentences;
     let topSentences = signatures.adjustedSentences;
     let signature = "";
 
