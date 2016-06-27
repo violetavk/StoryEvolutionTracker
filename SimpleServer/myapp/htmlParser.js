@@ -8,6 +8,7 @@ let cheerio = require("cheerio");
 let natural = require("natural");
 let fs = require("fs");
 let parsers = require("./parsers.js");
+let util = require("./util.js");
 
 exports.parseHTML = function(objects) {
     return new Promise(function(resolve, reject) {
@@ -203,12 +204,12 @@ function concatSentences(pageObject) {
 }
 
 function isSpeakingSentence(sentence, numQuotes) {
-    if(numQuotes < 2)
-        return false;
+    if(numQuotes < 2) return false;
     let speakingWords = ["said","explained","read","commented"];
+    let quoteIndexes = util.getAllIndexes(sentence,"\"");
     for(let word of speakingWords) {
-        if(sentence.indexOf(word) > -1) {
-            return true;
+        if(sentence.indexOf(word) > -1 && quoteIndexes.length === 2) {
+            return (quoteIndexes[1] - quoteIndexes[0]) / sentence.length > 0.5;
         }
     }
     return false;

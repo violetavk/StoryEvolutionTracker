@@ -1,7 +1,7 @@
 'use strict';
 let natural = require("natural");
 let stemmer = require("porter-stemmer").stemmer;
-let nlp = require('nlp_compromise');
+let util = require("./util.js");
 
 exports.processText = function(objects) {
     console.log("-- Text Processing (with promise) --");
@@ -37,8 +37,8 @@ function processWords(pageObject) { // process words to detect certain classes o
     sentenceWords = detectNumbers(sentenceWords);
     // detectCompoundNouns(sentenceWords);
 
-    detectCompoundNounsSentence(sentenceWords[0]);
-    detectCompoundNounsSentence(sentenceWords[1]);
+    // detectCompoundNounsSentence(sentenceWords[0]);
+    // detectCompoundNounsSentence(sentenceWords[1]);
     
     // sentenceWords = removePunctuation(sentenceWords);
 
@@ -55,14 +55,14 @@ function detectProperNouns(sentences) {
         let words = wordTokenizer.tokenize(sent);
         for(let i = 0; i < words.length; i++) {
             let word = words[i];
-            let isAlphaNum = /^[A-Za-z0-9]/.test(word[0]);
-            let isUpperCase = (/^[A-Z]+$/.test(word[0]));
-            let isstopword = isStopWord(word.toLowerCase());
-            if(isUpperCase && isAlphaNum && !isstopword) {
+            let isAlNum = util.isAlphaNum(word);
+            let isUpper = util.isUpperCase(word);
+            let isStop = util.isStopWord(word.toLowerCase());
+            if(isUpper && isAlNum && !isStop) {
                 if(capsStart === -1) {
                     capsStart = i;
                 }
-            } else if(capsStart !== -1 && isNumeric(word)) {
+            } else if(capsStart !== -1 && util.isNumeric(word)) {
                 continue;
             } else {
                 let difference = i - capsStart;
@@ -168,7 +168,7 @@ function removePunctuation(sentenceWords) {
         let sentence = sentenceWords[s];
         for(let i = 0; i < sentence.length; i++) {
             let word = sentence[i];
-            if(!isAlphaNum(word)) {
+            if(!util.isAlphaNum(word)) {
                 sentence.splice(i,1);
                 i--;
             }
@@ -182,12 +182,12 @@ function detectCompoundNounsSentence(sentence) {
     console.log("Detecting inside: ",sentence);
     for(let i = 0; i < sentence.length; i++) {
         let word = sentence[i];
-        if(isStopWord(word.toLowerCase())) continue;
-        if(!isAlphaNum(word.toLowerCase())) continue;
+        if(util.isStopWord(word.toLowerCase())) continue;
+        if(!util.isAlphaNum(word.toLowerCase())) continue;
         if(i+1 < sentence.length) {
             let followingWord = sentence[i+1];
-            let isAlNum = isAlphaNum(followingWord.toLowerCase());
-            let stopWord = isStopWord(followingWord.toLowerCase());
+            let isAlNum = util.isAlphaNum(followingWord.toLowerCase());
+            let stopWord = util.isStopWord(followingWord.toLowerCase());
             if(isAlNum && !stopWord) {
                 console.log("Compound word: ",word,followingWord);
             }
@@ -201,15 +201,15 @@ function detectCompoundNouns(sentenceWords) {
         let sentence = sentenceWords[s];
         for(let i = 0; i < sentence.length; i++) {
             let word = sentence[i];
-            if(isStopWord(word.toLowerCase())) continue;
-            if(!isAlphaNum(word.toLowerCase())) continue;
+            if(util.isStopWord(word.toLowerCase())) continue;
+            if(!util.isAlphaNum(word.toLowerCase())) continue;
             followsMatrix[word] = [];
             if(i + 1 < sentence.length) {
                 let followingWord = sentence[i+1];
-                if(isStopWord(followingWord)) continue;
+                if(util.isStopWord(followingWord)) continue;
                 // console.log("After",word," comes ",followingWord);
-                let isAlNum = isAlphaNum(followingWord.toLowerCase());
-                let stopWord = isStopWord(followingWord.toLowerCase());
+                let isAlNum = util.isAlphaNum(followingWord.toLowerCase());
+                let stopWord = util.isStopWord(followingWord.toLowerCase());
                 if(isAlNum && !stopWord) {
                     // console.log("--Registering this");
                     followsMatrix[word].push(followingWord);
@@ -240,8 +240,8 @@ function getWordFrequencies(textObject) {
         for(let word of sentence) {
             word = word.toLowerCase();
 
-            if(isStopWord(word)) continue;
-            if(!isAlphaNum(word)) continue;
+            if(util.isStopWord(word)) continue;
+            if(!util.isAlphaNum(word)) continue;
 
             if(!(word in freq)) {
                 freq[word] = 1;
@@ -262,7 +262,7 @@ function getTfIdf(textObject) {
 
     let tfidfs = { };
     for(let word in freq) {
-        if(isNumeric(word)) continue;
+        if(util.isNumeric(word)) continue;
 
         let toTest = [];
         toTest.push(word);
@@ -280,8 +280,14 @@ function adjustTopicWords(textObject, pageObject) {
     tfidfs = weighSection(tfidfs,pageObject.section);
     tfidfs = weighBolded(textObject,pageObject);
 
+    getMainWordsDistribution(tfidfs);
+
     textObject.tfidfs = tfidfs;
     return textObject;
+}
+
+function getMainWordsDistribution(tfidfs) {
+
 }
 
 function weighHeadline(textObject,pageObject) {
@@ -293,7 +299,7 @@ function weighHeadline(textObject,pageObject) {
     if(!headline) return tfidfs;
     for(let word of headline) {
         word = word.toLowerCase();
-        if(isStopWord(word)) continue;
+        if(util.isStopWord(word)) continue;
         let currTfidf = tfidfs[word];
         if(currTfidf) {
             tfidfs[word] = tfidfs[word] + textObject.tfidfAvg; // increase importance of word if it's in headline, avg?
@@ -320,8 +326,8 @@ function weighBolded(textObject,pageObject) {
     let bolded  = sentences[1];
     for(let word of bolded) {
         word = word.toLowerCase();
-        if(isStopWord(word)) continue;
-        if(!isAlphaNum(word)) continue;
+        if(util.isStopWord(word)) continue;
+        if(!util.isAlphaNum(word)) continue;
         if(tfidfs[word]) {
             tfidfs[word] = tfidfs[word] + textObject.tfidfAvg * 0.75; // a proportion of avg (as important but not quite)
         }
@@ -346,10 +352,10 @@ function stemWords(textObject) { // stem words using porter-stemmer
     for(let sentence of sentences) {
         for(let word of sentence) {
             word = word.toLowerCase();
-            if(isStopWord(word.toLowerCase())) continue;
-            if(!isAlphaNum(word.toLowerCase())) continue;
+            if(util.isStopWord(word.toLowerCase())) continue;
+            if(!util.isAlphaNum(word.toLowerCase())) continue;
 
-            let isNormal = isNormalWord(word);
+            let isNormal = util.isNormalWord(word);
             let stemmedWord = word;
             if(isNormal)
                 stemmedWord = stemmer(word); // stem word only if a normal word, not a name, hyphenated, etc.
@@ -383,34 +389,6 @@ function getDisplayWord(textObject, word) {
     }
 
     return displayWord;
-}
-
-function isStopWord(word) {
-    let stopwords = ["a","ago","about","above","across","after","again","against","all","almost","alone","along","already","also","although","always","among","an","and","another","any","anybody","anyone","anything","anywhere","are","area","areas","around","as","ask","asked","asking","asks","at","away","b","back","backed","backing","backs","be","became","because","become","becomes","been","before","began","behind","being","beings","best","better","between","big","both","but","by","c","came","can","cannot","case","cases","certain","certainly","clear","clearly","come","could","d","did","differ","different","differently","do","does","done","down","down","downed","downing","downs","during","e","each","early","either","end","ended","ending","ends","enough","even","evenly","ever","every","everybody","everyone","everything","everywhere","f","face","faces","fact","facts","far","felt","few","find","finds","first","for","four","from","full","fully","further","furthered","furthering","furthers","g","gave","general","generally","get","gets","give","given","gives","go","going","good","goods","got","great","greater","greatest","group","grouped","grouping","groups","h","had","has","have","having","he","her","here","herself","high","high","high","higher","highest","him","himself","his","how","however","i","if","important","in","interest","interested","interesting","interests","into","is","it","its","itself","j","just","k","keep","keeps","kind","knew","know","known","knows","l","large","largely","last","later","latest","least","less","let","lets","likely","long","longer","longest","m","made","make","making","man","many","may","me","member","members","men","might","more","most","mostly","much","must","my","myself","n","necessary","need","needed","needing","needs","never","newer","newest","next","no","nobody","non","noone","not","nothing","now","nowhere","number","numbers","o","of","off","often","old","older","oldest","on","once","one","only","open","opened","opening","opens","or","order","ordered","ordering","orders","other","others","our","out","over","p","part","parted","parting","parts","per","perhaps","place","places","point","pointed","pointing","points","possible","present","presented","presenting","presents","problem","problems","put","puts","q","quite","r","rather","really","right","right","room","rooms","s","said","same","saw","say","says","second","seconds","see","seem","seemed","seeming","seems","sees","several","shall","she","should","show","showed","showing","shows","side","sides","since","small","smaller","smallest","so","some","somebody","someone","something","somewhere","state","states","still","still","such","sure","t","take","taken","than","that","the","their","them","then","there","therefore","these","they","thing","things","think","thinks","this","those","though","thought","thoughts","three","through","thus","to","today","together","too","took","toward","turn","turned","turning","turns","two","u","under","until","up","upon","us","use","used","uses","v","very","w","want","wanted","wanting","wants","was","way","ways","we","well","wells","went","were","what","when","where","whether","which","while","who","whole","whose","why","will","with","within","without","work","worked","working","works","would","x","y","year","years","yet","you","young","younger","youngest","your","yours","z"]
-
-    if(stopwords.indexOf(word) > -1)
-        return true;
-    else
-        return false;
-}
-
-function isAlphaNum(word) {
-    return /^[A-Za-z0-9]/.test(word[0]);
-}
-
-function isNumeric(word) {
-    return /^[0-9]/.test(word[0]);
-}
-
-function isNormalWord(word) {
-    let isAlphaNum = /^[A-Za-z0-9]/.test(word[0]);
-    let hasNoSpace = word.indexOf(" ") < 0;
-    let hasNoHyphen = word.indexOf("-") < 0;
-    let hasNoComma = word.indexOf(",") < 0;
-    if(isAlphaNum && hasNoSpace && hasNoHyphen && hasNoComma)
-        return true;
-    else
-        return false;
 }
 
 function getWordFromArray(startIndex, endIndex, wordsArray) {

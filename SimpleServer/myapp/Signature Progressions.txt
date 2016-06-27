@@ -1,0 +1,10 @@
+Signature Progressions
+
+1) Original important sentences
+The UK has voted to leave the European Union after 43 years in a historic referendum. Britain would be the first country to leave the EU since its formation - but a leave vote will not immediately mean Britain ceases to be a member of the 28-nation bloc. The Leave campaign argued during a bitter four-month referendum campaign that the only way Britain could "take back control" of its own affairs would be to leave the EU.
+
+2) Removed "the","a","an"; Converted past participles to simple past, eg. ("has voted" to "voted"); Removed possessives
+UK voted to leave European Union after 43 years in historic referendum. Britain would be first country to leave EU since formation - but leave vote will not immediately mean Britain ceases to be member of 28-nation bloc. Leave campaign argued during bitter four-month referendum campaign that only way Britain could "take back control"of own affairs would be to leave EU. 
+
+
+
