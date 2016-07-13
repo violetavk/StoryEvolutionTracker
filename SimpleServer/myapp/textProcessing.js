@@ -2,6 +2,7 @@
 let natural = require("natural");
 let stemmer = require("porter-stemmer").stemmer;
 let util = require("./util.js");
+let pos = require('pos');
 
 exports.processText = function(objects) {
     console.log("-- Text Processing (with promise) --");
@@ -12,11 +13,11 @@ exports.processText = function(objects) {
         let processedWords = processWords(pageObject);
         textObject.sentenceWordsArray = processedWords.sentenceWords;
         textObject.properNouns = processedWords.properNouns;
-        determineRelatedWords(textObject);
+        // determineRelatedWords(textObject);
         textObject.article = concatSentences(textObject);
         textObject.wordFrequencies = getWordFrequencies(textObject);
         textObject.tfidfs = getTfIdf(textObject);
-        // textObject.stemmedWords = stemWords(textObject);
+        textObject.stemmedWords = stemWords(textObject);
         textObject.tfidfAvg = getTfIdfAverage(textObject.tfidfs);
 
         textObject = adjustTopicWords(textObject,pageObject);
@@ -36,12 +37,6 @@ function processWords(pageObject) { // process words to detect certain classes o
     sentenceWords = detectHyphenatedWords(sentenceWords);
     sentenceWords = detectURLs(sentenceWords);
     sentenceWords = detectNumbers(sentenceWords);
-    // detectCompoundNouns(sentenceWords);
-
-    // detectCompoundNounsSentence(sentenceWords[0]);
-    // detectCompoundNounsSentence(sentenceWords[1]);
-    
-    // sentenceWords = removePunctuation(sentenceWords);
 
     return {sentenceWords, properNouns};
 }
@@ -297,6 +292,7 @@ function getTfIdf(textObject) {
         toTest.push(word);
         tfidfs[word] = tfidf.tfidf(toTest, 0);
     }
+
     return tfidfs;
 }
 
@@ -304,28 +300,26 @@ function adjustTopicWords(textObject, pageObject) {
     // there will be a variety of processes in here
     let tfidfs = textObject.tfidfs;
 
-    tfidfs = weighHeadline(tfidfs,textObject,pageObject);
-    tfidfs = weighSection(tfidfs,pageObject.section);
-    tfidfs = weighBolded(tfidfs,textObject,pageObject);
-
-    tfidfs = getMainWordsDistribution(tfidfs,textObject);
+    weighHeadline(tfidfs,textObject,pageObject);
+    weighSection(tfidfs,pageObject.section);
+    weighBolded(tfidfs,textObject,pageObject);
+    weighBasedOnLocation(tfidfs,textObject);
+    weighStemmedWords(tfidfs,textObject);
+    adjustForNames(tfidfs,textObject);
+    tfidfs = sortTfidfs(tfidfs);
+    // deleteAdjectives(tfidfs);
+    // deleteVerbs(tfidfs);
 
     textObject.tfidfs = tfidfs;
     return textObject;
 }
 
-function getMainWordsDistribution(tfidfs, textObject) {
+function weighBasedOnLocation(tfidfs, textObject) {
     let article = textObject.article;
     let avg = textObject.tfidfAvg;
-    console.log(article.indexOf("shadow")/article.length*100);
-    // let ranges = {};
     for(let word in tfidfs) {
         word = word.toLowerCase();
-        // let locations = util.getAllIndexes(article,word);
-        // let range = locations[locations.length-1] - locations[0];
-        // console.log("Range of",word,"is",locations);
         let perc = article.indexOf(word)/article.length;
-        console.log(word,perc);
         if(perc < .5) {
             tfidfs[word] = tfidfs[word] + avg*0.75;
         }
@@ -412,6 +406,113 @@ function stemWords(textObject) { // stem words using porter-stemmer
     }
 
     return stemmed;
+}
+
+function weighStemmedWords(tfidfs,textObject) {
+    let stemmed = textObject.stemmedWords;
+    let freq = textObject.wordFrequencies;
+    for(let stem in stemmed) {
+        if(!tfidfs[stem]) continue;
+        let totalTfidf = 0;
+        let freqSum = 0;
+        let related = stemmed[stem];
+
+        // first add up all tfidfs of each related word and add up frequencies
+        for(let i = 0; i < related.length; i++) {
+            totalTfidf += tfidfs[related[i]];
+            freqSum += freq[related[i]];
+        }
+
+        // calculate the denominator for the skewed average result
+        let denominator = related.length === 1 ? 1 : related.length-1;
+
+        // new tfidf is dependent on all of its related words, denominator for avg. calculation set by formula above
+        let adjustedTfIdf = totalTfidf / denominator;
+
+        // distribute the new weights based on the frequency of the word
+        for(let i = 0; i < related.length; i++) {
+            let word = related[i];
+            tfidfs[word] = adjustedTfIdf * (freq[word]/freqSum*.5);
+            // tfidfs[word] = tfidfs[word] + (adjustedTfIdf * (freq[word]/freqSum));
+            // tfidfs[word] = tfidfs[word] + adjustedTfIdf;
+        }
+
+        // delete all of the non-important related words (for fun)
+        let displayWord = getDisplayWord(textObject,stem);
+        for(let i = 0; i < related.length; i++) {
+            let word = related[i];
+            if(word === displayWord) continue;
+            tfidfs[displayWord] += tfidfs[word];
+            delete tfidfs[word];
+        }
+    }
+
+}
+
+function adjustForNames(tfidfs,textObject) {
+    for(let word in tfidfs) {
+        if(util.isNameAsTitle(word)) {
+            console.log("Detected a name:",word);
+            let lastName = word.split(" ")[1];
+
+            // find the matching names
+            let names = findNameMatches(lastName,word,tfidfs);
+            let baseName = names[0];
+            let baseTfidf = tfidfs[baseName];
+            let currTfidf = tfidfs[word];
+            let maxTfidf = baseTfidf > currTfidf ? baseTfidf : currTfidf;
+            console.log(word,currTfidf);
+            console.log(baseName,baseTfidf);
+            console.log("Giving",baseName,"tfidf of",maxTfidf);
+            tfidfs[baseName] = maxTfidf;
+            tfidfs[word] = maxTfidf * 0.4;
+        }
+    }
+}
+
+function findNameMatches(name,original,tfidfs) {
+    let matches = [];
+    for(let word in tfidfs) {
+        if(word.indexOf(name) > -1 && word !== original) {
+            matches.push(word);
+        }
+    }
+    return matches;
+}
+
+function sortTfidfs(tfidfs) {
+    let sorted = [];
+    let sortedTfIdfs = {};
+    for(let word in tfidfs) {
+        sorted.push([word,tfidfs[word]]);
+    }
+    sorted.sort(function(a,b) {return b[1] - a[1];});
+    for(let i = 0; i < sorted.length; i++) {
+        sortedTfIdfs[sorted[i][0]] = sorted[i][1];
+    }
+    return sortedTfIdfs;
+}
+
+function deleteAdjectives(tfidfs) {
+    let tagger = new pos.Tagger();
+    for(let word in tfidfs) {
+        let lexer = new pos.Lexer().lex(word);
+        let tag = tagger.tag(lexer)[0][1];
+        if((tag === "JJ" || tag === "JJR" || tag === "JJS") && !util.isProperNoun(word)) {
+            delete tfidfs[word];
+        }
+    }
+}
+
+function deleteVerbs(tfidfs) {
+    let tagger = new pos.Tagger();
+    for(let word in tfidfs) {
+        let lexer = new pos.Lexer().lex(word);
+        let tag = tagger.tag(lexer)[0][1];
+        if((tag === "VBD" || tag === "VBG" || tag === "VBN" || tag === "VBP" || tag === "VBZ") && !util.isProperNoun(word)) {
+            delete tfidfs[word];
+        }
+    }
 }
 
 function getDisplayWord(textObject, word) {

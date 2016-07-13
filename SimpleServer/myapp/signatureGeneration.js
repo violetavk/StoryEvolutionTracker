@@ -9,40 +9,50 @@ exports.generateSignatures = function(objects) {
         let pageObject = objects[2];
         let textObject = objects[3];
 
+        let top3words = getTopNWords(textObject,3);
+
         // signatures.topicWord = getMainTopicWord(textObject.tfidfs);
         signatures.sentenceTfIdfs = getSentenceTfIdfs(textObject.sentenceWordsArray,textObject.tfidfs);
-        signatures.topSentences = getTopNSentences(signatures.sentenceTfIdfs, pageObject, 3);
+        signatures.topSentences = getTopNSentences(signatures.sentenceTfIdfs, pageObject, 2);
         signatures.taggedSentences = tagSentences(signatures.topSentences);
-        signatures.adjustedSentences = adjustSentences(signatures,textObject);
+        signatures.adjustedSentences = adjustSentences(signatures,textObject,top3words);
         signatures.plainSignature = getPlainSignature(signatures);
+        signatures.topicWords = getTopicWords(textObject,5);
         objects.push(signatures);
         resolve(objects);
     });
 };
 
-function getMainTopicWord(tfidfs) {
-    // TODO assumptions are too strong here; not only words with spaces are proper nouns! Need to get back at caps
-    let currLargestTfidf = 0;
-    let topicWord = "";
+function getTopNWords(textObject,n) {
+    let tfidfs = textObject.tfidfs;
+    let top = {};
+    let count = 0;
     for(let word in tfidfs) {
-        let currTfidf = tfidfs[word];
-        if(currTfidf > currLargestTfidf && isProperNoun(word)) {
-            currLargestTfidf = currTfidf;
-            topicWord = word;
-        }
+        if(count < n) {
+            top[word] = tfidfs[word];
+            count++;
+        } else break;
     }
-    return topicWord;
+
+    return top;
 }
 
 function getSentenceTfIdfs(sentences, tfidfs) {
     let values = [];
+    let tagger = new pos.Tagger();
     for(let i = 0; i < sentences.length; i++) {
         let sentenceValue = 0;
         let sentence = sentences[i];
         for(let word of sentence) {
             let curr = tfidfs[word.toLowerCase()];
-            if(curr)
-                sentenceValue += curr;
+            if(curr) {
+                let lexer = new pos.Lexer().lex(word);
+                let tag = tagger.tag(lexer)[0][1];
+                if((tag === "JJ" || tag === "JJR" || tag === "JJS") && !util.isProperNoun(word))
+                    sentenceValue += 0; // if adjective, do not weigh
+                else
+                    sentenceValue += curr;
+            }
         }
         sentenceValue = sentenceValue / (sentence.length); // test
         values.push([i, sentence, sentenceValue]);
@@ -72,18 +82,16 @@ function getTopNSentences(sentenceTfIdfs, pageObject, n) {
     return topSentences;
 }
 
-function adjustSentences(signatures,textObject) {
+function adjustSentences(signatures,textObject,top3words) {
     // testing with only first sentence for now
     let tfidfs = textObject.tfidfs;
     let avg = textObject.tfidfAvg;
     let tagged = signatures.taggedSentences;
 
+    // tagged = removeAdjectives(tagged,textObject);
     tagged = removeBlacklistWords(tagged);
-    // tagged = removeDeterminers(tagged);
     tagged = removePastParticiples(tagged);
     tagged = removePossessives(tagged);
-    tagged = removeAdjectives(tagged,textObject);
-    tagged = removeClausePhrases(tagged,textObject);
     removeOtherPhrases(tagged,textObject);
     tagged = fixFormat(tagged);
 
@@ -122,22 +130,8 @@ function removeBlacklistWords(tagged) {
     return tagged;
 }
 
-function removeDeterminers(tagged) {
-    for(let i = 0; i < tagged.length; i++) {
-        let sentence = tagged[i];
-        for(let j = 0; j < sentence.length; j++) {
-            if(sentence[j][1] === "DT") {
-                sentence.splice(j,1);
-                j--;
-            }
-        }
-        tagged[i] = sentence;
-    }
-    return tagged;
-}
-
 function removePastParticiples(tagged) {
-    let pastParticiples = {removed:"removed",had:"had",done:"did",said:"said",gone:"went",got:"got",gotten:"got",made:"made",known:"knew", thought:"thought",taken:"took",seen:"saw",come:"came",wanted:"wanted",used:"used",found:"found",given:"gave",told:"told", worked:"worked",called:"called",tried:"tried",asked:"asked",needed:"needed",felt:"felt",become:"became",left:"left",voted:"voted",managed:"managed",put:"put",meant:"meant",kept:"kept",let:"let",begun:"began",seemed:"seemed",helped:"helped",shown:"showed",heard:"heard",played:"played",run:"ran",moved:"moved",lived:"lived",believed:"believed",brought:"brought",happened:"happened",written:"wrote",sat:"sat",stood:"stood",lost:"lost",paid:"paid",met:"met",included:"included",continued:"continued",set:"set",learnt:"learnt",learned:"learned",changed:"changed",led:"led",understood:"understood",watched:"watched",followed:"followed",stopped:"stopped",created:"created",spoken:"spoke",read:"read",spent:"spent",grown:"grew",opened:"opened",walked:"walked",won:"won",taught:"taught",offered:"offered",remembered:"remembered",considered:"considered",appeared:"appeared",bought:"bought",served:"served",died:"died",sent:"sent",built:"built",stayed:"stayed",fallen:"fell",cut:"cut",reached:"reached",killed:"killed",raised:"raised",passed:"passed",sold:"sold",decided:"decided",returned:"returned",explained:"explained",hoped:"hoped",developed:"developed",carried:"carried",broken:"broke",received:"received",agreed:"agreed",supported:"supported",hit:"hit",produced:"produced",eaten:"ate",covered:"covered",caught:"caught",drawn:"drew",chosen:"chose"};
+    let pastParticiples = {rejected:"rejected",removed:"removed",had:"had",done:"did",said:"said",gone:"go",got:"got",gotten:"got",made:"made",known:"knew", thought:"thought",taken:"took",seen:"saw",come:"came",wanted:"wanted",used:"used",found:"found",given:"gave",told:"told", worked:"worked",called:"called",tried:"tried",asked:"asked",needed:"needed",felt:"felt",become:"became",left:"left",voted:"voted",managed:"managed",put:"put",meant:"meant",kept:"kept",let:"let",begun:"began",seemed:"seemed",helped:"helped",shown:"showed",heard:"heard",played:"played",run:"ran",moved:"moved",lived:"lived",believed:"believed",brought:"brought",happened:"happened",written:"wrote",sat:"sat",stood:"stood",lost:"lost",paid:"paid",met:"met",included:"included",continued:"continued",set:"set",learnt:"learnt",learned:"learned",changed:"changed",led:"led",understood:"understood",watched:"watched",followed:"followed",stopped:"stopped",created:"created",spoken:"spoke",read:"read",spent:"spent",grown:"grew",opened:"opened",walked:"walked",won:"won",taught:"taught",offered:"offered",remembered:"remembered",considered:"considered",appeared:"appeared",bought:"bought",served:"served",died:"died",sent:"sent",built:"built",stayed:"stayed",fallen:"fell",cut:"cut",reached:"reached",killed:"killed",raised:"raised",passed:"passed",sold:"sold",decided:"decided",returned:"returned",explained:"explained",hoped:"hoped",developed:"developed",carried:"carried",broken:"broke",received:"received",agreed:"agreed",supported:"supported",hit:"hit",produced:"produced",eaten:"ate",covered:"covered",caught:"caught",drawn:"drew",chosen:"chose"};
     for(let i = 0; i < tagged.length; i++) {
         let sentence = tagged[i];
         for(let j = 0; j < sentence.length; j++) {
@@ -201,7 +195,7 @@ function removeAdjectives(tagged, textObject) {
                     let nextTag = sentence[j+1][1];
                     if(nextTag === "MD" || nextTag === "VBN") continue;
                 }
-                if(tfidfs[word] > avg) {
+                if(tfidfs[word] > avg*1.5) {
                     continue;
                 }
 
@@ -214,7 +208,7 @@ function removeAdjectives(tagged, textObject) {
     return tagged;
 }
 
-function removeClausePhrases(tagged,textObject) {
+function removeClausePhrases(tagged,textObject,top3words) {
     let tfidfs = textObject.tfidfs;
     let avg = textObject.tfidfAvg;
     for(let i = 0; i < tagged.length; i++) {
@@ -253,34 +247,44 @@ function removeClausePhrases(tagged,textObject) {
                 clause = false;
             }
         }
-        tagged[i] = removeSentenceClauses(sentence,sentenceClauses,tfidfs,avg);
+        tagged[i] = removeSentenceClauses(sentence,sentenceClauses,tfidfs,avg,top3words);
     }
     return tagged;
 }
 
-function removeSentenceClauses(sentence,sentenceClauses,tfidfs,avg) {
+function removeSentenceClauses(sentence,sentenceClauses,tfidfs,avg,top3words) {
+    console.log("importance threshold:",(avg*5.5));
     for(let clause of sentenceClauses) {
         let start = clause[0];
         let end = clause[1];
+
+        //debug only
+        console.log("---");
+        for(let i = start; i <= end; i++) {
+            console.log(sentence[i][0]);
+        }
 
         // blacklist some prepositions
         let first = sentence[start][0];
         if(first === "that" || first === "after" || first === "about" || first === "if") continue;
 
         // check if any are important; if yes, must include this clause
-        // let important = false;
-        // for(let i = start; i <= end; i++) {
-        //     if(tfidfs[sentence[i][0]] > avg*4) {
-        //         console.log("deemed",sentence[i][0],"is important");
-        //         important = true;
-        //
-        //     }
-        // }
-        // if(important) continue;
-        // console.log("not important");
+        let important = false;
+        for(let i = start; i <= end; i++) {
+            // if(tfidfs[sentence[i][0]] > avg*5.5) {
+            //     console.log("->deemed",sentence[i][0],"is important");
+            //     important = true;
+            //
+            // }
+            let curr = sentence[i][0].toLowerCase().trim();
+            if(curr in top3words)
+                important = true;
+        }
+        if(important) continue;
+        console.log("->not important");
 
         for(let i = start; i <= end; i++) {
-            console.log(sentence[i][0]);
+            // console.log(sentence[i][0]);
             sentence[i].toDelete = true;
         }
         console.log("---");
@@ -313,12 +317,16 @@ function removeOtherPhrases(tagged,textObject) {
         if(commas.length === 1) {
             let pos = commas[0]/sentence.length;
             console.log("comma at",pos);
-            if(pos >= 0.5) {
+            if(pos >= 0.65) {
                 sentence.splice(commas[0]);
                 sentence.push([".","."]);
-            } else {
+            } else if(pos <= 0.35) {
                 sentence.splice(0,commas[0]+1);
             }
+        }
+
+        if(otherSeparators.length === 2) {
+            sentence.splice(otherSeparators[0], otherSeparators[1]-otherSeparators[0]+1);
         }
     }
 }
@@ -354,7 +362,7 @@ function getPlainSignature(signatures) {
             if(util.isAlpha(word) && util.isNumeric(nextWord)) {
                 sentence += " ";
             }
-            else if(nextWord === "." || nextWord === "," || nextWord === "'" || util.isNumeric(nextWord) || (word === "\"" && insideQuotes) || (word === "'" && util.isAlphaNum(nextWord))) {
+            else if(nextWord === "." || nextWord === "," || nextWord === "'" || util.isNumeric(nextWord) || (word === "\"" && insideQuotes) || (word === "'" && nextWord === "s")) {
                 // just continue
             }
             else if(nextWord === "\"" && !insideQuotes) {
@@ -373,6 +381,23 @@ function getPlainSignature(signatures) {
     }
 
     return signature;
+}
+
+function getTopicWords(textObject,num) {
+    let topicWords = [];
+    let tagger = new pos.Tagger();
+    let tfidfs = textObject.tfidfs;
+    let blacklistTags = ["JJ","JJR","JJS","VBD","VBG","VBN","VBP","VBZ","VBD","NNS"];
+    let goodTags = ["NN","NNP","NNPS"];
+    for(let word in tfidfs) {
+        if(topicWords.length >= num) break;
+        let lexer = new pos.Lexer().lex(word);
+        let tag = tagger.tag(lexer)[0][1];
+        console.log(word,"=",tag);
+        if((goodTags.indexOf(tag) >= 0 || util.isProperNoun(word)) && (word.indexOf("-") < 0))
+            topicWords.push(word);
+    }
+    return topicWords;
 }
 
 function isOnBlacklist(word) {

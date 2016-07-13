@@ -55,10 +55,34 @@ exports.bbcSportsParser = function(data) {
     pageObject.section = $("span.section-tag.section-tag--nested-link.gel-brevier").find("a").first().text();
     pageObject.headline = $(".story-headline").text();
     pageObject.bolded = $(".sp-story-body__introduction").text();
-
+    
     let paragraphs = [];
-    $("#story-body").find("p").each(function(i,element) {
-        paragraphs.push($(this).text());
+    let storyBody = $("#story-body");
+    let numHrElements = storyBody.find("hr").length;
+    let insideHr = false;
+
+    storyBody.children().each(function(i,element) {
+        let isParagraph = $(this).is("p");
+        let isHrElement = $(this).is("hr");
+        let hasStrongTag = $(this).find("strong").html() !== null;
+        let numChildren = $(this).children().length;
+
+        if(isHrElement && numHrElements % 2 === 0 && !insideHr && numHrElements > 0) {
+            // entered an hr block that we expect to end somewhere, contents of this block not included
+            insideHr = true;
+        } else if(!isHrElement && insideHr) {
+            // just continue
+        } else if(isHrElement && insideHr) {
+            // left an hr block that was started before
+            numHrElements = numHrElements - 2;
+            insideHr = false;
+        } else if(isHrElement && numHrElements === 1) {
+            // found a single hr, any text below it is irrelevant so do not include
+            return false;
+        } else if(isParagraph && !hasStrongTag && numChildren === 0) {
+            // add to list of paragraphs if currently looking at a paragraph
+            paragraphs.push($(this).text());
+        }
     });
     pageObject.paragraphs = paragraphs;
 
