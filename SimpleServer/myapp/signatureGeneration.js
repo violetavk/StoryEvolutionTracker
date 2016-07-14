@@ -9,13 +9,11 @@ exports.generateSignatures = function(objects) {
         let pageObject = objects[2];
         let textObject = objects[3];
 
-        let top3words = getTopNWords(textObject,3);
-
         // signatures.topicWord = getMainTopicWord(textObject.tfidfs);
         signatures.sentenceTfIdfs = getSentenceTfIdfs(textObject.sentenceWordsArray,textObject.tfidfs);
         signatures.topSentences = getTopNSentences(signatures.sentenceTfIdfs, pageObject, 2);
         signatures.taggedSentences = tagSentences(signatures.topSentences);
-        signatures.adjustedSentences = adjustSentences(signatures,textObject,top3words);
+        signatures.adjustedSentences = adjustSentences(signatures,textObject);
         signatures.plainSignature = getPlainSignature(signatures);
         objects.push(signatures);
         resolve(objects);
@@ -81,7 +79,7 @@ function getTopNSentences(sentenceTfIdfs, pageObject, n) {
     return topSentences;
 }
 
-function adjustSentences(signatures,textObject,top3words) {
+function adjustSentences(signatures,textObject) {
     // testing with only first sentence for now
     let tfidfs = textObject.tfidfs;
     let avg = textObject.tfidfAvg;

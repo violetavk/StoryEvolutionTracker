@@ -66,7 +66,7 @@ exports.parseHTML = function(objects) {
             reject(new Error("Neither a file or http"));
         }
     });
-}
+};
 
 function parse(buffer,options) {
     let pageData = buffer.toString();

@@ -29,18 +29,18 @@
                 event.preventDefault();
                 console.log("Triggered submit");
                 $("#articleDetails").html("Loading...");
+                $("#crawled").html("");
 
                 jQuery.ajax({
                     url: "http://127.0.0.1:3000/process_crawl",
                     type: "POST",
                     data: $("#form").serialize(),
                     success: function (result) {
-                        console.log(result);
                         formatRecentsResponse(result);
-
                         let details = "<b>Signature:</b>  " + result.signatures.plainSignature
-                                + "<br><br><b>Topic Words:</b>  " + result.textObject.topicWords;
+                                + "<br><br><b>Topic Words:</b>  " + result.textObject.topicWords + "<br><hr>";
                         $("#articleDetails").html(details);
+                        formatResponse(result.crawled, "#crawled");
                     }
                 });
                 return false;
@@ -54,6 +54,51 @@
             $("#recents").html(output);
             localStorage.recentLinks = JSON.stringify(result.recentLinks);
         }
+
+        function formatResponse(result, tag) {
+            let nsource = "";
+            for (let attr in result) {
+
+                if (attr === "article") continue;
+
+                let obj = result[attr];
+                nsource += ("<b>" + attr + ":</b>  ");
+
+                if (obj instanceof Object && obj instanceof Array) {
+                    let str = "<ol>";
+                    for (let i = 0; i < obj.length; i++) {
+                        str += ("<li>" + obj[i] + "</li>");
+                    }
+                    str += "</ol>"
+                    nsource += str;
+                } else if (obj instanceof Object) {
+                    let str = "<table class=\"sortable\">";
+                    str += ("<thead><th class=\"sorttable_alpha\">Word</th><th>Value</th></thead><tbody>");
+                    for (let prop in obj) {
+                        str += "<tr>";
+                        str += ("<td>" + prop + "</td>");
+                        str += ("<td>" + obj[prop] + "</td>");
+                        str += "</tr>";
+                    }
+                    str += "</tbody></table>";
+                    nsource += str;
+                } else {
+                    nsource += (obj + "<br>");
+                }
+            }
+            nsource += "<hr>";
+            $(tag).html(nsource);
+
+            // adding sortable functionality to the tables on the page
+            let tables = document.getElementsByClassName("sortable");
+            if (tables.length > 0) {
+                for (let i = 0; i < tables.length; i++) {
+                    console.log(tables[i]);
+                    sorttable.makeSortable(tables[i]);
+                }
+                // sorttable.makeSortable(newTableObject); // TODO what if there are multiple tables
+            }
+        }
     </script>
 
 </head>
@@ -65,6 +110,7 @@
 <div id="recents"></div>
 <hr>
 <div id="articleDetails"></div>
+<div id="crawled"></div>
 
 </body>
 </html>

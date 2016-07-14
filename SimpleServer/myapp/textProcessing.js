@@ -341,7 +341,7 @@ function weighHeadline(tfidfs,textObject,pageObject) {
         if(util.isStopWord(word)) continue;
         let currTfidf = tfidfs[word];
         if(currTfidf) {
-            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg*2; // increase importance of word if it's in headline, avg?
+            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg*3; // increase importance of word if it's in headline, avg?
         }
     }
     return tfidfs;
@@ -367,7 +367,7 @@ function weighBolded(tfidfs,textObject,pageObject) {
         if(util.isStopWord(word)) continue;
         if(!util.isAlphaNum(word)) continue;
         if(tfidfs[word]) {
-            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg; // a proportion of avg (as important but not quite)
+            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg*1.5; // a proportion of avg (as important but not quite)
         }
     }
     return tfidfs;
@@ -481,8 +481,8 @@ function adjustForNames(tfidfs,textObject) {
             let lexer = new pos.Lexer().lex(word);
             let tag = tagger.tag(lexer)[0][1];
             let nlpTag = nlp.text(word).tags()[0][0];
-            console.log(tag,nlpTag);
-            if(nlpTag !== "Actor" && nlpTag !== "Person") {
+            // console.log(tag,nlpTag);
+            if(nlpTag !== "Actor" && nlpTag !== "Person" && nlpTag !== "Place") {
                 // console.log("Skipping this one b/c NOT an actor or person");
                 continue;
             }
@@ -595,16 +595,17 @@ function getTopicWords(textObject,num) {
     let topicWords = [];
     let tagger = new pos.Tagger();
     let tfidfs = textObject.tfidfs;
-    let goodTags = ["NN","NNP","NNPS"];
+    let goodTags = ["NN","NNP","NNPS","NNS"];
     for(let word in tfidfs) {
         if(topicWords.length >= num) break;
+        if(word.indexOf("-") > -1) continue;
         let lexer = new pos.Lexer().lex(word);
         let tag = tagger.tag(lexer)[0][1];
-        console.log(word,"=",tag);
         let type = nlp.text(word).tags()[0][0];
-        console.log(type);
-        let types = type !== "Infinitive" && type !== "Date" && type !== "Value";
-        if(((goodTags.indexOf(tag) >= 0 && types) || util.isProperNoun(word)) && (word.indexOf("-") < 0))
+        console.log(word,tag,type);
+        let badTypes = (type !== "Infinitive" && type !== "Date" && type !== "Value");
+        let goodTypes = (type === "Place");
+        if(((goodTags.indexOf(tag) >= 0 || goodTypes) && badTypes) || util.isProperNoun(word))
             topicWords.push(word);
     }
     return topicWords;

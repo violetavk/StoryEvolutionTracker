@@ -7,6 +7,7 @@ let urlencodedParser = bodyParser.urlencoded({extended: false});
 let parseHtml = require("./../htmlParser.js").parseHTML;
 let processText = require("./../textProcessing.js").processText;
 let generateSignatures = require("./../signatureGeneration").generateSignatures;
+let crawlWeb = require("./../webCrawling").crawler;
 
 let recentLinks = [];
 /* GET home page. */
@@ -48,6 +49,7 @@ router.post('/process_crawl',urlencodedParser, function (req, res) {
         parseHtml(responses)
             .then(processText)
             .then(generateSignatures)
+            .then(crawlWeb)
             .then(sendResponseCrawler);
 
         // sendResponseCrawler(responses);
@@ -76,7 +78,8 @@ function sendResponseCrawler(objects) {
         url:            objects[1],
         pageObject:     objects[2],
         textObject:     objects[3],
-        signatures:     objects[4]
+        signatures:     objects[4],
+        crawled:        objects[5]
     };
     let res = objects[0];
     res.setHeader('Content-Type', 'application/json');
