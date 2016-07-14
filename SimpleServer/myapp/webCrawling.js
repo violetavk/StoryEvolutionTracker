@@ -8,12 +8,9 @@ let generateSignatures = require("./signatureGeneration").generateSignatures;
 
 const dir = "/Users/violet/Development/StoryEvolutionTracker/HTML Pages/";
 
-let allArticleDetails;
-
 exports.crawler = function(objects) {
     console.log("-----Crawling Web------");
     return new Promise(function(resolve,reject) {
-        allArticleDetails = [];
         let pageObject = objects[2];
         let textObject = objects[3];
         let signatures = objects[4];
@@ -23,10 +20,11 @@ exports.crawler = function(objects) {
         let fileNames = openDirectory();
         crawled.potentialFiles = getPotentialMatches(textObject,fileNames);
         parseAllPotentialArticles(crawled.potentialFiles)
-            .then(function(allArticles) {
-                console.log("DONEEEE");
-                crawled.allArticles = allArticles;
+            .then(chooseArticles)
+            .then(function(result) {
+                crawled.allArticles = result[0];
                 objects.push(crawled);
+                console.log(objects);
                 resolve(objects);
             });
 
@@ -88,40 +86,21 @@ function parseAllPotentialArticles(potentialFiles) {
                 .then(function(res) {
                     allArticles.push(res);
                     if(i+1 === potentialFiles.length) {
-                        resolve(allArticles);
+                        resolve([allArticles]);
                     }
                 });
         }
     });
 }
 
-function getAllTopicWords(potentialFiles,textObject) {
-    return new Promise(function(resolve,reject) {
-        for(let file of potentialFiles) {
-            let toParse = "file://" + dir + file;
-            console.log(toParse);
-            let objects = [["placeholder"],toParse];
-
-            parseHtml(objects)
-                .then(processText)
-                .then(generateSignatures)
-                .then(function(objects) {
-                    let pageObject = objects[2];
-                    let textObject = objects[3];
-                    let signatures = objects[4];
-                    console.log("Headline:",pageObject.headline);
-                    console.log("Key words:",textObject.topicWords);
-                    console.log("Signature:",signatures.plainSignature,"\n");
-                    allArticleDetails.push([pageObject,textObject,signatures]);
-                    resolve();
-                });
-        }
-    });
-}
-
-function chooseArticles() {
+function chooseArticles(objects) {
     console.log("--- Choosing which articles fit ---");
-    for(let article of allArticleDetails) {
+    return new Promise(function(resolve,reject) {
+        console.log(objects.length);
+        let allArticles = objects[0];
 
-    }
+        // any other things, push to objects array
+        // resolve with objects array
+        resolve(objects);
+    });
 }
