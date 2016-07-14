@@ -10,8 +10,8 @@ let generateSignatures = require("./../signatureGeneration").generateSignatures;
 
 let recentLinks = [];
 /* GET home page. */
-router.get('/', function (req, res) {
-    res.sendFile(__dirname + "/" + "index.html");
+router.get('/signatures', function (req, res) {
+    res.sendFile(__dirname + "/" + "signatures.html");
 });
 
 router.post('/process_post', urlencodedParser, function (req, res) {
@@ -27,13 +27,36 @@ router.post('/process_post', urlencodedParser, function (req, res) {
         parseHtml(responses)
             .then(processText)
             .then(generateSignatures)
-            .then(sendResponse);
+            .then(sendResponseSignatures);
     }
     else
         console.log("Error, link was undefined");
 });
 
-function sendResponse(objects) {
+router.get('/crawler',function(req, res) {
+   res.sendFile(__dirname + "/" + "crawler.html");
+});
+
+router.post('/process_crawl',urlencodedParser, function (req, res) {
+    let link = req.body.url_field.trim();
+    if (link !== undefined) {
+        let responses = [res,link];
+        if (recentLinks.indexOf(link) < 0) {
+            recentLinks.push(link);
+        }
+
+        parseHtml(responses)
+            .then(processText)
+            .then(generateSignatures)
+            .then(sendResponseCrawler);
+
+        // sendResponseCrawler(responses);
+    }
+    else
+        console.log("Error, link was undefined");
+});
+
+function sendResponseSignatures(objects) {
     let response = {
         recentLinks:    recentLinks,
         url:            objects[1],
@@ -42,6 +65,19 @@ function sendResponse(objects) {
         signatures:     objects[4]
     };
 
+    let res = objects[0];
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(response));
+}
+
+function sendResponseCrawler(objects) {
+    let response = {
+        recentLinks:    recentLinks,
+        url:            objects[1],
+        pageObject:     objects[2],
+        textObject:     objects[3],
+        signatures:     objects[4]
+    };
     let res = objects[0];
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(response));

@@ -2,119 +2,12 @@
 <head>
     <title>Signature Generator</title>
     <link rel="stylesheet" href="stylesheets/style.css">
-    <script type="text/javascript" src="./javascripts/jquery-latest.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
-    <script src="./javascripts/sorttable.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function () {
-
-
-            if (localStorage.recentLinks !== undefined) {
-                console.log("had previously stored links");
-                let recentLinks = JSON.parse(localStorage.recentLinks);
-                let temp = {
-                    recentLinks: recentLinks
-                };
-                formatRecentsResponse(temp);
-            }
-
-            $("#recents").on('click', 'a', function () {
-                event.preventDefault();
-                let linkToSend = $(this).text();
-                console.log("clicked " + linkToSend);
-                $("#textfield").val(linkToSend);
-                $("#form").submit();
-            });
-
-
-            $("#form").submit(function () {
-                event.preventDefault();
-                console.log("Triggered submit");
-                $("#pageObject").html("Loading...");
-                $("#textObject").html("");
-                $("#signatures").html("");
-                jQuery.ajax({
-                    url: "http://127.0.0.1:3000/process_post",
-                    type: "POST",
-                    data: $("#form").serialize(),
-                    success: function (result) {
-                        console.log(result);
-                        formatRecentsResponse(result);
-                        formatResponse(result.pageObject, "#pageObject");
-                        formatResponse(result.textObject, "#textObject");
-                        formatResponse(result.signatures, "#signatures");
-                    }
-                });
-                return false;
-            });
-
-            function formatRecentsResponse(result) {
-                let source = "Recent links:<br><ul class=\"recents\">{{#each recentLinks}}<li><a href=\"\" id=\"link\">{{this}}</a></li>{{/each}}</ul>"
-                let template = Handlebars.compile(source);
-                let output = template(result);
-                $("#recents").html(output);
-                localStorage.recentLinks = JSON.stringify(result.recentLinks);
-            }
-
-            function formatResponse(result, tag) {
-                let nsource = "";
-                for (let attr in result) {
-
-                    if (attr === "article") continue;
-
-                    let obj = result[attr];
-                    nsource += ("<b>" + attr + ":</b>  ");
-
-                    if (obj instanceof Object && obj instanceof Array) {
-                        let str = "<ol>";
-                        for (let i = 0; i < obj.length; i++) {
-                            str += ("<li>" + obj[i] + "</li>");
-                        }
-                        str += "</ol>"
-                        nsource += str;
-                    } else if (obj instanceof Object) {
-                        let str = "<table class=\"sortable\">";
-                        str += ("<thead><th class=\"sorttable_alpha\">Word</th><th>Value</th></thead><tbody>");
-                        for (let prop in obj) {
-                            str += "<tr>";
-                            str += ("<td>" + prop + "</td>");
-                            str += ("<td>" + obj[prop] + "</td>");
-                            str += "</tr>";
-                        }
-                        str += "</tbody></table>";
-                        nsource += str;
-                    } else {
-                        nsource += (obj + "<br>");
-                    }
-                }
-                nsource += "<hr>";
-                $(tag).html(nsource);
-
-                // adding sortable functionality to the tables on the page
-                let tables = document.getElementsByClassName("sortable");
-                if (tables.length > 0) {
-                    for (let i = 0; i < tables.length; i++) {
-                        console.log(tables[i]);
-                        sorttable.makeSortable(tables[i]);
-                    }
-                    // sorttable.makeSortable(newTableObject); // TODO what if there are multiple tables
-                }
-            }
-        });
-
-    </script>
 </head>
-
 <body>
-
-<form method="POST" id="form">
-    Enter URL: <input type="text" name="url_field" id="textfield">
-</form>
-
-<div id="recents"></div>
-<hr>
-<div id="pageObject"></div>
-<div id="textObject"></div>
-<div id="signatures"></div>
+<div id="buttons" style="padding: 5%">
+    <input type="button" onclick="location.href='/signatures';" value="Signature Generation" />
+    <br><br>
+    <input type="button" onclick="location.href='/crawler';" value="Crawler" />
+</div>
 </body>
 </html>

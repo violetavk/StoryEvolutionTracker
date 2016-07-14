@@ -1,0 +1,70 @@
+<html>
+<head>
+    <title>Crawler</title>
+    <link rel="stylesheet" href="stylesheets/style.css">
+    <script type="text/javascript" src="./javascripts/jquery-latest.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+    <script src="./javascripts/sorttable.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            if (localStorage.recentLinks !== undefined) {
+                console.log("had previously stored links");
+                let recentLinks = JSON.parse(localStorage.recentLinks);
+                let temp = {
+                    recentLinks: recentLinks
+                };
+                formatRecentsResponse(temp);
+            }
+
+            $("#recents").on('click', 'a', function () {
+                event.preventDefault();
+                let linkToSend = $(this).text();
+                console.log("clicked " + linkToSend);
+                $("#textfield").val(linkToSend);
+                $("#form").submit();
+            });
+
+            $("#form").submit(function () {
+                event.preventDefault();
+                console.log("Triggered submit");
+                $("#articleDetails").html("Loading...");
+
+                jQuery.ajax({
+                    url: "http://127.0.0.1:3000/process_crawl",
+                    type: "POST",
+                    data: $("#form").serialize(),
+                    success: function (result) {
+                        console.log(result);
+                        formatRecentsResponse(result);
+
+                        let details = "<b>Signature:</b>  " + result.signatures.plainSignature
+                                + "<br><br><b>Topic Words:</b>  " + result.textObject.topicWords;
+                        $("#articleDetails").html(details);
+                    }
+                });
+                return false;
+            });
+        });
+
+        function formatRecentsResponse(result) {
+            let source = "Recent links:<br><ul class=\"recents\">{{#each recentLinks}}<li><a href=\"\" id=\"link\">{{this}}</a></li>{{/each}}</ul>"
+            let template = Handlebars.compile(source);
+            let output = template(result);
+            $("#recents").html(output);
+            localStorage.recentLinks = JSON.stringify(result.recentLinks);
+        }
+    </script>
+
+</head>
+<body>
+<h2>Crawler</h2>
+<form method="POST" id="form">
+    Enter URL to find similar articles for: <input type="text" name="url_field" id="textfield">
+</form>
+<div id="recents"></div>
+<hr>
+<div id="articleDetails"></div>
+
+</body>
+</html>

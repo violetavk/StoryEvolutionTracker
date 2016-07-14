@@ -1,77 +1,49 @@
 SOLAR IMPULSE SIGNATURES
 
-SOL001: Solar Impulse plane broke record for longest non-stop solo flight without refuelling. He broke record for longest ever non-stop solo flight without refuelling.
-Topic words: vehicle,solar impulse,solo,record,plane
+SOL001:
+Signature: Solar Impulse plane broke record for longest non-stop solo flight without refuelling. He broke record for longest ever non-stop solo flight without refuelling.
+Topic Words: vehicle,solar impulse,solo,record,plane
 
-SOL002: For super-light Solar Impulse plane, easily buffeted by winds, potentially disastrous situation could arise at anytime. They wanted Andre to abort crossing and turn back to Japan. 
-TW: andre,solar impulse,plane,team,flight
+SOL002:
+Signature: Pilot Andre Borschberg was in midst of trying to make crossing from Japan to Hawaii - longest non-stop solo aeroplane flight in aviation history. For super-light Solar Impulse plane, easily buffeted by winds, potentially disastrous situation could arise at anytime.
+Topic Words: andre borschberg,solar impulse,team,plane,flight
 
-SOL003: Solar-powered aeroplane Solar Impulse has landed in Silicon Valley, California, after three-day flight over Pacific Ocean from Hawaii. " Pacific is done ," he declared just before landing.
-TW: aeroplane
-solar impulse
-california
-vehicle
-hawaii
+SOL003:
+Signature: Solar-powered aeroplane Solar Impulse has landed in Silicon Valley, California, after three-day flight over Pacific Ocean from Hawaii. " Pacific is done ," he declared just before landing.
+Topic Words: aeroplane,solar impulse,california,vehicle,hawaii
 
-SOL004: Solar Impulse, zero-fuel aeroplane, has flown first leg across continental United States in attempt to fly around world. Solar Impulse started its circumnavigation of globe in March of last year in Abu Dhabi. 
-TW: aeroplane
-solar impulse
-phoenix
-arizona
-plane
+SOL004:
+Signature: Solar Impulse, zero-fuel aeroplane, has flown first leg across continental United States in attempt to fly around world. Solar Impulse started its circumnavigation of globe in March of last year in Abu Dhabi.
+Topic Words: aeroplane,solar impulse,phoenix,arizona,plane
 
-SOL005: Solar Impulse has landed in Tulsa, Oklahoma, ending stage 11 in round-the-world journey. Zero-fuel aircraft has now reached halfway across America, with immediate goal of getting to New York firmly in sight.
-TW: aeroplane
-solar impulse
-oklahoma
-journey
-stage
+SOL005:
+Signature: Solar Impulse has landed in Tulsa, Oklahoma, ending stage 11 in round-the-world journey. Zero-fuel aircraft has now reached halfway across America, with immediate goal of getting to New York firmly in sight.
+Topic Words: aeroplane,solar impulse,oklahoma,journey,stage
 
-SOL006: Solar Impulse has landed in US state of Ohio following 12th stage of circumnavigation of globe. Aeroplane needs to get to Abu Dhabi in United Arab Emirates where journey started in March last year. 
-TW: aeroplane
-circumnavigation
-solar impulse
-ohio
-journey
+SOL006:
+Signature: Solar Impulse has landed in US state of Ohio following 12th stage of circumnavigation of globe. Aeroplane needs to get to Abu Dhabi in United Arab Emirates where journey started in March last year.
+Topic Words: aeroplane,circumnavigation,solar impulse,ohio,journey
 
-SOL007: Sun-powered aircraft Solar Impulse has landed in Lehigh Valley, Pennsylvania, after near-17-hour flight. Wednesday's flight to Lehigh Valley was postponed for 24 hours for checks on aircraft following power problem in mobile hangar. 
-TW: solar impulse
-pennsylvania
-lehigh valley
-wednesday
-flight
+SOL007:
+Signature: Sun-powered aircraft Solar Impulse has landed in Lehigh Valley, Pennsylvania, after near-17-hour flight. Wednesday's flight to Lehigh Valley was postponed for 24 hours for checks on aircraft following power problem in mobile hangar.
+Topic Words: solar impulse,pennsylvania,lehigh valley,flight,aircraft
 
-SOL008: Solar-powered plane Solar Impulse has arrived at New York's JFK airport after making short trip from Lehigh Valley in Pennsylvania. Solar Impulse plane covered in 17,000 photovoltaic cells.
-TW: solar impulse
-plane
-atlantic
-new york
-liberty
+SOL008:
+Signature: Solar-powered plane Solar Impulse has arrived at New York's JFK airport after making short trip from Lehigh Valley in Pennsylvania. Solar Impulse plane covered in 17,000 photovoltaic cells.
+Topic Words: solar impulse,plane,atlantic,new york,liberty
 
-SOL009: Solar Impulse 2 aircraft set off from New York to cross Atlantic, one of toughest stages of attempt to fly around globe using solar energy. It is first ever attempt to cross Atlantic in purely solar-powered aircraft.
-TW: atlantic
-energy
-attempt
-solar impulse
-aircraft
+SOL009:
+Signature: Solar Impulse 2 aircraft set off from New York to cross Atlantic, one of toughest stages of attempt to fly around globe using solar energy. It is first ever attempt to cross Atlantic in purely solar-powered aircraft.
+Topic Words: atlantic,energy,solar impulse,aircraft,new york
 
-SOL010: Zero-fuel aeroplane, Solar Impulse, has landed in Spain, completing Atlantic leg of historic bid to circumnavigate globe. Landing in Seville marked end of 15th stage of Solar Impulse's route. 
-TW: atlantic
-seville
-solar impulse
-aeroplane
-circumnavigate
+SOL010:
+Signature: Zero-fuel aeroplane, Solar Impulse, has landed in Spain, completing Atlantic leg of historic bid to circumnavigate globe. Landing in Seville marked end of 15th stage of Solar Impulse's route.
+Topic Words: atlantic,seville,solar impulse,aeroplane,circumnavigate
 
-SOL011: Solar Impulse began what should be penultimate flight, leaving Seville in Spain bound for Cairo in Egypt. Andre Borschberg is running Seville-Cairo stage ; Bertrand Piccard will complete challenge by taking Solar Impulse back into UAE.
-TW: seville
-solar impulse
-plane
-cairo
-egypt
+SOL011:
+Signature: Solar Impulse began what should be penultimate flight, leaving Seville in Spain bound for Cairo in Egypt. Andre Borschberg is running Seville-Cairo stage ; Bertrand Piccard will complete challenge by taking Solar Impulse back into UAE.
+Topic Words: seville,solar impulse,plane,cairo,egypt
 
-SOL012: Sun-powered aircraft Solar Impulse has finished its penultimate flight, landing in Egypt's capital, Cairo. Two pilots sharing flying duties are each taking one more turn at controls. 
-TW: solar impulse
-plane
-cairo
-challenge
-egypt
+SOL012:
+Signature: Sun-powered aircraft Solar Impulse has finished its penultimate flight, landing in Egypt's capital, Cairo. Two pilots sharing flying duties are each taking one more turn at controls.
+Topic Words: solar impulse,plane,cairo,egypt,aircraft

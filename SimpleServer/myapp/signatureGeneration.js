@@ -17,7 +17,6 @@ exports.generateSignatures = function(objects) {
         signatures.taggedSentences = tagSentences(signatures.topSentences);
         signatures.adjustedSentences = adjustSentences(signatures,textObject,top3words);
         signatures.plainSignature = getPlainSignature(signatures);
-        signatures.topicWords = getTopicWords(textObject,5);
         objects.push(signatures);
         resolve(objects);
     });
@@ -311,12 +310,12 @@ function removeOtherPhrases(tagged,textObject) {
             else if(test === "-")
                 otherSeparators.push(k);
         }
-        console.log(i,"commas:",commas);
-        console.log(i,"others:",otherSeparators);
+        // console.log(i,"commas:",commas);
+        // console.log(i,"others:",otherSeparators);
 
         if(commas.length === 1) {
             let pos = commas[0]/sentence.length;
-            console.log("comma at",pos);
+            // console.log("comma at",pos);
             if(pos >= 0.65) {
                 sentence.splice(commas[0]);
                 sentence.push([".","."]);
@@ -381,23 +380,6 @@ function getPlainSignature(signatures) {
     }
 
     return signature;
-}
-
-function getTopicWords(textObject,num) {
-    let topicWords = [];
-    let tagger = new pos.Tagger();
-    let tfidfs = textObject.tfidfs;
-    let blacklistTags = ["JJ","JJR","JJS","VBD","VBG","VBN","VBP","VBZ","VBD","NNS"];
-    let goodTags = ["NN","NNP","NNPS"];
-    for(let word in tfidfs) {
-        if(topicWords.length >= num) break;
-        let lexer = new pos.Lexer().lex(word);
-        let tag = tagger.tag(lexer)[0][1];
-        console.log(word,"=",tag);
-        if((goodTags.indexOf(tag) >= 0 || util.isProperNoun(word)) && (word.indexOf("-") < 0))
-            topicWords.push(word);
-    }
-    return topicWords;
 }
 
 function isOnBlacklist(word) {

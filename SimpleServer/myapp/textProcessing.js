@@ -3,6 +3,7 @@ let natural = require("natural");
 let stemmer = require("porter-stemmer").stemmer;
 let util = require("./util.js");
 let pos = require('pos');
+let nlp = require("nlp_compromise");
 
 exports.processText = function(objects) {
     console.log("-- Text Processing (with promise) --");
@@ -21,6 +22,7 @@ exports.processText = function(objects) {
         textObject.tfidfAvg = getTfIdfAverage(textObject.tfidfs);
 
         textObject = adjustTopicWords(textObject,pageObject);
+        textObject.topicWords = getTopicWords(textObject,5);
         objects.push(textObject);
         resolve(objects);
     });
@@ -64,11 +66,11 @@ function detectProperNouns(sentences) {
                 let difference = i - capsStart;
                 if(capsStart !== -1 && difference > 1) {
                     let compoundWord = getWordFromArray(capsStart, i-1, words);
-                    console.log("--------- Found: " + compoundWord);
+                    // console.log("--------- Found: " + compoundWord);
                     properNouns.push(compoundWord);
                     words[capsStart] = compoundWord;
                     words.splice(capsStart+1, difference-1);
-                    i--;
+                    i = i - (difference);
                 }
                 capsStart = -1;
             }
@@ -105,7 +107,7 @@ function detectHyphenatedWords(sentenceWords) {
         for(let i = 0; i < sentence.length; i++) {
             if((i + 1) < sentence.length && sentence[i+1] === "-" && (i+2) < sentence.length) {
                 let hyphenated = sentence[i] + sentence[i+1] + sentence[i+2];
-                console.log("Found hyphenated: " + hyphenated);
+                // console.log("Found hyphenated: " + hyphenated);
                 sentence[i] = hyphenated;
                 sentence.splice(i+1,2);
                 i--;
@@ -127,7 +129,7 @@ function detectURLs(sentenceWords) {
                 let isDomain = possibleDomains.indexOf(ending) > -1;
                 if(isDomain) {
                     let link = word + sentence[i+1] + ending;
-                    console.log("Found url: " + link);
+                    // console.log("Found url: " + link);
                     sentence[i] = link;
                     sentence.splice(i+1,2);
                     i--;
@@ -146,7 +148,7 @@ function detectNumbers(sentenceWords) {
             let word = sentence[i];
             if((i+1) < sentence.length && sentence[i+1] === "," && (i+1) < sentence.length) {
                 let number = word + sentence[i+1] + sentence[i+2];
-                console.log("Found number: " + number);
+                // console.log("Found number: " + number);
                 sentence[i] = number;
                 sentence.splice(i+1, 2);
                 i--;
@@ -450,9 +452,10 @@ function weighStemmedWords(tfidfs,textObject) {
 }
 
 function adjustForNames(tfidfs,textObject) {
+    let tagger = new pos.Tagger();
     for(let word in tfidfs) {
         if(util.isNameAsTitle(word)) {
-            console.log("Detected a name:",word);
+            // console.log("Detected a name:",word);
             let lastName = word.split(" ")[1];
 
             // find the matching names
@@ -463,9 +466,51 @@ function adjustForNames(tfidfs,textObject) {
             let maxTfidf = baseTfidf > currTfidf ? baseTfidf : currTfidf;
             console.log(word,currTfidf);
             console.log(baseName,baseTfidf);
-            console.log("Giving",baseName,"tfidf of",maxTfidf);
+            // console.log("Giving",baseName,"tfidf of",maxTfidf);
             tfidfs[baseName] = maxTfidf;
             tfidfs[word] = maxTfidf * 0.4;
+        } else if(util.isNormalWord(word)) {
+            // name is either a first name or last name
+            // console.log("testing",word);
+            let names = findNameMatches(word,word,tfidfs);
+            // console.log("matches:",names);
+            if(names.length === 0 || names.length > 1) continue;
+            let baseName = names[0];
+
+            // various tests
+            let lexer = new pos.Lexer().lex(word);
+            let tag = tagger.tag(lexer)[0][1];
+            let nlpTag = nlp.text(word).tags()[0][0];
+            console.log(tag,nlpTag);
+            if(nlpTag !== "Actor" && nlpTag !== "Person") {
+                // console.log("Skipping this one b/c NOT an actor or person");
+                continue;
+            }
+            console.log(nlp.text(word).tags()[0][0],"-",tag);
+            // if(nlp.text(baseName).tags()[0][0] === "")
+            if(baseName.indexOf(" ") < 0) continue;
+            let baseTfidf = tfidfs[baseName];
+            let currTfidf = tfidfs[word];
+            let maxTfidf = baseTfidf > currTfidf ? baseTfidf : currTfidf;
+            tfidfs[baseName] = maxTfidf;
+            tfidfs[word] = maxTfidf * 0.2;
+        } else if(util.isProperNoun(word)) {
+            // console.log("testing",word);
+            let names = findNameMatches(word,word,tfidfs);
+            // console.log("matches:",names);
+            if(names.length === 0) continue;
+            let nameTfidf = tfidfs[word] > tfidfs[names[0]] ? tfidfs[word] : tfidfs[names[0]];
+            if(word.length < names[0].length) {
+                // keep curr, increase its tfidf to max
+                // console.log("Keeping",word,"- setting tfidf to",nameTfidf);
+                tfidfs[word] = nameTfidf;
+                delete tfidfs[names[0]];
+            } else {
+                // replace with names[0], delete word
+                // console.log("Keeping",names[0],"- setting tfidf to",nameTfidf);
+                tfidfs[names[0]] = nameTfidf;
+                delete tfidfs[word];
+            }
         }
     }
 }
@@ -544,6 +589,25 @@ function getWordFromArray(startIndex, endIndex, wordsArray) {
         }
     }
     return word;
+}
+
+function getTopicWords(textObject,num) {
+    let topicWords = [];
+    let tagger = new pos.Tagger();
+    let tfidfs = textObject.tfidfs;
+    let goodTags = ["NN","NNP","NNPS"];
+    for(let word in tfidfs) {
+        if(topicWords.length >= num) break;
+        let lexer = new pos.Lexer().lex(word);
+        let tag = tagger.tag(lexer)[0][1];
+        console.log(word,"=",tag);
+        let type = nlp.text(word).tags()[0][0];
+        console.log(type);
+        let types = type !== "Infinitive" && type !== "Date" && type !== "Value";
+        if(((goodTags.indexOf(tag) >= 0 && types) || util.isProperNoun(word)) && (word.indexOf("-") < 0))
+            topicWords.push(word);
+    }
+    return topicWords;
 }
 
 // module.exports = textProcessor;
