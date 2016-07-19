@@ -37,7 +37,8 @@
                     data: $("#form").serialize(),
                     success: function (result) {
                         formatRecentsResponse(result);
-                        let details = "<b>Signature:</b>  " + result.signatures.plainSignature
+                        let details = "<b>Headline:</b>  " + result.pageObject.headline +
+                                "<br><br><b>Signature:</b>  " + result.signatures.plainSignature
                                 + "<br><br><b>Topic Words:</b>  " + result.textObject.topicWords + "<br><hr>";
                         let hbars = "<b>Potential Files:</b><br><ol>" +
                                 "{{#each crawled.potentialFiles}}" +
@@ -50,6 +51,7 @@
                                 "{{#each crawled.allArticles}}" +
                                 "<li>{{this.points}}</li>" +
                                 "{{/each}}</ol>";
+                        hbars += "<b>Average Relevancy points:</b>  " + result.crawled.avgPoints;
                         hbars += "<hr>";
                         let template = Handlebars.compile(hbars);
                         let output = template(result);

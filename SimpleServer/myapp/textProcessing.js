@@ -598,7 +598,7 @@ function getTopicWords(textObject,num) {
     let topicWords = [];
     let tagger = new pos.Tagger();
     let tfidfs = textObject.tfidfs;
-    let goodTags = ["NN","NNP","NNPS"];
+    let goodTags = ["NN","NNP","NNPS","NNS"];
     for(let word in tfidfs) {
         if(topicWords.length >= num) break;
         if(word.indexOf("-") > -1) continue;

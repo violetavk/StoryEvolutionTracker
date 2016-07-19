@@ -132,11 +132,13 @@ function chooseArticles(responses) {
         let numTopicWords = mainTopicWords.length;
         let allArticles = responses.allArticles;
         let points = [];
+        let overlap = [];
 
         for(let i = 0; i < allArticles.length; i++) {
             let currHeadline = allArticles[i].pageObject.headline;
             let topicWords = allArticles[i].textObject.topicWords;
             points[i] = 0;
+            overlap[i] = 0;
 
             // delete the queried article from list of matches so it doesn't skew algorithm later on
             if(currHeadline === mainArticleHeadline) {
@@ -145,39 +147,41 @@ function chooseArticles(responses) {
                 continue;
             }
 
-            // console.log("Testing", topicWords);
+            // calculate how many points to add for each article
             for(let j = 0; j < topicWords.length; j++) {
                 let currTopicWord = topicWords[j];
-                // console.log(" ",currTopicWord);
-                for(let k = 0; k < mainTopicWords.length; k++) {
-                    // looping thru main topic words
+                for(let k = 0; k < mainTopicWords.length; k++) { // looping thru main topic words
                     let mainTopicWord = mainTopicWords[k];
-                    // console.log("  ",mainTopicWord,"?");
                     if(currTopicWord === mainTopicWord) {
                         // if curr topic word matches main topic word exactly
-                        // console.log("    EXACT MATCH");
                         let absValue = Math.abs(j-k);
                         let toAdd = (numTopicWords - k) + (numTopicWords - absValue) * 5;
-                        // console.log("    Will assign",toAdd);
                         points[i] += toAdd;
+                        overlap[i] += 1;
                     } else {
                         // not exact match, see if there is any subset to assign some amt of points
+
                     }
                 }
             }
         }
+
+        // calculate any deductions
+        for(let i = 0; i < allArticles.length; i++) {
+            points[i] = points[i] - (numTopicWords - overlap[i]);
+        }
+
+        // calculate average of points
         let avgPoints = 0;
         for(let i = 0; i < points.length; i++) {
             let pt = points[i];
             avgPoints += pt;
             allArticles[i].points = pt;
-            console.log(allArticles[i]);
         }
         avgPoints = avgPoints / points.length;
-
         console.log(points);
-        console.log("avg:",avgPoints);
-        // responses.push([points,avgPoints]);
+        console.log(avgPoints);
+        console.log(overlap);
         responses.points = points;
         responses.avgPoints = avgPoints;
 
