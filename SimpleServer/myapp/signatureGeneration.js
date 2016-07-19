@@ -109,7 +109,7 @@ function tagSentences(sentences) {
         }
         tagged.push(taggedSentence);
     }
-    console.log(tagged);
+    // console.log(tagged);
     return tagged;
 }
 
@@ -155,7 +155,7 @@ function removePossessives(tagged) {
             let word = pair[0];
             let tag = pair[1];
             if(tag === "PP$" || tag === "PRP$") {
-                console.log("Found possessive:",word);
+                // console.log("Found possessive:",word);
                 if(j - 1 >= 0) {
                     let prevWord = sentence[j-1];
                     let prevTag = prevWord[1];

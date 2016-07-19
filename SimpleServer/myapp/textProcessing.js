@@ -306,7 +306,7 @@ function adjustTopicWords(textObject, pageObject) {
     weighSection(tfidfs,pageObject.section);
     weighBolded(tfidfs,textObject,pageObject);
     weighBasedOnLocation(tfidfs,textObject);
-    weighStemmedWords(tfidfs,textObject);
+    // weighStemmedWords(tfidfs,textObject);
     adjustForNames(tfidfs,textObject);
     tfidfs = sortTfidfs(tfidfs);
     // deleteAdjectives(tfidfs);
@@ -333,7 +333,6 @@ function weighBasedOnLocation(tfidfs, textObject) {
 function weighHeadline(tfidfs,textObject,pageObject) {
     if(!pageObject.headline) return textObject.tfidfs;
     let sentences = textObject.sentenceWordsArray;
-
     let headline = sentences[0];
     if(!headline) return tfidfs;
     for(let word of headline) {
@@ -348,7 +347,6 @@ function weighHeadline(tfidfs,textObject,pageObject) {
 }
 
 function weighSection(tfidfs, section) {
-    console.log("Testing section: ",section);
     section = section.toLowerCase();
     let sectionTfidf = tfidfs[section];
     if(sectionTfidf) {
@@ -419,6 +417,8 @@ function weighStemmedWords(tfidfs,textObject) {
         let freqSum = 0;
         let related = stemmed[stem];
 
+        if(related.length === 1) continue; // don't bother with calculations since result would equal current tfidf
+
         // first add up all tfidfs of each related word and add up frequencies
         for(let i = 0; i < related.length; i++) {
             totalTfidf += tfidfs[related[i]];
@@ -426,27 +426,30 @@ function weighStemmedWords(tfidfs,textObject) {
         }
 
         // calculate the denominator for the skewed average result
-        let denominator = related.length === 1 ? 1 : related.length-1;
+        let denominator = related.length === 1 ? 1 : related.length - 1; // -1 is to skew favorably for slightly higher values
 
         // new tfidf is dependent on all of its related words, denominator for avg. calculation set by formula above
         let adjustedTfIdf = totalTfidf / denominator;
+        // console.log(stem,"adjusted tfidf =",adjustedTfIdf);
 
         // distribute the new weights based on the frequency of the word
         for(let i = 0; i < related.length; i++) {
             let word = related[i];
-            tfidfs[word] = adjustedTfIdf * (freq[word]/freqSum*.5);
-            // tfidfs[word] = tfidfs[word] + (adjustedTfIdf * (freq[word]/freqSum));
+            tfidfs[word] = adjustedTfIdf * (freq[word]/freqSum);
+
+            // tfidfs[word] = tfidfs[word] + (adjustedTfIdf * (freq[word]/freqSum)); // way too high
             // tfidfs[word] = tfidfs[word] + adjustedTfIdf;
+            // console.log("setting",word,"to",tfidfs[word]);
         }
 
-        // delete all of the non-important related words (for fun)
-        let displayWord = getDisplayWord(textObject,stem);
-        for(let i = 0; i < related.length; i++) {
-            let word = related[i];
-            if(word === displayWord) continue;
-            tfidfs[displayWord] += tfidfs[word];
-            delete tfidfs[word];
-        }
+        // choose which version of stem to keep, taking tfidfs from its related words
+        // let displayWord = getDisplayWord(textObject,stem);
+        // for(let i = 0; i < related.length; i++) {
+        //     let word = related[i];
+        //     if(word === displayWord) continue;
+        //     tfidfs[displayWord] += tfidfs[word];
+        //     delete tfidfs[word];
+        // }
     }
 
 }
@@ -464,8 +467,8 @@ function adjustForNames(tfidfs,textObject) {
             let baseTfidf = tfidfs[baseName];
             let currTfidf = tfidfs[word];
             let maxTfidf = baseTfidf > currTfidf ? baseTfidf : currTfidf;
-            console.log(word,currTfidf);
-            console.log(baseName,baseTfidf);
+            // console.log(word,currTfidf);
+            // console.log(baseName,baseTfidf);
             // console.log("Giving",baseName,"tfidf of",maxTfidf);
             tfidfs[baseName] = maxTfidf;
             tfidfs[word] = maxTfidf * 0.4;
@@ -595,7 +598,7 @@ function getTopicWords(textObject,num) {
     let topicWords = [];
     let tagger = new pos.Tagger();
     let tfidfs = textObject.tfidfs;
-    let goodTags = ["NN","NNP","NNPS","NNS"];
+    let goodTags = ["NN","NNP","NNPS"];
     for(let word in tfidfs) {
         if(topicWords.length >= num) break;
         if(word.indexOf("-") > -1) continue;
@@ -603,10 +606,28 @@ function getTopicWords(textObject,num) {
         let tag = tagger.tag(lexer)[0][1];
         let type = nlp.text(word).tags()[0][0];
         console.log(word,tag,type);
-        let badTypes = (type !== "Infinitive" && type !== "Date" && type !== "Value");
+        let badTypes = (type !== "Infinitive" && type !== "Date" && type !== "Value" && type !== "Adjective");
         let goodTypes = (type === "Place");
         if(((goodTags.indexOf(tag) >= 0 || goodTypes) && badTypes) || util.isProperNoun(word))
             topicWords.push(word);
+
+        // if(util.isProperNoun(word))
+        //     topicWords.push(word);
+        // else if(type === "Place")
+        //     topicWords.push(word);
+        // else if(goodTags.indexOf(tag) >= 0 && badTypes)
+        //     topicWords.push(word);
+        // else if((goodTags.indexOf(tag) >= 0 || tag === "NNS") && type === "Adjective")
+        //     topicWords.push(word);
+
+        // if(goodTags.indexOf(tag) >= 0 && badTypes)
+        //     topicWords.push(word);
+        // else if(type === "Place")
+        //     topicWords.push(word);
+        // else if(util.isProperNoun(word))
+        //     topicWords.push(word);
+        // else if((goodTags.indexOf(tag) >= 0 || tag === "NNS") && type === "Adjective")
+        //     topicWords.push(word);
     }
     return topicWords;
 }
