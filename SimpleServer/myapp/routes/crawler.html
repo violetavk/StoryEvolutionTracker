@@ -39,8 +39,23 @@
                         formatRecentsResponse(result);
                         let details = "<b>Signature:</b>  " + result.signatures.plainSignature
                                 + "<br><br><b>Topic Words:</b>  " + result.textObject.topicWords + "<br><hr>";
+                        let hbars = "<b>Potential Files:</b><br><ol>" +
+                                "{{#each crawled.potentialFiles}}" +
+                                "<li>{{this}}</li>{{/each}}</ol>";
+                        hbars += "<b>Topic Words for each:</b><br><ol>" +
+                                "{{#each crawled.allArticles}}" +
+                                "<li><i>{{this.pageObject.headline}}</i> ---> {{this.textObject.topicWords}}</li>" +
+                                "{{/each}}</ol>";
+                        hbars += "<b>Relevancy Points to main article (in order):</b><br><ol>" +
+                                "{{#each crawled.allArticles}}" +
+                                "<li>{{this.points}}</li>" +
+                                "{{/each}}</ol>";
+                        hbars += "<hr>";
+                        let template = Handlebars.compile(hbars);
+                        let output = template(result);
                         $("#articleDetails").html(details);
-                        formatResponse(result.crawled, "#crawled");
+                        $("#info").html(output);
+//                        formatResponse(result.crawled, "#crawled");
                     }
                 });
                 return false;
@@ -59,7 +74,7 @@
             let nsource = "";
             for (let attr in result) {
 
-//                if (attr === "allArticles") continue;
+                if (attr === "allArticles") continue;
 
                 let obj = result[attr];
                 nsource += ("<b>" + attr + ":</b>  ");
@@ -110,6 +125,7 @@
 <div id="recents"></div>
 <hr>
 <div id="articleDetails"></div>
+<div id="info"></div>
 <div id="crawled"></div>
 
 </body>

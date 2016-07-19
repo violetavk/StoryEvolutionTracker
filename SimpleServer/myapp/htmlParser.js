@@ -15,7 +15,7 @@ exports.parseHTML = function(objects) {
         console.log("-- HTML Parsing (with promises) --");
         let bufferList = bl();
 
-        let link = url.parse(objects[1]);
+        let link = url.parse(objects.link);
 
         let pageObject;
 
@@ -44,7 +44,7 @@ exports.parseHTML = function(objects) {
 
             // parse file as normal
             pageObject = parse(file,options);
-            objects.push(pageObject);
+            objects.pageObject = pageObject;
             resolve(objects);
 
         } else if(link.protocol === "http:") {
@@ -55,7 +55,7 @@ exports.parseHTML = function(objects) {
                 });
                 response.on("end", function(data) {
                     pageObject = parse(bufferList,options);
-                    objects.push(pageObject);
+                    objects.pageObject = pageObject;
                     resolve(objects);
                 });
                 response.on("error", function(err) {
@@ -73,7 +73,6 @@ function parse(buffer,options) {
     let pageObject = getBasics(pageData,options);
     pageObject.sentences = getSentences(pageObject);
     pageObject.article = concatSentences(pageObject);
-
     return pageObject;
 }
 

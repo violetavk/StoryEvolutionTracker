@@ -8,7 +8,7 @@ let nlp = require("nlp_compromise");
 exports.processText = function(objects) {
     console.log("-- Text Processing (with promise) --");
     return new Promise(function(resolve,reject) {
-        let pageObject = objects[2];
+        let pageObject = objects.pageObject;
 
         let textObject = {};
         let processedWords = processWords(pageObject);
@@ -18,12 +18,12 @@ exports.processText = function(objects) {
         textObject.article = concatSentences(textObject);
         textObject.wordFrequencies = getWordFrequencies(textObject);
         textObject.tfidfs = getTfIdf(textObject);
-        textObject.stemmedWords = stemWords(textObject);
+        // textObject.stemmedWords = stemWords(textObject);
         textObject.tfidfAvg = getTfIdfAverage(textObject.tfidfs);
 
         textObject = adjustTopicWords(textObject,pageObject);
         textObject.topicWords = getTopicWords(textObject,5);
-        objects.push(textObject);
+        objects.textObject = textObject;
         resolve(objects);
     });
 };

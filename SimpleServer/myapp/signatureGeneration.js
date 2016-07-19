@@ -6,8 +6,8 @@ exports.generateSignatures = function(objects) {
     console.log("-- Generating Signatures --");
     return new Promise(function(resolve,reject) {
         let signatures = {};
-        let pageObject = objects[2];
-        let textObject = objects[3];
+        let pageObject = objects.pageObject;
+        let textObject = objects.textObject;
 
         // signatures.topicWord = getMainTopicWord(textObject.tfidfs);
         signatures.sentenceTfIdfs = getSentenceTfIdfs(textObject.sentenceWordsArray,textObject.tfidfs);
@@ -15,7 +15,7 @@ exports.generateSignatures = function(objects) {
         signatures.taggedSentences = tagSentences(signatures.topSentences);
         signatures.adjustedSentences = adjustSentences(signatures,textObject);
         signatures.plainSignature = getPlainSignature(signatures);
-        objects.push(signatures);
+        objects.signatures = signatures;
         resolve(objects);
     });
 };

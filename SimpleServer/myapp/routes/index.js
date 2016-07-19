@@ -18,14 +18,17 @@ router.get('/signatures', function (req, res) {
 router.post('/process_post', urlencodedParser, function (req, res) {
     let link = req.body.url_field.trim();
     if (link !== undefined) {
-        let responses = [res,link];
+        let objects = {
+            response: res,
+            link: link
+        };
 
         if (recentLinks.indexOf(link) < 0) {
             recentLinks.push(link);
         }
 
         // using Promises to process pages
-        parseHtml(responses)
+        parseHtml(objects)
             .then(processText)
             .then(generateSignatures)
             .then(sendResponseSignatures);
@@ -41,18 +44,21 @@ router.get('/crawler',function(req, res) {
 router.post('/process_crawl',urlencodedParser, function (req, res) {
     let link = req.body.url_field.trim();
     if (link !== undefined) {
-        let responses = [res,link];
+        let objects = {
+            response: res,
+            link: link
+        };
+
         if (recentLinks.indexOf(link) < 0) {
             recentLinks.push(link);
         }
 
-        parseHtml(responses)
+        parseHtml(objects)
             .then(processText)
             .then(generateSignatures)
             .then(crawlWeb)
             .then(sendResponseCrawler);
 
-        // sendResponseCrawler(responses);
     }
     else
         console.log("Error, link was undefined");
@@ -61,13 +67,13 @@ router.post('/process_crawl',urlencodedParser, function (req, res) {
 function sendResponseSignatures(objects) {
     let response = {
         recentLinks:    recentLinks,
-        url:            objects[1],
-        pageObject:     objects[2],
-        textObject:     objects[3],
-        signatures:     objects[4]
+        url:            objects.link,
+        pageObject:     objects.pageObject,
+        textObject:     objects.textObject,
+        signatures:     objects.signatures
     };
 
-    let res = objects[0];
+    let res = objects.response;
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(response));
 }
@@ -75,13 +81,13 @@ function sendResponseSignatures(objects) {
 function sendResponseCrawler(objects) {
     let response = {
         recentLinks:    recentLinks,
-        url:            objects[1],
-        pageObject:     objects[2],
-        textObject:     objects[3],
-        signatures:     objects[4],
-        crawled:        objects[5]
+        url:            objects.link,
+        pageObject:     objects.pageObject,
+        textObject:     objects.textObject,
+        signatures:     objects.signatures,
+        crawled:        objects.crawled
     };
-    let res = objects[0];
+    let res = objects.response;
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(response));
 }

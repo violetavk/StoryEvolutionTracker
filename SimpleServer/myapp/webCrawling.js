@@ -13,24 +13,29 @@ const dir = "/Users/violet/Development/StoryEvolutionTracker/HTML Pages/";
 exports.crawler = function(objects) {
     console.log("-----Crawling Web------");
     return new Promise(function(resolve,reject) {
-        let pageObject = objects[2];
-        let textObject = objects[3];
-        let signatures = objects[4];
+        let pageObject = objects.pageObject;
+        let textObject = objects.textObject;
+        let signatures = objects.signatures;
 
         let crawled = {};
 
         let fileNames = openDirectory();
         crawled.potentialFiles = getPotentialMatches(textObject,fileNames);
 
-        let responses = [{pageObject,textObject,signatures}, crawled.potentialFiles];
+        // let responses = [{pageObject,textObject,signatures}, crawled.potentialFiles];
+        let responses = {
+            original:       {pageObject,textObject,signatures},
+            potentialFiles: crawled.potentialFiles
+        };
         parseAllPotentialArticles(responses)
             .then(chooseArticles)
             .then(function(result) {
                 // this is the main control flow now once crawling operations are done
-                crawled.allArticles = result[2];
-                crawled.points = result[3];
+                crawled.allArticles = result.allArticles;
+                crawled.points = result.points;
+                crawled.avgPoints = result.avgPoints;
 
-                objects.push(crawled);
+                objects.crawled = crawled;
                 resolve(objects);
             });
 
@@ -56,7 +61,7 @@ function getPotentialMatches(textObject,fileNames) {
         let file = fileNames[i];
         for(let j = 0; j < topicWords.length; j++) {
             let valid = false;
-            console.log(topicWords[j]);
+            // console.log(topicWords[j]);
             for(let word of topicWords[j].split(" ")) {
                 let loc = file.toLowerCase().indexOf(word);
                 if(loc > -1) {
@@ -88,25 +93,29 @@ function getPotentialMatches(textObject,fileNames) {
 }
 
 function parseAllPotentialArticles(responses) {
-    let potentialFiles = responses[1];
+    let potentialFiles = responses.potentialFiles;
     return new Promise(function(resolve,reject) {
         let allArticles = [];
         if(potentialFiles.length === 0) {
-            responses.push(allArticles);
+            responses.allArticles = allArticles;
             resolve(responses);
         }
         for(let i = 0; i < potentialFiles.length; i++) {
             let file = potentialFiles[i];
             let toParse = "file://" + dir + file;
             console.log(toParse);
-            let response = [["placeholder"],toParse];
-            parseHtml(response)
+            // let response = [["placeholder"],toParse];
+            let objs = {
+                response:   ["placeholder"],
+                link:       toParse
+            };
+            parseHtml(objs)
                 .then(processText)
                 .then(generateSignatures)
                 .then(function(res) {
                     allArticles.push(res);
                     if(i+1 === potentialFiles.length) {
-                        responses.push(allArticles);
+                        responses.allArticles = allArticles;
                         resolve(responses);
                     }
                 });
@@ -117,16 +126,16 @@ function parseAllPotentialArticles(responses) {
 function chooseArticles(responses) {
     console.log("--- Choosing which articles fit ---");
     return new Promise(function(resolve,reject) {
-        let mainArticle = responses[0];
+        let mainArticle = responses.original;
         let mainArticleHeadline = mainArticle.pageObject.headline;
         let mainTopicWords = mainArticle.textObject.topicWords;
         let numTopicWords = mainTopicWords.length;
-        let allArticles = responses[2];
+        let allArticles = responses.allArticles;
         let points = [];
 
         for(let i = 0; i < allArticles.length; i++) {
-            let currHeadline = allArticles[i][2].headline;
-            let topicWords = allArticles[i][3].topicWords;
+            let currHeadline = allArticles[i].pageObject.headline;
+            let topicWords = allArticles[i].textObject.topicWords;
             points[i] = 0;
 
             // delete the queried article from list of matches so it doesn't skew algorithm later on
@@ -158,15 +167,21 @@ function chooseArticles(responses) {
             }
         }
         let avgPoints = 0;
-        for(let pt of points)
+        for(let i = 0; i < points.length; i++) {
+            let pt = points[i];
             avgPoints += pt;
+            allArticles[i].points = pt;
+            console.log(allArticles[i]);
+        }
         avgPoints = avgPoints / points.length;
 
         console.log(points);
         console.log("avg:",avgPoints);
-        responses.push([points,avgPoints]);
+        // responses.push([points,avgPoints]);
+        responses.points = points;
+        responses.avgPoints = avgPoints;
 
-        let allRelevantArticles = getAllRelevantArticles(allArticles,points);
+        let allRelevantArticles = getAllRelevantArticles(allArticles);
 
         // any other things, push to objects array
         // resolve with objects array
@@ -174,8 +189,8 @@ function chooseArticles(responses) {
     });
 }
 
-function getAllRelevantArticles(allArticles,points) {
-
+function getAllRelevantArticles(allArticles) {
+    let relevantArticles = [];
 }
 
 function getMostRelevantArticle(allArticles,points) {
