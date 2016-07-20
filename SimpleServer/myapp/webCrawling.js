@@ -22,7 +22,6 @@ exports.crawler = function(objects) {
         let fileNames = openDirectory();
         crawled.potentialFiles = getPotentialMatches(textObject,fileNames);
 
-        // let responses = [{pageObject,textObject,signatures}, crawled.potentialFiles];
         let responses = {
             original:       {pageObject,textObject,signatures},
             potentialFiles: crawled.potentialFiles
@@ -34,6 +33,8 @@ exports.crawler = function(objects) {
                 crawled.allArticles = result.allArticles;
                 crawled.points = result.points;
                 crawled.avgPoints = result.avgPoints;
+                crawled.relevantArticles = result.relevantArticles;
+                crawled.chosenOne = result.chosenOne;
 
                 objects.crawled = crawled;
                 resolve(objects);
@@ -96,10 +97,14 @@ function parseAllPotentialArticles(responses) {
     let potentialFiles = responses.potentialFiles;
     return new Promise(function(resolve,reject) {
         let allArticles = [];
+
+        // if no potential files were found before, stop here
         if(potentialFiles.length === 0) {
             responses.allArticles = allArticles;
             resolve(responses);
         }
+
+        // parse all the potential files to get their details
         for(let i = 0; i < potentialFiles.length; i++) {
             let file = potentialFiles[i];
             let toParse = "file://" + dir + file;
@@ -160,7 +165,16 @@ function chooseArticles(responses) {
                         overlap[i] += 1;
                     } else {
                         // not exact match, see if there is any subset to assign some amt of points
-
+                        let spl = currTopicWord.split(" ");
+                        if(spl.length === 1) continue;
+                        for(let ind of spl) {
+                            if(mainTopicWord.indexOf(ind) > -1) {
+                                let toAdd = (numTopicWords - k) + (numTopicWords - absValue) * 2;
+                                points[i] += toAdd;
+                                overlap[i] += 0.5;
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -171,6 +185,14 @@ function chooseArticles(responses) {
             points[i] = points[i] - (numTopicWords - overlap[i]);
         }
 
+        // if there are no articles to process, finish here, b/c next steps require at least 1 article
+        if(allArticles.length === 0) {
+            responses.points = 0;
+            responses.avgPoints = 0;
+            responses.relevantArticles = [];
+            resolve(responses);
+        }
+
         // calculate average of points
         let avgPoints = 0;
         for(let i = 0; i < points.length; i++) {
@@ -179,24 +201,47 @@ function chooseArticles(responses) {
             allArticles[i].points = pt;
         }
         avgPoints = avgPoints / points.length;
-        console.log(points);
-        console.log(avgPoints);
-        console.log(overlap);
         responses.points = points;
         responses.avgPoints = avgPoints;
-
-        let allRelevantArticles = getAllRelevantArticles(allArticles);
-
-        // any other things, push to objects array
-        // resolve with objects array
+        responses.relevantArticles = getAllRelevantArticles(allArticles,avgPoints);
+        responses.chosenOne = getMostRelevantArticle(responses.relevantArticles, mainArticle);
         resolve(responses);
     });
 }
 
-function getAllRelevantArticles(allArticles) {
+function getAllRelevantArticles(allArticles, avg) {
     let relevantArticles = [];
+    for(let article of allArticles) {
+        let pts = article.points;
+        if(pts > avg) {
+            if(relevantArticles.length === 0)
+                relevantArticles.push(article);
+            else {
+                for(let i = 0; i < relevantArticles.length; i++) {
+                    if(pts >= relevantArticles[i].points) {
+                        relevantArticles.splice(i,0,article);
+                        break;
+                    } else if(i + 1 === relevantArticles.length) {
+                        relevantArticles.push(article);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return relevantArticles;
 }
 
-function getMostRelevantArticle(allArticles,points) {
+function getMostRelevantArticle(relevantArticles, mainArticle) {
+    // this method takes into account timestamp
+    let mainTimeStamp = mainArticle.pageObject.date;
 
+    for(let article of relevantArticles) {
+        let currTimeStamp = article.pageObject.date;
+        if(currTimeStamp > mainTimeStamp) {
+            return article;
+        }
+    }
+
+    return null;
 }

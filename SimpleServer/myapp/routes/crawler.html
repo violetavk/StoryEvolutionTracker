@@ -30,6 +30,7 @@
                 console.log("Triggered submit");
                 $("#articleDetails").html("Loading...");
                 $("#crawled").html("");
+                $("#info").html("");
 
                 jQuery.ajax({
                     url: "http://127.0.0.1:3000/process_crawl",
@@ -42,7 +43,7 @@
                                 + "<br><br><b>Topic Words:</b>  " + result.textObject.topicWords + "<br><hr>";
                         let hbars = "<b>Potential Files:</b><br><ol>" +
                                 "{{#each crawled.potentialFiles}}" +
-                                "<li>{{this}}</li>{{/each}}</ol>";
+                                "<li>{{this}}</li>{{/each}}</ol><hr>";
                         hbars += "<b>Topic Words for each:</b><br><ol>" +
                                 "{{#each crawled.allArticles}}" +
                                 "<li><i>{{this.pageObject.headline}}</i> ---> {{this.textObject.topicWords}}</li>" +
@@ -51,7 +52,18 @@
                                 "{{#each crawled.allArticles}}" +
                                 "<li>{{this.points}}</li>" +
                                 "{{/each}}</ol>";
-                        hbars += "<b>Average Relevancy points:</b>  " + result.crawled.avgPoints;
+                        hbars += "<b>Average Relevancy points:</b>  " + result.crawled.avgPoints + "<br><br>";
+                        hbars += "<b>All Relevant Articles (in order from most to least relevant):</b><br><ol>" +
+                                "{{#each crawled.relevantArticles}}" +
+                                "<li>{{this.pageObject.headline}} <i>(Points:{{this.points}})</i></li>" +
+                                "{{/each}}</ol><hr>";
+                        hbars += "<b>Next chosen article to display:</b><br>" +
+                                "{{#if crawled.chosenOne}}" +
+                                "<i>Headline:</i>  {{crawled.chosenOne.pageObject.headline}}<br>" +
+                                "<i>Timestamp:</i>  {{crawled.chosenOne.pageObject.date}}<br>" +
+                                "<i>Signature:</i>  {{crawled.chosenOne.signatures.plainSignature}}" +
+                                "{{else}}" +
+                                "There was no more recent article to display, so topic will not update{{/if}}";
                         hbars += "<hr>";
                         let template = Handlebars.compile(hbars);
                         let output = template(result);
