@@ -43,28 +43,36 @@
                                 + "<br><br><b>Topic Words:</b>  " + result.textObject.topicWords + "<br><hr>";
                         let hbars = "<b>Potential Files:</b><br><ol>" +
                                 "{{#each crawled.potentialFiles}}" +
-                                "<li>{{this}}</li>{{/each}}</ol><hr>";
+                                "<li>{{this}}</li>{{else}}No matches{{/each}}</ol><hr>";
                         hbars += "<b>Topic Words for each:</b><br><ol>" +
                                 "{{#each crawled.allArticles}}" +
                                 "<li><i>{{this.pageObject.headline}}</i> ---> {{this.textObject.topicWords}}</li>" +
-                                "{{/each}}</ol>";
+                                "{{else}}No matches{{/each}}</ol>";
                         hbars += "<b>Relevancy Points to main article (in order):</b><br><ol>" +
                                 "{{#each crawled.allArticles}}" +
                                 "<li>{{this.points}}</li>" +
-                                "{{/each}}</ol>";
+                                "{{else}}No matches{{/each}}</ol>";
                         hbars += "<b>Average Relevancy points:</b>  " + result.crawled.avgPoints + "<br><br>";
+                        hbars += "<b>Overlap with main article:</b><br><ol>" +
+                                "{{#each crawled.allArticles}}" +
+                                "<li>{{this.overlap}}</li>" +
+                                "{{else}}No marches{{/each}}</ol>";
                         hbars += "<b>All Relevant Articles (in order from most to least relevant):</b><br><ol>" +
                                 "{{#each crawled.relevantArticles}}" +
-                                "<li>{{this.pageObject.headline}} <i>(Points:{{this.points}})</i></li>" +
-                                "{{/each}}</ol><hr>";
+                                "<li>{{this.pageObject.headline}} <i>(Points:{{this.points}}, Overlap:{{this.overlap}})</i></li>" +
+                                "{{else}}No matches{{/each}}</ol><hr>";
                         hbars += "<b>Next chosen article to display:</b><br>" +
                                 "{{#if crawled.chosenOne}}" +
                                 "<i>Headline:</i>  {{crawled.chosenOne.pageObject.headline}}<br>" +
                                 "<i>Timestamp:</i>  {{crawled.chosenOne.pageObject.date}}<br>" +
                                 "<i>Signature:</i>  {{crawled.chosenOne.signatures.plainSignature}}" +
                                 "{{else}}" +
-                                "There was no more recent article to display, so topic will not update{{/if}}";
+                                "There was no more recent article to display, or no matches, so topic will not update{{/if}}";
                         hbars += "<hr>";
+                        hbars += "<b>Adjusted topic words:</b><br><ul>" +
+                                "{{#each crawled.modifiedTopicWords}}" +
+                                "<li>{{@key}}: {{this}}</li>" +
+                                "{{/each}}</ul>";
                         let template = Handlebars.compile(hbars);
                         let output = template(result);
                         $("#articleDetails").html(details);

@@ -13,6 +13,7 @@ const dir = "/Users/violet/Development/StoryEvolutionTracker/HTML Pages/";
 exports.crawler = function(objects) {
     console.log("-----Crawling Web------");
     return new Promise(function(resolve,reject) {
+        let starttime = Date.now();
         let pageObject = objects.pageObject;
         let textObject = objects.textObject;
         let signatures = objects.signatures;
@@ -35,8 +36,11 @@ exports.crawler = function(objects) {
                 crawled.avgPoints = result.avgPoints;
                 crawled.relevantArticles = result.relevantArticles;
                 crawled.chosenOne = result.chosenOne;
+                crawled.modifiedTopicWords = result.modifiedTopicWords;
 
                 objects.crawled = crawled;
+                let endtime = Date.now();
+                console.log("Duration:",(endtime-starttime),"millis");
                 resolve(objects);
             });
 
@@ -60,9 +64,9 @@ function getPotentialMatches(textObject,fileNames) {
     let potential = [];
     for(let i = 0; i < fileNames.length; i++) {
         let file = fileNames[i];
+        let fileMatchCount = 0;
         for(let j = 0; j < topicWords.length; j++) {
             let valid = false;
-            // console.log(topicWords[j]);
             for(let word of topicWords[j].split(" ")) {
                 let loc = file.toLowerCase().indexOf(word);
                 if(loc > -1) {
@@ -79,12 +83,14 @@ function getPotentialMatches(textObject,fileNames) {
                             valid = false;
                     }
                     if(valid) {
-                        potential.push(file);
+                        // potential.push(file);
+                        fileMatchCount++;
                         break;
                     }
                 }
             }
-            if(valid) {
+            if(fileMatchCount === 2) {
+                potential.push(file);
                 break;
             }
         }
@@ -134,33 +140,43 @@ function chooseArticles(responses) {
         let mainArticle = responses.original;
         let mainArticleHeadline = mainArticle.pageObject.headline;
         let mainTopicWords = mainArticle.textObject.topicWords;
+        let mainTimestamp = mainArticle.pageObject.date;
         let numTopicWords = mainTopicWords.length;
         let allArticles = responses.allArticles;
         let points = [];
         let overlap = [];
-
         for(let i = 0; i < allArticles.length; i++) {
             let currHeadline = allArticles[i].pageObject.headline;
             let topicWords = allArticles[i].textObject.topicWords;
+
+            // criteria for deleting an article: if it matches original exactly, if it doesn't have a signature, or it is older than original
+            if(currHeadline === mainArticleHeadline ||
+                !allArticles[i].signatures.plainSignature ||
+                mainTimestamp > allArticles[i].pageObject.date) {
+                    allArticles.splice(i,1);
+                    i--;
+                    continue;
+            }
+
             points[i] = 0;
             overlap[i] = 0;
-
-            // delete the queried article from list of matches so it doesn't skew algorithm later on
-            if(currHeadline === mainArticleHeadline) {
-                allArticles.splice(i,1);
-                i--;
-                continue;
-            }
 
             // calculate how many points to add for each article
             for(let j = 0; j < topicWords.length; j++) {
                 let currTopicWord = topicWords[j];
                 for(let k = 0; k < mainTopicWords.length; k++) { // looping thru main topic words
                     let mainTopicWord = mainTopicWords[k];
+
+                    /* calculate how many relevance points to add */
+                    let absValue = Math.abs(j-k);
+                    // let toAdd = (numTopicWords - k) + (numTopicWords - absValue) * numTopicWords; // 1
+                    // let toAdd = (numTopicWords - k) + (numTopicWords - absValue); // 2
+                    // let toAdd = (numTopicWords - absValue); // 3
+                    let toAdd = (numTopicWords - k) + (numTopicWords/(absValue+1)) + j; // 4
+                    // let toAdd = (numTopicWords/(absValue+1)); // 5
+
                     if(currTopicWord === mainTopicWord) {
                         // if curr topic word matches main topic word exactly
-                        let absValue = Math.abs(j-k);
-                        let toAdd = (numTopicWords - k) + (numTopicWords - absValue) * 5;
                         points[i] += toAdd;
                         overlap[i] += 1;
                     } else {
@@ -169,8 +185,7 @@ function chooseArticles(responses) {
                         if(spl.length === 1) continue;
                         for(let ind of spl) {
                             if(mainTopicWord.indexOf(ind) > -1) {
-                                let toAdd = (numTopicWords - k) + (numTopicWords - absValue) * 2;
-                                points[i] += toAdd;
+                                points[i] += (toAdd * 0.5);
                                 overlap[i] += 0.5;
                                 break;
                             }
@@ -187,7 +202,6 @@ function chooseArticles(responses) {
 
         // if there are no articles to process, finish here, b/c next steps require at least 1 article
         if(allArticles.length === 0) {
-            responses.points = 0;
             responses.avgPoints = 0;
             responses.relevantArticles = [];
             resolve(responses);
@@ -199,12 +213,13 @@ function chooseArticles(responses) {
             let pt = points[i];
             avgPoints += pt;
             allArticles[i].points = pt;
+            allArticles[i].overlap = overlap[i]/numTopicWords;
         }
         avgPoints = avgPoints / points.length;
-        responses.points = points;
         responses.avgPoints = avgPoints;
         responses.relevantArticles = getAllRelevantArticles(allArticles,avgPoints);
-        responses.chosenOne = getMostRelevantArticle(responses.relevantArticles, mainArticle);
+        responses.chosenOne = getMostRelevantArticle(responses.relevantArticles);
+        responses.modifiedTopicWords = mergeTopicWords(mainArticle,responses.chosenOne);
         resolve(responses);
     });
 }
@@ -213,7 +228,8 @@ function getAllRelevantArticles(allArticles, avg) {
     let relevantArticles = [];
     for(let article of allArticles) {
         let pts = article.points;
-        if(pts > avg) {
+        let overlap = article.overlap;
+        if(pts >= avg && overlap >= 0.25) { // threshold = 0.25
             if(relevantArticles.length === 0)
                 relevantArticles.push(article);
             else {
@@ -232,16 +248,42 @@ function getAllRelevantArticles(allArticles, avg) {
     return relevantArticles;
 }
 
-function getMostRelevantArticle(relevantArticles, mainArticle) {
-    // this method takes into account timestamp
-    let mainTimeStamp = mainArticle.pageObject.date;
+function getMostRelevantArticle(relevantArticles) {
+    return relevantArticles[0];
+}
 
-    for(let article of relevantArticles) {
-        let currTimeStamp = article.pageObject.date;
-        if(currTimeStamp > mainTimeStamp) {
-            return article;
+function mergeTopicWords(original,newer) { // can change this later on to include flag for positive or negative
+    console.log("merge");
+    let originalTW = original.textObject.topicWords;
+    let newTW = newer.textObject.topicWords;
+
+    // for webapp "crawler" module only
+    if(originalTW instanceof Array) {
+        let tmp = {};
+        for(let w of originalTW) {
+            tmp[w] = 1;
         }
+        originalTW = tmp;
     }
 
-    return null;
+    // increment each word to strengthen
+    for(let word of newTW) {
+        if(originalTW[word] > 0)
+            originalTW[word] = (originalTW[word] + 1);
+        else
+            originalTW[word] = 1;
+    }
+
+    // finally sort
+    let sorted = [];
+    let sortedObj = {};
+    for(let word in originalTW)
+        sorted.push([word,originalTW[word]]);
+    sorted.sort(function(a,b) {return b[1] - a[1];});
+    for(let i = 0; i < sorted.length; i++) {
+        sortedObj[sorted[i][0]] = sorted[i][1];
+    }
+    console.log(sortedObj);
+    return sortedObj;
+
 }

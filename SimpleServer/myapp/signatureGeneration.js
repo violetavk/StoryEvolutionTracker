@@ -314,10 +314,10 @@ function removeOtherPhrases(tagged,textObject) {
         if(commas.length === 1) {
             let pos = commas[0]/sentence.length;
             // console.log("comma at",pos);
-            if(pos >= 0.65) {
+            if(pos >= 0.7) {
                 sentence.splice(commas[0]);
                 sentence.push([".","."]);
-            } else if(pos <= 0.35) {
+            } else if(pos <= 0.3) {
                 sentence.splice(0,commas[0]+1);
             }
         }

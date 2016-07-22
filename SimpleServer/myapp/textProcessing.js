@@ -18,11 +18,11 @@ exports.processText = function(objects) {
         textObject.article = concatSentences(textObject);
         textObject.wordFrequencies = getWordFrequencies(textObject);
         textObject.tfidfs = getTfIdf(textObject);
-        // textObject.stemmedWords = stemWords(textObject);
+        textObject.stemmedWords = stemWords(textObject);
         textObject.tfidfAvg = getTfIdfAverage(textObject.tfidfs);
 
         textObject = adjustTopicWords(textObject,pageObject);
-        textObject.topicWords = getTopicWords(textObject,5);
+        textObject.topicWords = getTopicWords(textObject,8);
         objects.textObject = textObject;
         resolve(objects);
     });
@@ -39,7 +39,6 @@ function processWords(pageObject) { // process words to detect certain classes o
     sentenceWords = detectHyphenatedWords(sentenceWords);
     sentenceWords = detectURLs(sentenceWords);
     sentenceWords = detectNumbers(sentenceWords);
-
     return {sentenceWords, properNouns};
 }
 
@@ -306,7 +305,7 @@ function adjustTopicWords(textObject, pageObject) {
     weighSection(tfidfs,pageObject.section);
     weighBolded(tfidfs,textObject,pageObject);
     weighBasedOnLocation(tfidfs,textObject);
-    // weighStemmedWords(tfidfs,textObject);
+    weighStemmedWords(tfidfs,textObject);
     adjustForNames(tfidfs,textObject);
     tfidfs = sortTfidfs(tfidfs);
     // deleteAdjectives(tfidfs);
@@ -443,13 +442,13 @@ function weighStemmedWords(tfidfs,textObject) {
         }
 
         // choose which version of stem to keep, taking tfidfs from its related words
-        // let displayWord = getDisplayWord(textObject,stem);
-        // for(let i = 0; i < related.length; i++) {
-        //     let word = related[i];
-        //     if(word === displayWord) continue;
-        //     tfidfs[displayWord] += tfidfs[word];
-        //     delete tfidfs[word];
-        // }
+        let displayWord = getDisplayWord(textObject,stem);
+        for(let i = 0; i < related.length; i++) {
+            let word = related[i];
+            if(word === displayWord) continue;
+            tfidfs[displayWord] += tfidfs[word];
+            delete tfidfs[word];
+        }
     }
 
 }
@@ -606,7 +605,8 @@ function getTopicWords(textObject,num) {
         let tag = tagger.tag(lexer)[0][1];
         let type = nlp.text(word).tags()[0][0];
         console.log(word,tag,type);
-        let badTypes = (type !== "Infinitive" && type !== "Date" && type !== "Value" && type !== "Adjective");
+        if(word === "bbc" || word === "bbc news") continue;
+        let badTypes = (type !== "Date" && type !== "Value" && type !== "Adjective");
         let goodTypes = (type === "Place");
         if(((goodTags.indexOf(tag) >= 0 || goodTypes) && badTypes) || util.isProperNoun(word))
             topicWords.push(word);
