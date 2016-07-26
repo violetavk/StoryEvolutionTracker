@@ -29,7 +29,7 @@ exports.processThenCrawl = function(link,cb) {
         .then(cb);  
 };
 
-exports.findNextArticle = function(words,cb) {
-    crawlWeb(words)
+exports.findNextArticle = function(words,timestamp,cb) {
+    crawlWeb(words,timestamp)
         .then(cb);
 };

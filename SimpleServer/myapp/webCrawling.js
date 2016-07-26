@@ -25,11 +25,12 @@ exports.crawler = function(objects) {
         let crawled = {};
 
         let fileNames = openDirectory();
-        crawled.potentialFiles = getPotentialMatches(textObject,fileNames);
+        crawled.potentialFiles = getPotentialMatches(textObject.topicWords,fileNames);
 
         let responses = {
             original:       {pageObject,textObject,signatures},
-            potentialFiles: crawled.potentialFiles
+            potentialFiles: crawled.potentialFiles,
+            isLocal: true
         };
         parseAllPotentialArticles(responses)
             .then(chooseArticles)
@@ -51,7 +52,7 @@ exports.crawler = function(objects) {
     });
 };
 
-exports.webCrawler = function(words) {
+exports.webCrawler = function(words,timestamp) {
     console.log("----Crawling REAL web----");
     return new Promise(function(resolve,reject) {
         let bufferList = bl();
@@ -61,8 +62,9 @@ exports.webCrawler = function(words) {
                 bufferList.append(data);
             });
             response.on("end", function(data) {
-                let result = getNextArticle(bufferList);
-                resolve(result);
+                getNextArticle(bufferList,words,timestamp,function(objs) {
+                    resolve(objs);
+                });
             });
             response.on("error", function(err) {
                 console.error(err);
@@ -82,49 +84,57 @@ function openDirectory() {
     return htmlFiles;
 }
 
-function getPotentialMatches(textObject,fileNames) {
+function getPotentialMatches(topicWords,articles) {
     console.log("Get potential matches");
-    let topicWords = textObject.topicWords;
     let potential = [];
-    for(let i = 0; i < fileNames.length; i++) {
-        let file = fileNames[i];
-        let fileMatchCount = 0;
+    for(let i = 0; i < articles.length; i++) {
+        let article = articles[i];
+        let headlineMatchCount = 0;
+        let headline = "";
+
+        // have it flexible for string argument and article argument 
+        if(typeof article === "string") {
+            headline = article;
+        } else {
+            headline = article.headline;
+        }
+
         for(let j = 0; j < topicWords.length; j++) {
             let valid = false;
             for(let word of topicWords[j].split(" ")) {
-                let loc = file.toLowerCase().indexOf(word);
+                let loc = headline.toLowerCase().indexOf(word);
                 if(loc > -1) {
                     if(loc - 1 >= 0) {
-                        let prevChar = file.charAt(loc-1);
+                        let prevChar = headline.charAt(loc-1);
                         if(!util.isAlphaNum(prevChar))
                             valid = true;
                     }
-                    if(loc + word.length < file.length) {
-                        let nextChar = file.charAt(loc + word.length);
+                    if(loc + word.length < headline.length) {
+                        let nextChar = headline.charAt(loc + word.length);
                         if(!util.isAlphaNum(nextChar))
                             valid = true;
                         else
                             valid = false;
                     }
                     if(valid) {
-                        // potential.push(file);
-                        fileMatchCount++;
+                        // potential.push(headline);
+                        headlineMatchCount++;
                         break;
                     }
                 }
             }
-            if(fileMatchCount === 1) {
-                potential.push(file);
+            if(headlineMatchCount === 1) {
+                potential.push(article);
                 break;
             }
         }
     }
-    console.log(potential);
     return potential;
 }
 
 function parseAllPotentialArticles(responses) {
     let potentialFiles = responses.potentialFiles;
+    let done = 0;
     return new Promise(function(resolve,reject) {
         let allArticles = [];
 
@@ -137,11 +147,16 @@ function parseAllPotentialArticles(responses) {
         // parse all the potential files to get their details
         for(let i = 0; i < potentialFiles.length; i++) {
             let file = potentialFiles[i];
-            let toParse = "file://" + dir + file;
+            let toParse = "";
+
+            if(responses.isLocal) {
+                toParse = "file://" + dir + file;
+            } else {
+                toParse = file.link;
+            }
             console.log(toParse);
-            // let response = [["placeholder"],toParse];
+
             let objs = {
-                response:   ["placeholder"],
                 link:       toParse
             };
             parseHtml(objs)
@@ -149,7 +164,8 @@ function parseAllPotentialArticles(responses) {
                 .then(generateSignatures)
                 .then(function(res) {
                     allArticles.push(res);
-                    if(i+1 === potentialFiles.length) {
+                    done++;
+                    if(done === potentialFiles.length) {
                         responses.allArticles = allArticles;
                         resolve(responses);
                     }
@@ -162,14 +178,22 @@ function chooseArticles(responses) {
     console.log("--- Choosing which articles fit ---");
     return new Promise(function(resolve,reject) {
         let mainArticle = responses.original;
-        let mainArticleHeadline = mainArticle.pageObject.headline;
-        let mainTopicWords = mainArticle.textObject.topicWords;
-        let mainTimestamp = mainArticle.pageObject.date;
-        let numTopicWords = mainTopicWords.length;
+        let mainArticleHeadline = "", mainTopicWords = [], mainTimestamp = 0, numTopicWords = 0;
+        if(responses.isLocal) {
+            mainArticleHeadline = mainArticle.pageObject.headline;
+            mainTopicWords = mainArticle.textObject.topicWords;
+            mainTimestamp = mainArticle.pageObject.date;
+        } else {
+            mainArticleHeadline = "n/a";
+            mainTopicWords = responses.topicWords;
+            mainTimestamp = responses.timestamp;
+        }
+        numTopicWords = mainTopicWords.length;
         let allArticles = responses.allArticles;
         let points = [];
         let overlap = [];
         for(let i = 0; i < allArticles.length; i++) {
+
             let currHeadline = allArticles[i].pageObject.headline;
             let topicWords = allArticles[i].textObject.topicWords;
 
@@ -243,7 +267,7 @@ function chooseArticles(responses) {
         responses.avgPoints = avgPoints;
         responses.relevantArticles = getAllRelevantArticles(allArticles,avgPoints);
         responses.chosenOne = getMostRelevantArticle(responses.relevantArticles);
-        responses.modifiedTopicWords = mergeTopicWords(mainArticle,responses.chosenOne);
+        // responses.modifiedTopicWords = mergeTopicWords(mainArticle,responses.chosenOne);
         resolve(responses);
     });
 }
@@ -322,20 +346,57 @@ function modifyURL(words) {
     }
     console.log(searchURL);
     let link = url.parse(searchURL);
-    let options = {
+    return {
         host: link.host,
         port: 80,
         path: link.path
     };
-    return options;
 }
 
-function getNextArticle(bufferList) {
+function getNextArticle(bufferList,words,timestamp,cb) {
     let pageData = bufferList.toString();
     let allResults = getAllResults(pageData);
-    return {};
+    allResults = filterOnTimestamp(allResults,timestamp);
+    allResults = getPotentialMatches(words,allResults);
+    let responses = {
+        potentialFiles: allResults,
+        isLocal: false,
+        topicWords: words,
+        timestamp: timestamp
+    };
+    parseAllPotentialArticles(responses)
+        .then(chooseArticles)
+        .then(cb);
 }
 
 function getAllResults(pageData) {
+    let $ = cheerio.load(pageData);
+    let results = [];
+    let htmlResults = $(".search-results").find("li");
+    htmlResults.each(function(i, elem) {
+        let result = {};
+        let allChildren = $(this).children().first().children();
+        // get date
+        result.date = Date.parse(allChildren.find("time").first().attr("datetime"))/1000;
+        // get headline
+        let headline = allChildren.find("h1").attr("itemprop","headline").first();
+        result.headline = headline.text();
+        // get url
+        let link = headline.find("a").attr("href");
+        result.link = link;
+        // done with this one, add result
+        results.push(result);
+    });
+    return results;
+}
 
+function filterOnTimestamp(articles,timestamp) {
+    for(let i = 0; i < articles.length; i++) {
+        let article = articles[i];
+        if(timestamp > article.date) {
+            articles.splice(i,1);
+            i--;
+        }
+    }
+    return articles;
 }

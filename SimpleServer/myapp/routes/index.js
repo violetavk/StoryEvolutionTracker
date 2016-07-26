@@ -47,10 +47,19 @@ router.post('/process_crawl', function (req, res) {
 
 router.post("/get_next_article", function(req,res) {
     // let words = ["church","priest","france","attack","soldiers","police","rouen","suburb"];
+    let timestamp = req.body.timestamp;
     let words = req.body.words;
-    storyevolutiontracker.findNextArticle(words,function(obj) {
+    storyevolutiontracker.findNextArticle(words,timestamp,function(obj) {
+        let next = obj.chosenOne;
+        let response = {
+            headline: next.pageObject.headline,
+            timestamp: next.pageObject.date,
+            section: next.pageObject.section,
+            topicWords: next.textObject.topicWords,
+            signature: next.signatures.plainSignature
+        };
         res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify(obj));
+        res.send(JSON.stringify(response));
     });
 });
 
