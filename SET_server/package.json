@@ -1,0 +1,28 @@
+{
+  "name": "set_server",
+  "version": "1.0.0",
+  "description": "server for running backend of story evolution tracker",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-prod": "NODE_ENV=production node ./app",
+    "start-dev": "NODE_ENV=development node ./app",
+    "start-dev-nodemon": "NODE_ENV=development nodemon ./app"
+  },
+  "author": "violetavk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/violetavk/StoryEvolutionTracker.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "bl": "^1.1.2",
+    "body-parser": "^1.15.2",
+    "cheerio": "^0.20.0",
+    "express": "^4.14.0",
+    "natural": "^0.4.0",
+    "nlp_compromise": "^6.5.0",
+    "porter-stemmer": "^0.9.1",
+    "pos": "^0.3.0"
+  }
+}
