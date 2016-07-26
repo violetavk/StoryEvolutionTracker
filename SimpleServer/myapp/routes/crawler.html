@@ -33,7 +33,7 @@
                 $("#info").html("");
 
                 jQuery.ajax({
-                    url: "http://127.0.0.1:3000/process_crawl",
+                    url: "/process_crawl",
                     type: "POST",
                     data: $("#form").serialize(),
                     success: function (result) {

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Topic Tracker</title>
+    <link rel="stylesheet" href="stylesheets/style.css">
+    <script type="text/javascript" src="./javascripts/jquery-latest.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+    <script src="./javascripts/sorttable.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            let userModel = {
+                id: 1,
+                name: "TestUser",
+                topics: []
+            };
+
+            $("#addNew").click(function() {
+
+            });
+
+
+            // create output for tracked topics
+            let trackedTopicsSource = "<b>Tracked Topics:</b><ol>" +
+                    "{{#each topics}}" +
+                    "<li>{{this}}</li>{{else}}No topics being tracked{{/each}}" +
+                    "</ol>";
+            let trackedTopicsTemplate = Handlebars.compile(trackedTopicsSource);
+            let trackedTopicsOutput = trackedTopicsTemplate(userModel);
+            $("#trackedTopics").html(trackedTopicsOutput);
+        });
+    </script>
+</head>
+<body>
+<h2>User Topic Tracker Simulator</h2>
+<br>
+<input type="button" id="addNew" value="Add new article to track"/>
+<hr>
+<div id="trackedTopics"></div>
+</body>
+</html>

@@ -20,20 +20,6 @@ exports.generateSignatures = function(objects) {
     });
 };
 
-function getTopNWords(textObject,n) {
-    let tfidfs = textObject.tfidfs;
-    let top = {};
-    let count = 0;
-    for(let word in tfidfs) {
-        if(count < n) {
-            top[word] = tfidfs[word];
-            count++;
-        } else break;
-    }
-
-    return top;
-}
-
 function getSentenceTfIdfs(sentences, tfidfs) {
     let values = [];
     let tagger = new pos.Tagger();
@@ -81,8 +67,6 @@ function getTopNSentences(sentenceTfIdfs, pageObject, n) {
 
 function adjustSentences(signatures,textObject) {
     // testing with only first sentence for now
-    let tfidfs = textObject.tfidfs;
-    let avg = textObject.tfidfAvg;
     let tagged = signatures.taggedSentences;
 
     // tagged = removeAdjectives(tagged,textObject);

@@ -2,6 +2,10 @@
 let fs = require('fs');
 let path = require('path');
 let util = require("./util");
+let http = require("http");
+let url = require("url");
+let bl = require("bl");
+let cheerio = require("cheerio");
 let parseHtml = require("./htmlParser").parseHTML;
 let processText = require("./textProcessing").processText;
 let generateSignatures = require("./signatureGeneration").generateSignatures;
@@ -47,6 +51,26 @@ exports.crawler = function(objects) {
     });
 };
 
+exports.webCrawler = function(words) {
+    console.log("----Crawling REAL web----");
+    return new Promise(function(resolve,reject) {
+        let bufferList = bl();
+        let searchURL = modifyURL(words);
+        http.get(searchURL, function(response) {
+            response.on("data", function(data) {
+                bufferList.append(data);
+            });
+            response.on("end", function(data) {
+                let result = getNextArticle(bufferList);
+                resolve(result);
+            });
+            response.on("error", function(err) {
+                console.error(err);
+            })
+        });
+    });
+};
+
 function openDirectory() {
     let allFiles = fs.readdirSync(dir);
     let htmlFiles = [];
@@ -89,7 +113,7 @@ function getPotentialMatches(textObject,fileNames) {
                     }
                 }
             }
-            if(fileMatchCount === 2) {
+            if(fileMatchCount === 1) {
                 potential.push(file);
                 break;
             }
@@ -253,7 +277,6 @@ function getMostRelevantArticle(relevantArticles) {
 }
 
 function mergeTopicWords(original,newer) { // can change this later on to include flag for positive or negative
-    console.log("merge");
     let originalTW = original.textObject.topicWords;
     let newTW = newer.textObject.topicWords;
 
@@ -285,5 +308,34 @@ function mergeTopicWords(original,newer) { // can change this later on to includ
     }
     console.log(sortedObj);
     return sortedObj;
+}
+
+function modifyURL(words) {
+    let searchURL = "http://www.bbc.co.uk/search?filter=news&q=";
+    for(let i = 0; i < 3; i++) {
+        let word = words[i];
+        if(word.indexOf(" ") > -1) {
+            word = word.replace(/\s/g,'+');
+        }
+        console.log(word);
+        searchURL += (word + "+");
+    }
+    console.log(searchURL);
+    let link = url.parse(searchURL);
+    let options = {
+        host: link.host,
+        port: 80,
+        path: link.path
+    };
+    return options;
+}
+
+function getNextArticle(bufferList) {
+    let pageData = bufferList.toString();
+    let allResults = getAllResults(pageData);
+    return {};
+}
+
+function getAllResults(pageData) {
 
 }

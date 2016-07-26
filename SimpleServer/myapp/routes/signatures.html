@@ -33,7 +33,7 @@
                 $("#textObject").html("");
                 $("#signatures").html("");
                 jQuery.ajax({
-                    url: "http://127.0.0.1:3000/process_post",
+                    url: "/process_post",
                     type: "POST",
                     data: $("#form").serialize(),
                     success: function (result) {
