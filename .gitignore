@@ -6,3 +6,12 @@
 
 # Node 
 node_modules
+
+#HTML pages
+/HTML Pages
+
+#WebStorm specific
+.idea
+
+#VSCode specific
+.vscode
