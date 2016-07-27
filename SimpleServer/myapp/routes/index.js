@@ -52,11 +52,13 @@ router.post("/get_next_article", function(req,res) {
     storyevolutiontracker.findNextArticle(words,timestamp,function(obj) {
         let next = obj.chosenOne;
         let response = {
+            link: next.pageObject.link,
             headline: next.pageObject.headline,
             timestamp: next.pageObject.date,
             section: next.pageObject.section,
             topicWords: next.textObject.topicWords,
-            signature: next.signatures.plainSignature
+            signature: next.signatures.plainSignature,
+            modifiedTopicWords: obj.modifiedTopicWords
         };
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(response));

@@ -177,9 +177,9 @@ function parseAllPotentialArticles(responses) {
 function chooseArticles(responses) {
     console.log("--- Choosing which articles fit ---");
     return new Promise(function(resolve,reject) {
-        let mainArticle = responses.original;
-        let mainArticleHeadline = "", mainTopicWords = [], mainTimestamp = 0, numTopicWords = 0;
+        let mainArticle = {}, mainArticleHeadline = "", mainTopicWords = [], mainTimestamp = 0, numTopicWords = 0;
         if(responses.isLocal) {
+            mainArticle = responses.original;
             mainArticleHeadline = mainArticle.pageObject.headline;
             mainTopicWords = mainArticle.textObject.topicWords;
             mainTimestamp = mainArticle.pageObject.date;
@@ -200,7 +200,7 @@ function chooseArticles(responses) {
             // criteria for deleting an article: if it matches original exactly, if it doesn't have a signature, or it is older than original
             if(currHeadline === mainArticleHeadline ||
                 !allArticles[i].signatures.plainSignature ||
-                mainTimestamp > allArticles[i].pageObject.date) {
+                mainTimestamp >= allArticles[i].pageObject.date) {
                     allArticles.splice(i,1);
                     i--;
                     continue;
@@ -267,7 +267,7 @@ function chooseArticles(responses) {
         responses.avgPoints = avgPoints;
         responses.relevantArticles = getAllRelevantArticles(allArticles,avgPoints);
         responses.chosenOne = getMostRelevantArticle(responses.relevantArticles);
-        // responses.modifiedTopicWords = mergeTopicWords(mainArticle,responses.chosenOne);
+        responses.modifiedTopicWords = mergeTopicWords(mainTopicWords,responses.chosenOne.textObject.topicWords);
         resolve(responses);
     });
 }
@@ -301,31 +301,28 @@ function getMostRelevantArticle(relevantArticles) {
 }
 
 function mergeTopicWords(original,newer) { // can change this later on to include flag for positive or negative
-    let originalTW = original.textObject.topicWords;
-    let newTW = newer.textObject.topicWords;
-
-    // for webapp "crawler" module only
-    if(originalTW instanceof Array) {
+    // if array not in frequency object form
+    if(original instanceof Array) {
         let tmp = {};
-        for(let w of originalTW) {
+        for(let w of original) {
             tmp[w] = 1;
         }
-        originalTW = tmp;
+        original = tmp;
     }
 
     // increment each word to strengthen
-    for(let word of newTW) {
-        if(originalTW[word] > 0)
-            originalTW[word] = (originalTW[word] + 1);
+    for(let word of newer) {
+        if(original[word] > 0)
+            original[word] = (original[word] + 1);
         else
-            originalTW[word] = 1;
+            original[word] = 1;
     }
 
     // finally sort
     let sorted = [];
     let sortedObj = {};
-    for(let word in originalTW)
-        sorted.push([word,originalTW[word]]);
+    for(let word in original)
+        sorted.push([word,original[word]]);
     sorted.sort(function(a,b) {return b[1] - a[1];});
     for(let i = 0; i < sorted.length; i++) {
         sortedObj[sorted[i][0]] = sorted[i][1];
@@ -335,7 +332,7 @@ function mergeTopicWords(original,newer) { // can change this later on to includ
 }
 
 function modifyURL(words) {
-    let searchURL = "http://www.bbc.co.uk/search?filter=news&q=";
+    let searchURL = "http://www.bbc.co.uk/search?filter=news&q="; // searching the BBC, first page of results only
     for(let i = 0; i < 3; i++) {
         let word = words[i];
         if(word.indexOf(" ") > -1) {
@@ -391,9 +388,10 @@ function getAllResults(pageData) {
 }
 
 function filterOnTimestamp(articles,timestamp) {
+    // even though articles are filtered on timestamp later, save some performance of not parsing unnecessary articles
     for(let i = 0; i < articles.length; i++) {
         let article = articles[i];
-        if(timestamp > article.date) {
+        if(timestamp >= article.date) {
             articles.splice(i,1);
             i--;
         }

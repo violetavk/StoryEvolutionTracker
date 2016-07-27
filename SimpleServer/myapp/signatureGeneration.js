@@ -342,7 +342,8 @@ function getPlainSignature(signatures) {
             if(util.isAlpha(word) && util.isNumeric(nextWord)) {
                 sentence += " ";
             }
-            else if(nextWord === "." || nextWord === "," || nextWord === "'" || util.isNumeric(nextWord) || (word === "\"" && insideQuotes) || (word === "'" && nextWord === "s")) {
+            else if(nextWord === "." || nextWord === "," || nextWord === "'" || util.isNumeric(nextWord) ||
+                (word === "\"" && insideQuotes) || (word === "'" && nextWord === "s") || word === "#" || word === ";") {
                 // just continue
             }
             else if(nextWord === "\"" && !insideQuotes) {
