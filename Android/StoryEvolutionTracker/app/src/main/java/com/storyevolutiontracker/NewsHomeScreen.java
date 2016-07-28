@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,8 +36,8 @@ public class NewsHomeScreen extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 // TODO redirect user to new topic screen
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(view.getContext(),AddNewStory.class);
+                startActivity(intent);
             }
         });
 
@@ -62,7 +63,20 @@ public class NewsHomeScreen extends AppCompatActivity
             TextView nameDisplay = (TextView) navHeaderView.findViewById(R.id.homeScreenNameDisplay);
             nameDisplay.setText(userName);
 
-
+            /***** Set up topics on screen *****/
+            boolean hasTopics = user.has("topics");
+            Log.d("debug","Has topics = " + hasTopics);
+            if(!hasTopics) {
+                TextView noTopicsText = (TextView) findViewById(R.id.no_topics_textview);
+                if(noTopicsText == null) {
+                    Log.d("debug","No topics but textview is null");
+                } else {
+                    noTopicsText.setText(getString(R.string.no_topics_available));
+                }
+            } else {
+                Log.d("test","Topics were not null");
+                JSONArray topics = user.getJSONArray("topics");
+            }
         } catch (JSONException e) {
             Log.e("ERROR","Improperly formatted JSONObject for NewsHomeScreen");
         }

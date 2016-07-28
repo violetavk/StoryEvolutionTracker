@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.storyevolutiontracker">
 
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -23,13 +22,16 @@
         <activity
             android:name=".GetUserName"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".NewsHomeScreen"
             android:label="@string/title_activity_news_home_screen"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity android:name=".AddNewStory"
+            android:label="@string/add_new_story"
+            android:screenOrientation="portrait"
+            ></activity>
     </application>
 
 </manifest>

@@ -7,10 +7,12 @@
     <string name="enter_name_prompt">What\'s your name?</string>
     <string name="name_hint">Name</string>
     <string name="continue_label">Continue</string>
-    <string name="title_activity_news_home_screen">My Topics</string>
+    <string name="title_activity_news_home_screen">My Tracked Stories</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="about_label">About</string>
     <string name="no_topics_available">There are currently no tracked news stories.\nPress the button below to begin tracking a news story.</string>
-
+    <string name="add_new_story">Add new story</string>
+    <string name="enter_url_instr">Enter URL of a news story to begin tracking</string>
+    <string name="only_bbc_articles_text">Only BBC News and BBC Sport articles are currently supported.</string>
 </resources>
