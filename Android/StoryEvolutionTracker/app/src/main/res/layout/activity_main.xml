@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/accent_material_light"
+    android:backgroundTintMode="screen">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/welcome_new_user1"
+        android:textSize="50dp"
+        android:textAlignment="center"
+        android:paddingTop="50dp"
+        android:layout_weight="2"
+        android:backgroundTint="@color/colorAccent"
+        android:backgroundTintMode="screen"
+        android:textColor="#ffffff" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_weight="1"/>
+    <Button
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:text="@string/button_begin"
+        android:layout_gravity="center"
+        android:layout_marginBottom="50dp"
+        android:textColor="#ffffff"
+        android:background="@color/colorPrimary"
+        android:id="@+id/init_begin_button"/>
+
+</LinearLayout>
