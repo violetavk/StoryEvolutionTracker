@@ -1,15 +1,19 @@
 'use strict';
 let express = require('express');
 let router = express.Router();
-// let bodyParser = require('body-parser');
-// let urlencodedParser = bodyParser.urlencoded({extended: false});
-
 let storyevolutiontracker = require("./../storyevolutiontracker");
-
 let recentLinks = [];
-/* GET home page. */
+
 router.get('/signatures', function (req, res) {
     res.sendFile(__dirname + "/" + "signatures.html");
+});
+
+router.get('/crawler',function(req, res) {
+   res.sendFile(__dirname + "/" + "crawler.html");
+});
+
+router.get("/userSim", function(req,res) {
+    res.sendFile(__dirname + "/" + "userSim.html");
 });
 
 router.post('/process_post', function (req, res) {
@@ -27,10 +31,6 @@ router.post('/process_post', function (req, res) {
         console.log("Error, link was undefined");
 });
 
-router.get('/crawler',function(req, res) {
-   res.sendFile(__dirname + "/" + "crawler.html");
-});
-
 router.post('/process_crawl', function (req, res) {
     let link = req.body.url_field.trim();
     if (link !== undefined) {
@@ -46,12 +46,20 @@ router.post('/process_crawl', function (req, res) {
 });
 
 router.post("/get_next_article", function(req,res) {
-    // let words = ["church","priest","france","attack","soldiers","police","rouen","suburb"];
     let timestamp = req.body.timestamp;
     let words = req.body.words;
     storyevolutiontracker.findNextArticle(words,timestamp,function(obj) {
         let next = obj.chosenOne;
-        let response = {
+        let response = {};
+        if(!next) {
+            response = {
+                found: false,
+                msg: "There was no newer article to select"
+            };
+        } 
+        else {
+            response = {
+            found: true,
             link: next.pageObject.link,
             headline: next.pageObject.headline,
             timestamp: next.pageObject.date,
@@ -59,14 +67,23 @@ router.post("/get_next_article", function(req,res) {
             topicWords: next.textObject.topicWords,
             signature: next.signatures.plainSignature,
             modifiedTopicWords: obj.modifiedTopicWords
-        };
+            };
+        }
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(response));
     });
 });
 
-router.get("/userSim", function(req,res) {
-    res.sendFile(__dirname + "/" + "userSim.html");
+router.post("/addUser", function(req,res) {
+    let name = req.body.name;
+    storyevolutiontracker.addUser(name, function() {
+        let response = {
+            success: true
+        };
+        console.log("Done adding user");
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify(response));
+    });
 });
 
 function sendResponseSignatures(res,objects) {
@@ -94,9 +111,8 @@ function sendResponseSignatures(res,objects) {
             signatures: {
                 signature: objects.signatures.plainSignature
             }
-        }
+        };
     }
-
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(response));
 }

@@ -17,7 +17,8 @@ const dir = "/Users/violet/Development/StoryEvolutionTracker/HTML Pages/";
 exports.crawler = function(objects) {
     console.log("-----Crawling Web------");
     return new Promise(function(resolve,reject) {
-        let starttime = Date.now();
+        try {
+            let starttime = Date.now();
         let pageObject = objects.pageObject;
         let textObject = objects.textObject;
         let signatures = objects.signatures;
@@ -48,28 +49,34 @@ exports.crawler = function(objects) {
                 console.log("Duration:",(endtime-starttime),"millis");
                 resolve(objects);
             });
-
+        } catch (error) {
+            reject(error);   
+        }
     });
 };
 
 exports.webCrawler = function(words,timestamp) {
     console.log("----Crawling REAL web----");
     return new Promise(function(resolve,reject) {
-        let bufferList = bl();
-        let searchURL = modifyURL(words);
-        http.get(searchURL, function(response) {
-            response.on("data", function(data) {
-                bufferList.append(data);
-            });
-            response.on("end", function(data) {
-                getNextArticle(bufferList,words,timestamp,function(objs) {
-                    resolve(objs);
+        try {
+            let bufferList = bl();
+            let searchURL = modifyURL(words);
+            http.get(searchURL, function(response) {
+                response.on("data", function(data) {
+                    bufferList.append(data);
                 });
+                response.on("end", function(data) {
+                    getNextArticle(bufferList,words,timestamp,function(objs) {
+                        resolve(objs);
+                    });
+                });
+                response.on("error", function(err) {
+                    console.error(err);
+                })
             });
-            response.on("error", function(err) {
-                console.error(err);
-            })
-        });
+        } catch (error) {
+            reject(error);
+        }
     });
 };
 
@@ -177,6 +184,7 @@ function parseAllPotentialArticles(responses) {
 function chooseArticles(responses) {
     console.log("--- Choosing which articles fit ---");
     return new Promise(function(resolve,reject) {
+        try {
         let mainArticle = {}, mainArticleHeadline = "", mainTopicWords = [], mainTimestamp = 0, numTopicWords = 0;
         if(responses.isLocal) {
             mainArticle = responses.original;
@@ -252,6 +260,8 @@ function chooseArticles(responses) {
         if(allArticles.length === 0) {
             responses.avgPoints = 0;
             responses.relevantArticles = [];
+            responses.chosenOne = 0;
+            responses.modifiedTopicWords = {};
             resolve(responses);
         }
 
@@ -269,6 +279,9 @@ function chooseArticles(responses) {
         responses.chosenOne = getMostRelevantArticle(responses.relevantArticles);
         responses.modifiedTopicWords = mergeTopicWords(mainTopicWords,responses.chosenOne.textObject.topicWords);
         resolve(responses);
+        } catch (error) {
+            reject(error);
+        }
     });
 }
 

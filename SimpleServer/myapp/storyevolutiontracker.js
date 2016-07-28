@@ -4,6 +4,7 @@ let processText = require("./textProcessing.js").processText;
 let generateSignatures = require("./signatureGeneration").generateSignatures;
 let crawlLocal = require("./webCrawling").crawler;
 let crawlWeb = require("./webCrawling").webCrawler;
+let addUser = require("./userMgmt").addUser;
 
 exports.parseAndGenerateSignature = function(link,cb) {
     let objects = {
@@ -31,5 +32,10 @@ exports.processThenCrawl = function(link,cb) {
 
 exports.findNextArticle = function(words,timestamp,cb) {
     crawlWeb(words,timestamp)
+        .then(cb);
+};
+
+exports.addUser = function(name,cb) {
+    addUser(name)
         .then(cb);
 };
