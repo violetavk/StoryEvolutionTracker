@@ -8,7 +8,7 @@
     <script type="text/javascript">
         $(document).ready(function () {
 
-            if (localStorage.recentLinks !== undefined) {
+            if (localStorage.recentLinks && localStorage.recentLinks !== "undefined") {
                 console.log("had previously stored links");
                 let recentLinks = JSON.parse(localStorage.recentLinks);
                 let temp = {

@@ -12,10 +12,6 @@ router.get('/crawler',function(req, res) {
    res.sendFile(__dirname + "/" + "crawler.html");
 });
 
-router.get("/userSim", function(req,res) {
-    res.sendFile(__dirname + "/" + "userSim.html");
-});
-
 router.post('/process_post', function (req, res) {
     let link = req.body.url_field.trim();
     if (link !== undefined) {
@@ -24,6 +20,7 @@ router.post('/process_post', function (req, res) {
         }
         storyevolutiontracker.parseAndGenerateSignature(link,function(objects) {
             console.log(objects);
+            console.log("----------------------------------------------------");
             sendResponseSignatures(res,objects);
         });
     }
@@ -69,50 +66,21 @@ router.post("/get_next_article", function(req,res) {
             modifiedTopicWords: obj.modifiedTopicWords
             };
         }
-        res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify(response));
-    });
-});
-
-router.post("/addUser", function(req,res) {
-    let name = req.body.name;
-    storyevolutiontracker.addUser(name, function() {
-        let response = {
-            success: true
-        };
-        console.log("Done adding user");
+        console.log("Done with web crawling");
         res.setHeader('Content-Type', 'application/json');
         res.send(JSON.stringify(response));
     });
 });
 
 function sendResponseSignatures(res,objects) {
-    let response = {};
-    if(process.env.NODE_ENV === "development") {
-        response = {
-            recentLinks: recentLinks,
-            url: objects.link,
-            pageObject: objects.pageObject,
-            textObject: objects.textObject,
-            signatures: objects.signatures
-        };
-    } else if(process.env.NODE_ENV === "production") {
-        response = {
-            recentLinks: recentLinks,
-            url: objects.link,
-            pageObject: {
-                date: objects.pageObject.date,
-                headline: objects.pageObject.headline,
-                section: objects.pageObject.section
-            },
-            textObject: {
-                topicWords: objects.textObject.topicWords
-            },
-            signatures: {
-                signature: objects.signatures.plainSignature
-            }
-        };
-    }
+    let response  = {
+        recentLinks: recentLinks,
+        url: objects.link,
+        pageObject: objects.pageObject,
+        textObject: objects.textObject,
+        signatures: objects.signatures
+    };
+    console.log("Done with sending signature response");
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(response));
 }
@@ -126,6 +94,7 @@ function sendResponseCrawler(res,objects) {
         signatures:     objects.signatures,
         crawled:        objects.crawled
     };
+    console.log("Done with sending crawler response");
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(response));
 }

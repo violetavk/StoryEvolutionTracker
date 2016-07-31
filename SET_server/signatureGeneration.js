@@ -3,13 +3,12 @@ let util = require("./util.js");
 let pos = require('pos');
 
 exports.generateSignatures = function(objects) {
-    console.log("-- Generating Signatures --");
+    console.log("-- Generating Signatures for",objects.pageObject.headline," --");
     return new Promise(function(resolve,reject) {
         let signatures = {};
         let pageObject = objects.pageObject;
         let textObject = objects.textObject;
 
-        // signatures.topicWord = getMainTopicWord(textObject.tfidfs);
         signatures.sentenceTfIdfs = getSentenceTfIdfs(textObject.sentenceWordsArray,textObject.tfidfs);
         signatures.topSentences = getTopNSentences(signatures.sentenceTfIdfs, pageObject, 2);
         signatures.taggedSentences = tagSentences(signatures.topSentences);
@@ -343,7 +342,8 @@ function getPlainSignature(signatures) {
             if(util.isAlpha(word) && util.isNumeric(nextWord)) {
                 sentence += " ";
             }
-            else if(nextWord === "." || nextWord === "," || nextWord === "'" || util.isNumeric(nextWord) || (word === "\"" && insideQuotes) || (word === "'" && nextWord === "s")) {
+            else if(nextWord === "." || nextWord === "," || nextWord === "'" || util.isNumeric(nextWord) ||
+                (word === "\"" && insideQuotes) || (word === "'" && nextWord === "s") || word === "#" || word === ";") {
                 // just continue
             }
             else if(nextWord === "\"" && !insideQuotes) {

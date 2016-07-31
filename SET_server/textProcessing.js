@@ -14,7 +14,6 @@ exports.processText = function(objects) {
         let processedWords = processWords(pageObject);
         textObject.sentenceWordsArray = processedWords.sentenceWords;
         textObject.properNouns = processedWords.properNouns;
-        // determineRelatedWords(textObject);
         textObject.article = concatSentences(textObject);
         textObject.wordFrequencies = getWordFrequencies(textObject);
         textObject.tfidfs = getTfIdf(textObject);
@@ -24,6 +23,7 @@ exports.processText = function(objects) {
         textObject = adjustTopicWords(textObject,pageObject);
         textObject.topicWords = getTopicWords(textObject,8);
         objects.textObject = textObject;
+
         resolve(objects);
     });
 };
@@ -199,8 +199,8 @@ function determineRelatedWords(textObject) {
         }
         locations.push(nounLocations);
     }
-    console.log(properNouns);
-    console.log(locations);
+    // console.log(properNouns);
+    // console.log(locations);
 }
 
 function detectCompoundNounsSentence(sentence) {
@@ -488,7 +488,7 @@ function adjustForNames(tfidfs,textObject) {
                 // console.log("Skipping this one b/c NOT an actor or person");
                 continue;
             }
-            console.log(nlp.text(word).tags()[0][0],"-",tag);
+            // console.log(nlp.text(word).tags()[0][0],"-",tag);
             // if(nlp.text(baseName).tags()[0][0] === "")
             if(baseName.indexOf(" ") < 0) continue;
             let baseTfidf = tfidfs[baseName];
@@ -604,7 +604,7 @@ function getTopicWords(textObject,num) {
         let lexer = new pos.Lexer().lex(word);
         let tag = tagger.tag(lexer)[0][1];
         let type = nlp.text(word).tags()[0][0];
-        console.log(word,tag,type);
+        // console.log(word,tag,type);
         if(word === "bbc" || word === "bbc news") continue;
         let badTypes = (type !== "Date" && type !== "Value" && type !== "Adjective");
         let goodTypes = (type === "Place");

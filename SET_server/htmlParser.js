@@ -44,6 +44,7 @@ exports.parseHTML = function(objects) {
 
             // parse file as normal
             pageObject = parse(file,options);
+            pageObject.link = objects.link;
             objects.pageObject = pageObject;
             resolve(objects);
 
@@ -55,6 +56,7 @@ exports.parseHTML = function(objects) {
                 });
                 response.on("end", function(data) {
                     pageObject = parse(bufferList,options);
+                    pageObject.link = objects.link;
                     objects.pageObject = pageObject;
                     resolve(objects);
                 });

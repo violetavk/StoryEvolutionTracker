@@ -2,7 +2,8 @@
 let parseHtml = require("./htmlParser").parseHTML;
 let processText = require("./textProcessing.js").processText;
 let generateSignatures = require("./signatureGeneration").generateSignatures;
-let crawlWeb = require("./webCrawling").crawler;
+let crawlLocal = require("./webCrawling").crawler;
+let crawlWeb = require("./webCrawling").webCrawler;
 
 exports.parseAndGenerateSignature = function(link,cb) {
     let objects = {
@@ -24,11 +25,11 @@ exports.processThenCrawl = function(link,cb) {
     parseHtml(objects)
         .then(processText)
         .then(generateSignatures)
-        .then(crawlWeb)
+        .then(crawlLocal)
         .then(cb);  
 };
 
-exports.findNextArticle = function(article,cb) {
-    crawlWeb(article)
+exports.findNextArticle = function(words,timestamp,cb) {
+    crawlWeb(words,timestamp)
         .then(cb);
 };
