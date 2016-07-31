@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/// <reference path="../../../typings/index.d.ts" /> // this line is for VSCode only
 /**
  * Module dependencies.
  */
