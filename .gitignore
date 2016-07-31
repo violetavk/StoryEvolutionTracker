@@ -19,9 +19,6 @@ node_modules
 jsconfig.json
 tsconfig.json
 
-#MongoDB specific
-/data/db/
-
 # built application files
 *.apk
 *.ap_
