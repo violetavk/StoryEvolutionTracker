@@ -27,11 +27,12 @@
             android:name=".NewsHomeScreen"
             android:label="@string/title_activity_news_home_screen"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-        <activity android:name=".AddNewStory"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".AddNewStory"
             android:label="@string/add_new_story"
             android:screenOrientation="portrait"
-            ></activity>
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

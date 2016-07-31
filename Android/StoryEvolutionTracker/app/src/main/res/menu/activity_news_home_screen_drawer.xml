@@ -1,27 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group android:checkableBehavior="single"
+        android:id="@+id/drawer_group">
         <item
-            android:id="@+id/nav_camera"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="Import" />
+            android:id="@+id/nav_news_home"
+            android:icon="@drawable/news_icon"
+            android:title="@string/title_activity_news_home_screen" />
         <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="Gallery" />
+            android:id="@+id/nav_manage_stories"
+            android:icon="@drawable/ic_sort_black"
+            android:title="@string/manage_stories_label" />
         <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="Slideshow" />
+            android:id="@+id/nav_profile"
+            android:icon="@drawable/ic_person_outline_black"
+            android:title="@string/my_profile_label" />
         <item
-            android:id="@+id/nav_manage"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="Tools" />
+            android:id="@+id/nav_help"
+            android:icon="@drawable/ic_help_outline_black"
+            android:title="@string/help_label" />
         <item
             android:id="@+id/nav_about"
             android:title="@string/about_label"
-            android:icon="@mipmap/qm"/>
+            android:icon="@drawable/ic_info_outline_black"/>
     </group>
 
 </menu>

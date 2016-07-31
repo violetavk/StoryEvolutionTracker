@@ -16,9 +16,6 @@ import java.io.OutputStreamWriter;
 
 public class GetUserName extends AppCompatActivity {
 
-    public final static String userData = "user_data";
-    public final static String STORED_USER_DATA = "com.storyevolutiontracker.USERDATA";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +27,7 @@ public class GetUserName extends AppCompatActivity {
         EditText editText = (EditText) findViewById(R.id.userName);
         String userName = editText.getText().toString().trim();
         JSONObject user = createUser(userName);
-        intent.putExtra("com.storyevolutiontracker.USERDATA",user.toString());
+        intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
         startActivity(intent);
     }
 
@@ -39,15 +36,9 @@ public class GetUserName extends AppCompatActivity {
             JSONObject user = new JSONObject();
             user.put("username",name);
             Log.d("myapp",user.toString());
-
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(openFileOutput(userData, Context.MODE_PRIVATE));
-            outputStreamWriter.write(user.toString());
-            outputStreamWriter.close();
+            ValuesAndUtil.getInstance().saveUserData(user,getApplicationContext());
             Log.d("myapp","Actally saved the user");
             return user;
-        }
-        catch (IOException e) {
-            Log.e("Exception", "File write failed: " + e.toString());
         } catch (JSONException e) {
             Log.e("Exception", "JSON put failed: " + e.toString());
         }

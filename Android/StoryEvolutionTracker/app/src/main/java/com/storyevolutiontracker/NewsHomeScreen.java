@@ -1,5 +1,7 @@
 package com.storyevolutiontracker;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -23,38 +25,45 @@ import org.json.JSONObject;
 public class NewsHomeScreen extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    JSONObject user;
+    DrawerLayout drawer;
+    NavigationView navigationView;
+    FloatingActionButton fab;
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_news_home_screen);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.addNewTopic);
+        fab = (FloatingActionButton) findViewById(R.id.addNewTopic);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO redirect user to new topic screen
                 Intent intent = new Intent(view.getContext(),AddNewStory.class);
                 startActivity(intent);
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        navigationView.getMenu().getItem(0).setChecked(true);
+
 
         // get the user
-        JSONObject user = null;
+        user = null;
         try {
             /**** Set up all user name stuff ****/
-            user = new JSONObject(getIntent().getStringExtra(GetUserName.STORED_USER_DATA));
+            user = new JSONObject(getIntent().getStringExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA));
             String userName = user.getString("username");
             Log.d("debug","User name found:"+userName);
             Snackbar.make(findViewById(R.id.addNewTopic), "Welcome back, " + userName + "!", Snackbar.LENGTH_LONG)
@@ -76,14 +85,15 @@ public class NewsHomeScreen extends AppCompatActivity
             } else {
                 Log.d("test","Topics were not null");
                 JSONArray topics = user.getJSONArray("topics");
+                setUpList(topics);
             }
         } catch (JSONException e) {
             Log.e("ERROR","Improperly formatted JSONObject for NewsHomeScreen");
         }
     }
 
-    public void onStart() {
-        super.onStart();
+    public void setUpList(JSONArray topics) {
+        Log.d("debug","Setting up list");
     }
 
     @Override
@@ -92,7 +102,6 @@ public class NewsHomeScreen extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-//            super.onBackPressed();
             Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_HOME);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -126,15 +135,21 @@ public class NewsHomeScreen extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
+        FragmentManager fm = getFragmentManager();
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_news_home) {
+            // Handle going home
+            Fragment sv = new StoriesViewFragment();
+            fm.beginTransaction().replace(R.id.content_news_home_screen,sv).commit();
+            navigationView.getMenu().getItem(0).setChecked(true);
+        } else if (id == R.id.nav_manage_stories) {
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
+        } else if (id == R.id.nav_profile) {
+            Fragment userProfile = new UserProfileFragment();
+            fm.beginTransaction().replace(R.id.content_news_home_screen,userProfile).commit();
+            navigationView.getMenu().getItem(2).setChecked(true);
+        } else if (id == R.id.nav_help) {
 
         } else if (id == R.id.nav_about) {
 
@@ -143,5 +158,9 @@ public class NewsHomeScreen extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    public void onDeleteAllDataClick(View view) {
+        Snackbar.make(view,"Clicked delete all data",Snackbar.LENGTH_SHORT).show();
     }
 }

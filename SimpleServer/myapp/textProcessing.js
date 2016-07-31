@@ -14,7 +14,6 @@ exports.processText = function(objects) {
         let processedWords = processWords(pageObject);
         textObject.sentenceWordsArray = processedWords.sentenceWords;
         textObject.properNouns = processedWords.properNouns;
-        // determineRelatedWords(textObject);
         textObject.article = concatSentences(textObject);
         textObject.wordFrequencies = getWordFrequencies(textObject);
         textObject.tfidfs = getTfIdf(textObject);

@@ -15,6 +15,43 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/enter_url_instr"
-        android:textSize="25sp"/>
+        android:textSize="25sp"
+        android:textColor="@color/DarkSlateBlue"/>
+
+    <EditText
+        android:id="@+id/url_field"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15sp"
+        android:hint="@string/url_hint"
+        android:textColorHint="@color/darkTeal"
+        android:inputType="textVisiblePassword|textMultiLine"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/or_instead"
+        android:gravity="center"
+        android:paddingBottom="5dp"
+        android:textColor="@color/DarkSlateBlue"
+        android:textStyle="bold" />
+    <Button
+        android:id="@+id/btn_paste_new_story"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/paste_from_clipboard"
+        android:textColor="@color/White"
+        android:background="@color/colorAccent"
+        android:layout_marginBottom="15dp"
+        android:onClick="onPasteClick"/>
+    <Button
+        android:id="@+id/btn_begin_tracking"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/begin_tracking"
+        android:textColor="@color/White"
+        android:background="@color/colorPrimary"
+        android:onClick="onBeginTrackingClick"/>
+
 
 </LinearLayout>

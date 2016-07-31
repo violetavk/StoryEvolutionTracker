@@ -15,4 +15,11 @@
     <string name="add_new_story">Add new story</string>
     <string name="enter_url_instr">Enter URL of a news story to begin tracking</string>
     <string name="only_bbc_articles_text">Only BBC News and BBC Sport articles are currently supported.</string>
+    <string name="manage_stories_label">Manage Stories</string>
+    <string name="my_profile_label">My Profile</string>
+    <string name="url_hint">For example: http://www.bbc.co.uk/news/example-12345678</string>
+    <string name="begin_tracking">Begin Tracking</string>
+    <string name="or_instead">or, instead</string>
+    <string name="paste_from_clipboard">Paste from clipboard</string>
+    <string name="help_label">Help</string>
 </resources>

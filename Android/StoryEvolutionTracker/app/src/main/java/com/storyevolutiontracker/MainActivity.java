@@ -39,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
         boolean userExists = userHasData();
         if(userExists) {
             Log.d("myapp","User already existed");
-            JSONObject user = loadUserData();
+//            JSONObject user = loadUserData();
+            JSONObject user = ValuesAndUtil.getInstance().loadUserData(getApplicationContext());
             Intent intent = new Intent(this,NewsHomeScreen.class);
             intent.putExtra("com.storyevolutiontracker.USERDATA",user.toString());
             startActivity(intent);
