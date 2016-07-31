@@ -39,8 +39,9 @@
                     success: function (result) {
                         formatRecentsResponse(result);
                         let details = "<b>Headline:</b>  " + result.pageObject.headline +
-                                "<br><br><b>Signature:</b>  " + result.signatures.plainSignature
-                                + "<br><br><b>Topic Words:</b>  " + result.textObject.topicWords + "<br><hr>";
+                                "<br><br><b>Signature:</b>  " + result.signatures.plainSignature +
+                                "<br><br><b>Timestamp:</b>  " + result.pageObject.date +
+                                "<br><br><b>Topic Words:</b>  " + result.textObject.topicWords + "<br><hr>";
                         let hbars = "<b>Potential Files:</b><br><ol>" +
                                 "{{#each crawled.potentialFiles}}" +
                                 "<li>{{this}}</li>{{else}}No matches{{/each}}</ol><hr>";
