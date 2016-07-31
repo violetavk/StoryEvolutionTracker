@@ -6,8 +6,8 @@
     "start": "nodemon ./bin/www",
     "start-dev": "NODE_ENV=development nodemon ./bin/www",
     "start-prod": "NODE_ENV=production nodemon ./bin/www"
-    },
-    "dependencies": {
+  },
+  "dependencies": {
       "bl": "^1.1.2",
       "body-parser": "~1.13.2",
       "cheerio": "^0.20.0",
@@ -19,6 +19,5 @@
       "nlp_compromise": "^6.1.2",
       "porter-stemmer": "^0.9.1",
       "pos": "^0.3.0"
-    }
   }
 }
