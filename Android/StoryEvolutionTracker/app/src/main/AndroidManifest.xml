@@ -33,6 +33,9 @@
             android:label="@string/add_new_story"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".SettingsScreen"
+            android:screenOrientation="portrait"
+            android:label="@string/action_settings"/>
     </application>
 
 </manifest>

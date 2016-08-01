@@ -26,6 +26,8 @@
         android:hint="@string/name_hint"
         android:textColorHint="@color/lightTeal"
         android:textColor="@color/White"
+        android:imeOptions="actionDone"
+        android:inputType="textImeMultiLine"
         android:id="@+id/userName"/>
 
     <View

@@ -63,4 +63,9 @@ public class ValuesAndUtil extends AppCompatActivity {
         }
     }
 
+    public void deleteUserData(Context context) {
+        context.deleteFile(USER_DATA_FILE);
+        Log.d("VAU","Deleted all user data");
+    }
+
 }

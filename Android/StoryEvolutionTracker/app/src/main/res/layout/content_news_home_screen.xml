@@ -13,11 +13,6 @@
     tools:context="com.storyevolutiontracker.NewsHomeScreen"
     tools:showIn="@layout/app_bar_news_home_screen">
 
-    <TextView
-        android:id="@+id/no_topics_textview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:paddingTop="@dimen/fab_margin"/>
+
 
 </RelativeLayout>

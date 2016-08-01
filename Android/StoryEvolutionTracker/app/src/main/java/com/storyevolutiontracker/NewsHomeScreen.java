@@ -26,6 +26,7 @@ public class NewsHomeScreen extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     JSONObject user;
+    String userName;
     DrawerLayout drawer;
     NavigationView navigationView;
     FloatingActionButton fab;
@@ -35,7 +36,24 @@ public class NewsHomeScreen extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        try {
+            user = new JSONObject(getIntent().getStringExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA));
+            userName = user.getString("username");
+            Log.d("debug","User name found:"+userName);
+        } catch (JSONException e) {
+            Log.e("ERROR","NO USER FOUND IN NEWS HOME SCREEN; THIS SHOULD NEVER HAPPEN!");
+            return;
+        }
+
+        // set up screen content
         setContentView(R.layout.activity_news_home_screen);
+        Fragment storiesViewFragment = new StoriesViewFragment();
+        Bundle args = new Bundle();
+        args.putCharSequence(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
+        storiesViewFragment.setArguments(args);
+        FragmentManager fm = getFragmentManager();
+        fm.beginTransaction().replace(R.id.content_news_home_screen,storiesViewFragment).commit();
+
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -58,44 +76,12 @@ public class NewsHomeScreen extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.getMenu().getItem(0).setChecked(true);
 
-
-        // get the user
-        user = null;
-        try {
-            /**** Set up all user name stuff ****/
-            user = new JSONObject(getIntent().getStringExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA));
-            String userName = user.getString("username");
-            Log.d("debug","User name found:"+userName);
-            Snackbar.make(findViewById(R.id.addNewTopic), "Welcome back, " + userName + "!", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-            View navHeaderView = navigationView.getHeaderView(0);
-            TextView nameDisplay = (TextView) navHeaderView.findViewById(R.id.homeScreenNameDisplay);
-            nameDisplay.setText(userName);
-
-            /***** Set up topics on screen *****/
-            boolean hasTopics = user.has("topics");
-            Log.d("debug","Has topics = " + hasTopics);
-            if(!hasTopics) {
-                TextView noTopicsText = (TextView) findViewById(R.id.no_topics_textview);
-                if(noTopicsText == null) {
-                    Log.d("debug","No topics but textview is null");
-                } else {
-                    noTopicsText.setText(getString(R.string.no_topics_available));
-                }
-            } else {
-                Log.d("test","Topics were not null");
-                JSONArray topics = user.getJSONArray("topics");
-                setUpList(topics);
-            }
-        } catch (JSONException e) {
-            Log.e("ERROR","Improperly formatted JSONObject for NewsHomeScreen");
-        }
+        Snackbar.make(findViewById(R.id.addNewTopic), "Welcome back, " + userName + "!", Snackbar.LENGTH_LONG).show();
+        View navHeaderView = navigationView.getHeaderView(0);
+        TextView nameDisplay = (TextView) navHeaderView.findViewById(R.id.homeScreenNameDisplay);
+        nameDisplay.setText(userName);
     }
-
-    public void setUpList(JSONArray topics) {
-        Log.d("debug","Setting up list");
-    }
-
+    
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -125,7 +111,10 @@ public class NewsHomeScreen extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            return true;
+            Intent intent = new Intent(this,SettingsScreen.class);
+            intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
+            startActivity(intent);
+
         }
 
         return super.onOptionsItemSelected(item);
@@ -136,17 +125,21 @@ public class NewsHomeScreen extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         FragmentManager fm = getFragmentManager();
-        int id = item.getItemId();
+        Bundle args = new Bundle();
+        args.putCharSequence(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
 
+        int id = item.getItemId();
         if (id == R.id.nav_news_home) {
             // Handle going home
             Fragment sv = new StoriesViewFragment();
+            sv.setArguments(args);
             fm.beginTransaction().replace(R.id.content_news_home_screen,sv).commit();
             navigationView.getMenu().getItem(0).setChecked(true);
         } else if (id == R.id.nav_manage_stories) {
 
         } else if (id == R.id.nav_profile) {
             Fragment userProfile = new UserProfileFragment();
+            userProfile.setArguments(args);
             fm.beginTransaction().replace(R.id.content_news_home_screen,userProfile).commit();
             navigationView.getMenu().getItem(2).setChecked(true);
         } else if (id == R.id.nav_help) {
@@ -158,9 +151,5 @@ public class NewsHomeScreen extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-
-    public void onDeleteAllDataClick(View view) {
-        Snackbar.make(view,"Clicked delete all data",Snackbar.LENGTH_SHORT).show();
     }
 }

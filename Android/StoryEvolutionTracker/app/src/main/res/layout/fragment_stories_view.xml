@@ -2,14 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:id="@+id/fragment_stories_view">
 
     <TextView
+        android:id="@+id/no_topics_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Interests"
         android:gravity="center"
-        android:textSize="20sp"
-        android:textStyle="bold"/>
+        android:paddingTop="@dimen/fab_margin"/>
 
 </LinearLayout>
