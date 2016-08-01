@@ -22,4 +22,7 @@
     <string name="or_instead">or, instead</string>
     <string name="paste_from_clipboard">Paste from clipboard</string>
     <string name="help_label">Help</string>
+    <string name="confirm_story_label">Confirm news story details</string>
+    <string name="headline_label">Headline</string>
+    <string name="date_pub_label">Date published</string>
 </resources>

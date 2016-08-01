@@ -1,8 +1,10 @@
 package com.storyevolutiontracker;
 
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -28,6 +30,7 @@ import java.net.URLEncoder;
 public class AddNewStory extends AppCompatActivity {
 
     private final String processArticlePostURL = "http://139.59.167.170:3000/process_article";
+    ProgressDialog progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +104,10 @@ public class AddNewStory extends AppCompatActivity {
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
             // fetch data
+            progress = new ProgressDialog(this);
+            progress.setTitle("Loading");
+            progress.setMessage("Getting article data...");
+            progress.show();
             new DownloadArticleData().execute(url);
         } else {
             Snackbar.make(getCurrentFocus(),"No Internet Connection available.",Snackbar.LENGTH_SHORT).show();
@@ -118,7 +125,8 @@ public class AddNewStory extends AppCompatActivity {
         protected void onPostExecute(String s) {
             Log.d("ANS","DONE! " + s);
 //            super.onPostExecute(s);
-            // TODO perhaps something with Intents to a YOUR STORY screen and a confirm screen maybe
+            progress.dismiss();
+            goToConfirmScreen(s);
         }
     }
 
@@ -145,8 +153,7 @@ public class AddNewStory extends AppCompatActivity {
             Log.d("ANS","Post parameters : " + urlParameters);
             Log.d("ANS","Response Code : " + responseCode);
 
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(con.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String inputLine;
             StringBuffer response = new StringBuffer();
 
@@ -155,8 +162,6 @@ public class AddNewStory extends AppCompatActivity {
             }
             in.close();
 
-            //print result
-            Log.d("ANS",response.toString());
             return response.toString();
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -164,5 +169,12 @@ public class AddNewStory extends AppCompatActivity {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void goToConfirmScreen(String result) {
+        Intent intent = new Intent(this,ConfirmArticle.class);
+        intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,getIntent().getStringExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA));
+        startActivity(intent);
+        finish();
     }
 }

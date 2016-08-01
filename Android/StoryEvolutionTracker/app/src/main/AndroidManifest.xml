@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.storyevolutiontracker">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
@@ -36,9 +36,13 @@
             android:label="@string/add_new_story"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".SettingsScreen"
-            android:screenOrientation="portrait"
-            android:label="@string/action_settings"/>
+        <activity
+            android:name=".SettingsScreen"
+            android:label="@string/action_settings"
+            android:screenOrientation="portrait" />
+        <activity android:name=".ConfirmArticle"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

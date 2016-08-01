@@ -62,6 +62,7 @@ public class NewsHomeScreen extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(view.getContext(),AddNewStory.class);
+                intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
                 startActivity(intent);
             }
         });
