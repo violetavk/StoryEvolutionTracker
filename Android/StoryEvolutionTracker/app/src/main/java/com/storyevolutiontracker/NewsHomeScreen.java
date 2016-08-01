@@ -81,7 +81,7 @@ public class NewsHomeScreen extends AppCompatActivity
         TextView nameDisplay = (TextView) navHeaderView.findViewById(R.id.homeScreenNameDisplay);
         nameDisplay.setText(userName);
     }
-    
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

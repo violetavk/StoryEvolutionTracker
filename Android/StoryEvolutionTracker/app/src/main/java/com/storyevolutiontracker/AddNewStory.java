@@ -3,18 +3,31 @@ package com.storyevolutiontracker;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+
 public class AddNewStory extends AppCompatActivity {
+
+    private final String processArticlePostURL = "http://139.59.167.170:3000/process_article";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,5 +90,79 @@ public class AddNewStory extends AppCompatActivity {
         /*** END: error checking ***/
 
         Toast.makeText(getApplicationContext(),"Extracted URL: " + text,Toast.LENGTH_LONG).show();
+        processURL(text);
+    }
+
+    public void processURL(String url) {
+        Log.d("ANS","Processing url: " + url);
+
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            // fetch data
+            new DownloadArticleData().execute(url);
+        } else {
+            Snackbar.make(getCurrentFocus(),"No Internet Connection available.",Snackbar.LENGTH_SHORT).show();
+            return;
+        }
+    }
+
+    private class DownloadArticleData extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... strings) {
+            return doPost(strings[0]);
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            Log.d("ANS","DONE! " + s);
+//            super.onPostExecute(s);
+            // TODO perhaps something with Intents to a YOUR STORY screen and a confirm screen maybe
+        }
+    }
+
+    public String doPost(String url) {
+        try {
+            URL obj = new URL(processArticlePostURL);
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Cache-Control","no-cache");
+            con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            String encodedURL = URLEncoder.encode(url,"UTF-8");
+            String urlParameters = "url_field=" + encodedURL + "&prod=true";
+            Log.d("ANS",urlParameters);
+
+            // Send post request
+            con.setDoOutput(true);
+            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+            wr.writeBytes(urlParameters);
+            wr.flush();
+            wr.close();
+
+            int responseCode = con.getResponseCode();
+            Log.d("ANS","\nSending 'POST' request to URL : " + url);
+            Log.d("ANS","Post parameters : " + urlParameters);
+            Log.d("ANS","Response Code : " + responseCode);
+
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            //print result
+            Log.d("ANS",response.toString());
+            return response.toString();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
