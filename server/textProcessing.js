@@ -22,6 +22,7 @@ exports.processText = function(objects) {
 
         textObject = adjustTopicWords(textObject,pageObject);
         textObject.topicWords = getTopicWords(textObject,8);
+        textObject.topicWordsFreq = convertToObject(textObject.topicWords);
         objects.textObject = textObject;
 
         resolve(objects);
@@ -632,4 +633,10 @@ function getTopicWords(textObject,num) {
     return topicWords;
 }
 
-// module.exports = textProcessor;
+function convertToObject(topicWords) {
+    let obj = {};
+    for(let word of topicWords) {
+        obj[word] = 1;
+    }
+    return obj;
+}

@@ -80,6 +80,7 @@ function sendResponseSignatures(res,objects,prod) {
             section: objects.pageObject.section,
             headline: objects.pageObject.headline,
             topicWords: objects.textObject.topicWords,
+            topicWordsFreq: objects.textObject.topicWordsFreq,
             signature: objects.signatures.plainSignature
         };
     } else {
