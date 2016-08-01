@@ -16,8 +16,11 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 
 public class ValuesAndUtil extends AppCompatActivity {
+
+    /* GLOBAL VALUES  */
     public final static String STORED_USER_DATA_EXTRA = "com.storyevolutiontracker.USERDATA";
     public final static String USER_DATA_FILE = "user_data";
+    public final static String NEW_ARTICLE_DATA = "com.storyevolutiontracker.NEWARTICLEDATA";
 
     private static ValuesAndUtil valuesAndUtil;
 

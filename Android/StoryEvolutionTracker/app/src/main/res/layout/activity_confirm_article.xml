@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,13 +8,14 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.storyevolutiontracker.ConfirmArticle"
+    android:orientation="vertical"
     android:background="@color/lightTeal">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/confirm_story_label"
-        android:textSize="22sp"
+        android:textSize="26sp"
         android:textStyle="bold"
         android:textColor="@color/White"
         android:background="@color/lightTeal"
@@ -27,41 +28,97 @@
         android:padding="5dp"
         android:id="@+id/confirmtext"/>
 
-    <TextView
+    <!-- ARTICLE DETAILS -->
+    <android.support.v7.widget.CardView
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/card_view"
+        android:layout_gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/headline_label"
-        android:layout_below="@+id/confirmtext"
-        android:padding="5dp"
-        android:textSize="18sp"
-        android:layout_marginTop="10dp"
-        android:textStyle="bold"
-        android:id="@+id/headline_label"/>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/headline_label"
-        android:layout_marginStart="40dp"
-        android:id="@+id/headline_field"
-        android:textSize="16sp"/>
+        android:layout_marginTop="20dp"
+        android:paddingBottom="10dp"
+        card_view:cardCornerRadius="4dp"
+        card_view:cardElevation="5dp"
+        android:background="@color/cardview_light_background">
 
-    <TextView
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/headline_label"
+                android:padding="5dp"
+                android:textSize="23sp"
+                android:background="@color/darkTeal"
+                android:layout_margin="10dp"
+                android:textStyle="bold"
+                android:textColor="@color/White"
+                android:id="@+id/headline_label"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:layout_marginRight="12dp"
+                android:id="@+id/headline_field"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/date_pub_label"
+                android:padding="5dp"
+                android:textSize="23sp"
+                android:background="@color/darkTeal"
+                android:layout_margin="10dp"
+                android:textStyle="bold"
+                android:textColor="@color/White"
+                android:id="@+id/datepub_label"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:layout_marginRight="12dp"
+                android:paddingBottom="20dp"
+                android:id="@+id/datepub_field"
+                android:textSize="20sp"/>
+
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
+
+    <!-- BUTTONS -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/date_pub_label"
-        android:layout_below="@+id/headline_field"
-        android:padding="5dp"
-        android:textSize="18sp"
-        android:layout_marginTop="10dp"
-        android:textStyle="bold"
-        android:id="@+id/datepub_label"/>
+        android:orientation="horizontal"
+        android:paddingTop="20dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/datepub_label"
-        android:layout_marginStart="40dp"
-        android:id="@+id/datepub_field"
-        android:textSize="16sp"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/cancel_confirmarticle"
+            android:background="@color/colorAccent"
+            android:text="@string/cancel"
+            android:textColor="@color/White"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:onClick="onCancelledConfirmClick"/>
 
-</RelativeLayout>
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/ok_confirmarticle"
+            android:background="@color/colorPrimary"
+            android:text="@string/begin_tracking"
+            android:textColor="@color/White"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:onClick="onConfirmedArticleClick"/>
+
+    </LinearLayout>
+
+
+</LinearLayout>

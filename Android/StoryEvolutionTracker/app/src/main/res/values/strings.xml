@@ -25,4 +25,5 @@
     <string name="confirm_story_label">Confirm news story details</string>
     <string name="headline_label">Headline</string>
     <string name="date_pub_label">Date published</string>
+    <string name="cancel">Cancel</string>
 </resources>

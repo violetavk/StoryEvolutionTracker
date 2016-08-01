@@ -92,7 +92,6 @@ public class AddNewStory extends AppCompatActivity {
         }
         /*** END: error checking ***/
 
-        Toast.makeText(getApplicationContext(),"Extracted URL: " + text,Toast.LENGTH_LONG).show();
         processURL(text);
     }
 
@@ -124,7 +123,6 @@ public class AddNewStory extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             Log.d("ANS","DONE! " + s);
-//            super.onPostExecute(s);
             progress.dismiss();
             goToConfirmScreen(s);
         }
@@ -174,6 +172,7 @@ public class AddNewStory extends AppCompatActivity {
     public void goToConfirmScreen(String result) {
         Intent intent = new Intent(this,ConfirmArticle.class);
         intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,getIntent().getStringExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA));
+        intent.putExtra(ValuesAndUtil.NEW_ARTICLE_DATA,result);
         startActivity(intent);
         finish();
     }
