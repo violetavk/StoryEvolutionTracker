@@ -12,16 +12,15 @@ router.get('/crawler',function(req, res) {
    res.sendFile(__dirname + "/" + "crawler.html");
 });
 
-router.post('/process_post', function (req, res) {
+router.post('/process_article', function (req, res) {
     let link = req.body.url_field.trim();
+    let prod = req.body.prod;
     if (link !== undefined) {
         if (recentLinks.indexOf(link) < 0) {
             recentLinks.push(link);
         }
         storyevolutiontracker.parseAndGenerateSignature(link,function(objects) {
-            console.log(objects);
-            console.log("----------------------------------------------------");
-            sendResponseSignatures(res,objects);
+            sendResponseSignatures(res,objects,prod);
         });
     }
     else
@@ -72,14 +71,26 @@ router.post("/get_next_article", function(req,res) {
     });
 });
 
-function sendResponseSignatures(res,objects) {
-    let response  = {
-        recentLinks: recentLinks,
-        url: objects.link,
-        pageObject: objects.pageObject,
-        textObject: objects.textObject,
-        signatures: objects.signatures
-    };
+function sendResponseSignatures(res,objects,prod) {
+    let response = {};
+    if(prod) {
+        response = {
+            date: objects.pageObject.date,
+            section: objects.pageObject.section,
+            headline: objects.pageObject.headline,
+            topicWords: objects.textObject.topicWords,
+            signature: objects.signatures.plainSignature
+        };
+    } else {
+        response  = {
+            recentLinks: recentLinks,
+            url: objects.link,
+            pageObject: objects.pageObject,
+            textObject: objects.textObject,
+            signatures: objects.signatures
+        };
+    }
+
     console.log("Done with sending signature response");
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(response));

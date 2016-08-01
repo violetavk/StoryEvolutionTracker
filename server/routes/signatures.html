@@ -33,7 +33,7 @@
                 $("#textObject").html("");
                 $("#signatures").html("");
                 jQuery.ajax({
-                    url: "/process_post",
+                    url: "/process_article",
                     type: "POST",
                     data: $("#form").serialize(),
                     success: function (result) {
