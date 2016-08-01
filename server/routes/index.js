@@ -75,6 +75,7 @@ function sendResponseSignatures(res,objects,prod) {
     let response = {};
     if(prod) {
         response = {
+            link: objects.link,
             date: objects.pageObject.date,
             section: objects.pageObject.section,
             headline: objects.pageObject.headline,
