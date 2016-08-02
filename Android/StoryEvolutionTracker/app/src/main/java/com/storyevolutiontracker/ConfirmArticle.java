@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class ConfirmArticle extends AppCompatActivity {
@@ -71,17 +72,60 @@ public class ConfirmArticle extends AppCompatActivity {
             long timestamp = newArticleData.getLong("date");
             topic.put("lastTimeStamp",timestamp);
 
+            // put in most recent signature
+            String signature = newArticleData.getString("signature");
+            topic.put("lastSignature",signature);
+
             // put in modified topic words
             JSONObject modifiedTopicWords = newArticleData.getJSONObject("topicWordsFreq");
             topic.put("modifiedTopicWords",modifiedTopicWords);
             newArticleData.remove("topicWordsFreq");
 
+            // create timeline
             JSONArray timeline = new JSONArray();
             timeline.put(newArticleData);
+            topic.put("timeline",timeline);
 
             Log.d("CA","Final topic: " + topic.toString(4));
+
+            if(userData.has("topics")) {
+                JSONArray topics = addToExistingJSON(userData.getJSONArray("topics"),0,topic);
+                userData.put("topics",topics);
+            } else {
+                JSONArray topics = new JSONArray();
+                topics.put(topic);
+                userData.put("topics",topics);
+            }
+            ValuesAndUtil.getInstance().saveUserData(userData,getApplicationContext());
+            Log.d("CA","Done with this! Saved!");
+            Intent intent = new Intent(this,NewsHomeScreen.class);
+            intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,userData.toString());
+            startActivity(intent);
+            finish();
         } catch (JSONException e) {
             Log.e("CA","CAUGHT JSONEXCEPTION: " + e.getMessage());
+            e.printStackTrace();
         }
+    }
+
+    public JSONArray addToExistingJSON(JSONArray existing, int index, JSONObject toAdd) {
+        ArrayList<JSONObject> list = new ArrayList<JSONObject>();
+        try {
+            for (int i = 0; i < existing.length(); i++) {
+                list.add((JSONObject) existing.get(i));
+            }
+            list.add(index, toAdd);
+
+            JSONArray toReturn = new JSONArray();
+            for (int i = 0; i < existing.length(); i++) {
+                toReturn.put(existing.get(i));
+            }
+
+            return toReturn;
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

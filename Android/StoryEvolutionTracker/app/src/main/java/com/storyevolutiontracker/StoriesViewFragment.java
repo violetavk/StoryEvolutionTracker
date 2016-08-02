@@ -2,6 +2,8 @@ package com.storyevolutiontracker;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +16,10 @@ import org.json.JSONObject;
 
 public class StoriesViewFragment extends Fragment {
 
-    JSONObject user;
+    private JSONObject user;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -39,7 +44,7 @@ public class StoriesViewFragment extends Fragment {
             Log.d("SVF","Topics were not null");
             try {
                 JSONArray topics = user.getJSONArray("topics");
-                setUpList(topics);
+                setUpList(rootView,topics);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -49,7 +54,14 @@ public class StoriesViewFragment extends Fragment {
         return rootView;
     }
 
-    public void setUpList(JSONArray topics) {
+    public void setUpList(View rootView, JSONArray topics) {
         Log.d("SVF","Setting up topics list");
+        Log.d("SVF",topics.toString());
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.stories_recycler_view);
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager(getActivity());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mAdapter = new StoriesViewAdapter(topics);
+        mRecyclerView.setAdapter(mAdapter);
     }
 }
