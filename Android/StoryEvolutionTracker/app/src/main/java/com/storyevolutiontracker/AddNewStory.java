@@ -47,8 +47,8 @@ public class AddNewStory extends AppCompatActivity {
     public void onPasteClick(View view) {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         String pasteData = "";
-        ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
         if(clipboard.hasPrimaryClip() && clipboard.getPrimaryClipDescription().hasMimeType("text/plain")) {
+            ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
             Log.d("debug","Pasting from clipboard");
             pasteData = item.getText().toString();
             Log.d("debug","Found in clipboard: " + pasteData);

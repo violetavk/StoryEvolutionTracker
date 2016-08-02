@@ -39,11 +39,7 @@ public class ConfirmArticle extends AppCompatActivity {
             // display date published
             TextView dateView = (TextView) findViewById(R.id.datepub_field);
             long dateMillis = newArticleData.getInt("date");
-            dateMillis *= 1000;
-            Date date = new Date(dateMillis);
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, MMMM dd, yyyy HH:mm");
-            String dateStr = simpleDateFormat.format(date);
-            dateView.setText(dateStr);
+            dateView.setText(ValuesAndUtil.getInstance().formatDate(dateMillis));
 
         } catch (JSONException e) {
             Log.e("ERROR","Failed reading JSON: " + e.getMessage());
@@ -65,7 +61,7 @@ public class ConfirmArticle extends AppCompatActivity {
 
         try {
             // put in original topic words
-            JSONArray topicWords = newArticleData.getJSONArray("topicWords");
+            JSONObject topicWords = newArticleData.getJSONObject("topicWords");
             topic.put("originalTopicWords",topicWords);
 
             // put in most recent timestamp
@@ -77,9 +73,11 @@ public class ConfirmArticle extends AppCompatActivity {
             topic.put("lastSignature",signature);
 
             // put in modified topic words
-            JSONObject modifiedTopicWords = newArticleData.getJSONObject("topicWordsFreq");
-            topic.put("modifiedTopicWords",modifiedTopicWords);
-            newArticleData.remove("topicWordsFreq");
+//            JSONObject modifiedTopicWords = newArticleData.getJSONObject("topicWordsFreq");
+//            topic.put("modifiedTopicWords",modifiedTopicWords);
+//            JSONArray test = modifiedTopicWords.names();
+//            Log.d("CA","TEST: " + test);
+//            newArticleData.remove("topicWordsFreq");
 
             // create timeline
             JSONArray timeline = new JSONArray();

@@ -1,6 +1,5 @@
 package com.storyevolutiontracker;
 
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,11 +39,15 @@ public class StoriesViewAdapter extends RecyclerView.Adapter<StoriesViewAdapter.
     @Override
     public void onBindViewHolder(StoriesViewAdapter.ViewHolder holder, int position) {
         View view = holder.view;
-        TextView infotext = (TextView) view.findViewById(R.id.info_text);
+        TextView infotext = (TextView) view.findViewById(R.id.signature_text_card);
+        TextView lastUpdated = (TextView) view.findViewById(R.id.last_updated_card);
+
         try {
             JSONObject topic = topics.getJSONObject(position);
             String signature = topic.getString("lastSignature");
             infotext.setText(signature);
+            long lastTimestamp = topic.getLong("lastTimeStamp");
+            lastUpdated.setText("Last updated: " + ValuesAndUtil.getInstance().formatDate(lastTimestamp));
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class ValuesAndUtil extends AppCompatActivity {
 
@@ -69,6 +71,14 @@ public class ValuesAndUtil extends AppCompatActivity {
     public void deleteUserData(Context context) {
         context.deleteFile(USER_DATA_FILE);
         Log.d("VAU","Deleted all user data");
+    }
+
+    public String formatDate(long dateMillis) {
+        dateMillis *= 1000;
+        Date date = new Date(dateMillis);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, MMMM dd, yyyy HH:mm");
+        String dateStr = simpleDateFormat.format(date);
+        return dateStr;
     }
 
 }
