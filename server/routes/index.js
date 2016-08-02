@@ -79,8 +79,8 @@ function sendResponseSignatures(res,objects,prod) {
             date: objects.pageObject.date,
             section: objects.pageObject.section,
             headline: objects.pageObject.headline,
-            // topicWords: objects.textObject.topicWords,
-            topicWords: objects.textObject.topicWordsFreq,
+            topicWords: objects.textObject.topicWords,
+            topicWordsFreq: objects.textObject.topicWordsFreq,
             signature: objects.signatures.plainSignature
         };
     } else {

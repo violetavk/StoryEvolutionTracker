@@ -61,7 +61,7 @@ public class ConfirmArticle extends AppCompatActivity {
 
         try {
             // put in original topic words
-            JSONObject topicWords = newArticleData.getJSONObject("topicWords");
+            JSONArray topicWords = newArticleData.getJSONArray("topicWords");
             topic.put("originalTopicWords",topicWords);
 
             // put in most recent timestamp
@@ -73,11 +73,9 @@ public class ConfirmArticle extends AppCompatActivity {
             topic.put("lastSignature",signature);
 
             // put in modified topic words
-//            JSONObject modifiedTopicWords = newArticleData.getJSONObject("topicWordsFreq");
-//            topic.put("modifiedTopicWords",modifiedTopicWords);
-//            JSONArray test = modifiedTopicWords.names();
-//            Log.d("CA","TEST: " + test);
-//            newArticleData.remove("topicWordsFreq");
+            JSONObject modifiedTopicWords = newArticleData.getJSONObject("topicWordsFreq");
+            topic.put("modifiedTopicWords",topicWords);
+            newArticleData.remove("topicWordsFreq");
 
             // create timeline
             JSONArray timeline = new JSONArray();
