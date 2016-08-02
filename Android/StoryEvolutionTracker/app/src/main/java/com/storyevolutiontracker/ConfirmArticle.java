@@ -74,7 +74,7 @@ public class ConfirmArticle extends AppCompatActivity {
 
             // put in modified topic words
             JSONObject modifiedTopicWords = newArticleData.getJSONObject("topicWordsFreq");
-            topic.put("modifiedTopicWords",topicWords);
+            topic.put("modifiedTopicWords",modifiedTopicWords);
             newArticleData.remove("topicWordsFreq");
 
             // create timeline
@@ -113,8 +113,8 @@ public class ConfirmArticle extends AppCompatActivity {
             list.add(index, toAdd);
 
             JSONArray toReturn = new JSONArray();
-            for (int i = 0; i < existing.length(); i++) {
-                toReturn.put(existing.get(i));
+            for (int i = 0; i < list.size(); i++) {
+                toReturn.put(list.get(i));
             }
 
             return toReturn;

@@ -69,7 +69,7 @@ function adjustSentences(signatures,textObject) {
     let tagged = signatures.taggedSentences;
 
     // tagged = removeAdjectives(tagged,textObject);
-    tagged = removeBlacklistWords(tagged);
+    // tagged = removeBlacklistWords(tagged);
     tagged = removePastParticiples(tagged);
     tagged = removePossessives(tagged);
     removeOtherPhrases(tagged,textObject);
