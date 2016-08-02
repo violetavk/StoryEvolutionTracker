@@ -27,4 +27,5 @@
     <string name="date_pub_label">Date published</string>
     <string name="cancel">Cancel</string>
     <string name="view_timeline_label">View timeline</string>
+    <string name="timeline_label">Timeline</string>
 </resources>

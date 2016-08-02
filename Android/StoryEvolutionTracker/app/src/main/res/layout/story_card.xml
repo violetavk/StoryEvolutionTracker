@@ -32,12 +32,31 @@
             android:layout_height="wrap_content"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
-            android:textSize="18sp"
-            />
+            android:textSize="18sp" />
 
-        <Button
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/based_on_topic_words_textview"
+            android:layout_marginLeft="18dp"
+            android:layout_marginRight="18dp"
+            android:paddingTop="5dp"
+            android:elegantTextHeight="true"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/original_source_card"
+            android:textSize="12sp"
+            android:textStyle="bold|italic"
+            android:layout_marginLeft="18dp"
+            android:layout_marginRight="18dp"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/view_timeline_btn"
             android:text="@string/view_timeline_label"
             android:background="@drawable/ripple"
             android:layout_gravity="bottom|center"

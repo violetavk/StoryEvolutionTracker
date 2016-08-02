@@ -64,6 +64,9 @@ public class ConfirmArticle extends AppCompatActivity {
             JSONArray topicWords = newArticleData.getJSONArray("topicWords");
             topic.put("originalTopicWords",topicWords);
 
+            String originalHeadline = newArticleData.getString("headline");
+            topic.put("originalHeadline",originalHeadline);
+
             // put in most recent timestamp
             long timestamp = newArticleData.getLong("date");
             topic.put("lastTimeStamp",timestamp);
