@@ -44,19 +44,20 @@ function processWords(pageObject) { // process words to detect certain classes o
 }
 
 function detectEquivalentNames(sentences, properNouns) {
-    console.log("-------DETECTING EQUIVALENT NAMES-------");
     let namesFound = [];
     for(let i = 1; i < sentences.length; i++) {
         let curr = sentences[i];
-        for(let word of curr) {
+        for(let k = 0; k < curr.length; k++) {
+            let word = curr[k];
             word = word.toLowerCase();
             if(util.isNameAsTitle(word)) {
                 let lastname = word.split(" ")[1];
                 for(let j = 0; j < properNouns.length; j++) {
                     let pn = properNouns[j];
-                    let pnLastname = pn.split(" ")[1];
+                    let numSpaces = pn.match(/\s/g).length;
+                    let pnLastname = pn.split(" ")[numSpaces];
                     if(pnLastname && lastname === pnLastname.toLowerCase()) {
-                        sentences[i][0] = pn;
+                        sentences[i][k] = pn;
                         namesFound.push(pn);
                         break;
                     }
