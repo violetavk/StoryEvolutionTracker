@@ -19,6 +19,7 @@ import org.json.JSONObject;
 public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private JSONObject user;
+    private JSONArray topics;
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -52,7 +53,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
             Log.d("SVF","Topics were not null");
             srl.setVisibility(View.VISIBLE);
             try {
-                JSONArray topics = user.getJSONArray("topics");
+                topics = user.getJSONArray("topics");
                 setUpList(rootView,topics);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -81,9 +82,31 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
 
     public void refreshAllStories() {
         // get all topics
+        if(!user.has("topics")) {
+            swipeLayout.setRefreshing(false);
+            return;
+        }
+
+        try {
+            for(int i = 0; i < topics.length(); i++) {
+                JSONObject topic = topics.getJSONObject(i);
+                JSONArray topicWords = topic.getJSONObject("modifiedTopicWords").names();
+                String urlParams = "";
+                for(int j = 0; j < topicWords.length(); j++) {
+                    urlParams += (topicWords.getString(0));
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
 
         // for each topic, do post request for new stories
 
         // if found = true, add
+    }
+
+    public void doPostRequest() {
+
     }
 }

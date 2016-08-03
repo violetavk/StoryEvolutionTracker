@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -107,7 +108,15 @@ public class AddNewStory extends AppCompatActivity {
             progress.setTitle("Loading");
             progress.setMessage("Getting article data...");
             progress.show();
-            new DownloadArticleData().execute(url);
+            String encodedURL = null;
+            try {
+                encodedURL = URLEncoder.encode(url,"UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+                return;
+            }
+            String urlParameters = "url_field=" + encodedURL + "&prod=true";
+            new DownloadArticleData().execute(urlParameters);
         } else {
             Snackbar.make(getCurrentFocus(),"No Internet Connection available.",Snackbar.LENGTH_SHORT).show();
             return;
@@ -117,7 +126,7 @@ public class AddNewStory extends AppCompatActivity {
     private class DownloadArticleData extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... strings) {
-            return doPost(strings[0]);
+            return ValuesAndUtil.getInstance().doPostRequest(processArticlePostURL,strings[0]);
         }
 
         @Override
@@ -126,47 +135,6 @@ public class AddNewStory extends AppCompatActivity {
             progress.dismiss();
             goToConfirmScreen(s);
         }
-    }
-
-    public String doPost(String url) {
-        try {
-            URL obj = new URL(processArticlePostURL);
-            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-            con.setRequestMethod("POST");
-            con.setRequestProperty("Cache-Control","no-cache");
-            con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            String encodedURL = URLEncoder.encode(url,"UTF-8");
-            String urlParameters = "url_field=" + encodedURL + "&prod=true";
-            Log.d("ANS",urlParameters);
-
-            // Send post request
-            con.setDoOutput(true);
-            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            wr.writeBytes(urlParameters);
-            wr.flush();
-            wr.close();
-
-            int responseCode = con.getResponseCode();
-            Log.d("ANS","\nSending 'POST' request to URL : " + url);
-            Log.d("ANS","Post parameters : " + urlParameters);
-            Log.d("ANS","Response Code : " + responseCode);
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-
-            return response.toString();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public void goToConfirmScreen(String result) {

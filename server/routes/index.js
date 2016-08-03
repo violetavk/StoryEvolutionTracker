@@ -44,6 +44,9 @@ router.post('/process_crawl', function (req, res) {
 router.post("/get_next_article", function(req,res) {
     let timestamp = req.body.timestamp;
     let words = req.body.words;
+    console.log("---- Getting NEXT ARTICLE ----");
+    console.log("Recieved words:",words);
+    console.log("Recieved timestamp:",timestamp);
     storyevolutiontracker.findNextArticle(words,timestamp,function(obj) {
         let next = obj.chosenOne;
         let response = {};
