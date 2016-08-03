@@ -58,11 +58,11 @@ router.post("/get_next_article", function(req,res) {
             found: true,
             link: next.pageObject.link,
             headline: next.pageObject.headline,
-            timestamp: next.pageObject.date,
+            date: next.pageObject.date,
             section: next.pageObject.section,
             topicWords: next.textObject.topicWords,
             signature: next.signatures.plainSignature,
-            modifiedTopicWords: obj.modifiedTopicWords
+            // modifiedTopicWords: obj.modifiedTopicWords
             };
         }
         console.log("Done with web crawling");

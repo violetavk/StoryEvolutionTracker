@@ -11,11 +11,18 @@
         android:gravity="center"
         android:paddingTop="@dimen/fab_margin"/>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/stories_recycler_view"
-        android:scrollbars="vertical"
+    <android.support.v4.widget.SwipeRefreshLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/lightTeal"/>
+        android:id="@+id/swipe_refresh_layout">
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/stories_recycler_view"
+            android:scrollbars="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/lightTeal"/>
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+
 
 </RelativeLayout>

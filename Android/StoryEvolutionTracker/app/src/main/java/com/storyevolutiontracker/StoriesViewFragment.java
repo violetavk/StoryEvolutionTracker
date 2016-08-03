@@ -2,6 +2,8 @@ package com.storyevolutiontracker;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -14,12 +16,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class StoriesViewFragment extends Fragment {
+public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private JSONObject user;
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    private SwipeRefreshLayout swipeLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -27,8 +30,12 @@ public class StoriesViewFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_stories_view, container, false);
         getActivity().setTitle(getResources().getString(R.string.title_activity_news_home_screen));
 
-        TextView noTopicsText = (TextView) rootView.findViewById(R.id.no_topics_textview);
+        swipeLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh_layout);
+        swipeLayout.setOnRefreshListener(this);
 
+        TextView noTopicsText = (TextView) rootView.findViewById(R.id.no_topics_textview);
+//        RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.stories_recycler_view);
+        SwipeRefreshLayout srl = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh_layout);
         try {
             user = new JSONObject(getArguments().getCharSequence(ValuesAndUtil.STORED_USER_DATA_EXTRA).toString());
         } catch (JSONException e) {
@@ -40,8 +47,10 @@ public class StoriesViewFragment extends Fragment {
         Log.d("SVF","Has topics = " + hasTopics);
         if(!hasTopics) {
             noTopicsText.setText(getString(R.string.no_topics_available));
+            srl.setVisibility(View.INVISIBLE);
         } else {
             Log.d("SVF","Topics were not null");
+            srl.setVisibility(View.VISIBLE);
             try {
                 JSONArray topics = user.getJSONArray("topics");
                 setUpList(rootView,topics);
@@ -63,5 +72,18 @@ public class StoriesViewFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new StoriesViewAdapter(topics);
         mRecyclerView.setAdapter(mAdapter);
+    }
+
+    @Override
+    public void onRefresh() {
+        refreshAllStories();
+    }
+
+    public void refreshAllStories() {
+        // get all topics
+
+        // for each topic, do post request for new stories
+
+        // if found = true, add
     }
 }

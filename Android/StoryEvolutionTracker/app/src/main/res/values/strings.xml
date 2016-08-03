@@ -28,4 +28,6 @@
     <string name="cancel">Cancel</string>
     <string name="view_timeline_label">View timeline</string>
     <string name="timeline_label">Timeline</string>
+    <string name="view_online">View Online</string>
+    <string name="manually_fetch_label">Fetch new stories</string>
 </resources>

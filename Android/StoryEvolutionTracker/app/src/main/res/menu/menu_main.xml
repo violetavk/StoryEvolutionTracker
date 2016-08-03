@@ -4,6 +4,11 @@
     tools:context="com.storyevolutiontracker.MainActivity">
     <item
         android:id="@+id/action_settings"
+        android:orderInCategory="200"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/manually_fetch_new_stories"
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never" />

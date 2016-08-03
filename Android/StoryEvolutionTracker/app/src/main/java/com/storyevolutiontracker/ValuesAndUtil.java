@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class ValuesAndUtil extends AppCompatActivity {
@@ -77,9 +79,36 @@ public class ValuesAndUtil extends AppCompatActivity {
     public String formatDate(long dateMillis) {
         dateMillis *= 1000;
         Date date = new Date(dateMillis);
+        Date now = new Date();
+        long difference = now.getTime() - date.getTime();
+        long diffHours = difference / (60 * 60 * 1000) % 24;
+        if(diffHours <= 12) {
+            return diffHours + " hours ago";
+        }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, MMMM dd, yyyy HH:mm");
         String dateStr = simpleDateFormat.format(date);
         return dateStr;
+    }
+
+    public JSONArray addToExistingJSON(JSONArray existing, int index, JSONObject toAdd) {
+        ArrayList<JSONObject> list = new ArrayList<JSONObject>();
+        try {
+            for (int i = 0; i < existing.length(); i++) {
+                list.add((JSONObject) existing.get(i));
+            }
+            list.add(index, toAdd);
+
+            JSONArray toReturn = new JSONArray();
+            for (int i = 0; i < list.size(); i++) {
+                toReturn.put(list.get(i));
+            }
+
+            return toReturn;
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

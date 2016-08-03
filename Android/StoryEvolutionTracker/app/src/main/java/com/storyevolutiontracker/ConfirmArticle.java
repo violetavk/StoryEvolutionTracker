@@ -88,7 +88,7 @@ public class ConfirmArticle extends AppCompatActivity {
             Log.d("CA","Final topic: " + topic.toString(4));
 
             if(userData.has("topics")) {
-                JSONArray topics = addToExistingJSON(userData.getJSONArray("topics"),0,topic);
+                JSONArray topics = ValuesAndUtil.getInstance().addToExistingJSON(userData.getJSONArray("topics"),0,topic);
                 userData.put("topics",topics);
             } else {
                 JSONArray topics = new JSONArray();
@@ -105,26 +105,5 @@ public class ConfirmArticle extends AppCompatActivity {
             Log.e("CA","CAUGHT JSONEXCEPTION: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    public JSONArray addToExistingJSON(JSONArray existing, int index, JSONObject toAdd) {
-        ArrayList<JSONObject> list = new ArrayList<JSONObject>();
-        try {
-            for (int i = 0; i < existing.length(); i++) {
-                list.add((JSONObject) existing.get(i));
-            }
-            list.add(index, toAdd);
-
-            JSONArray toReturn = new JSONArray();
-            for (int i = 0; i < list.size(); i++) {
-                toReturn.put(list.get(i));
-            }
-
-            return toReturn;
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }
