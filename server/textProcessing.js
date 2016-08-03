@@ -19,7 +19,7 @@ exports.processText = function(objects) {
         textObject.tfidfs = getTfIdf(textObject);
         textObject.stemmedWords = stemWords(textObject);
         textObject.tfidfAvg = getTfIdfAverage(textObject.tfidfs);
-
+        detectEquivalentNames(textObject.sentenceWordsArray, textObject.properNouns);
         textObject = adjustTopicWords(textObject,pageObject);
         textObject.topicWords = getTopicWords(textObject,8);
         textObject.topicWordsFreq = convertToObject(textObject.topicWords);
@@ -41,6 +41,64 @@ function processWords(pageObject) { // process words to detect certain classes o
     sentenceWords = detectURLs(sentenceWords);
     sentenceWords = detectNumbers(sentenceWords);
     return {sentenceWords, properNouns};
+}
+
+function detectEquivalentNames(sentences, properNouns) {
+    console.log("-------DETECTING EQUIVALENT NAMES-------");
+    let namesFound = [];
+    for(let i = 1; i < sentences.length; i++) {
+        let curr = sentences[i];
+        for(let word of curr) {
+            word = word.toLowerCase();
+            if(util.isNameAsTitle(word)) {
+                let lastname = word.split(" ")[1];
+                for(let j = 0; j < properNouns.length; j++) {
+                    let pn = properNouns[j];
+                    let pnLastname = pn.split(" ")[1];
+                    if(pnLastname && lastname === pnLastname.toLowerCase()) {
+                        sentences[i][0] = pn;
+                        namesFound.push(pn);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    // console.log("Looking for he/she name matches now");
+    for(let i = 1; i < sentences.length; i++) {
+        let curr = sentences[i];
+        // console.log("Testing--->",curr);
+        let firstWord = curr[0].toLowerCase();
+        // console.log("First word:",firstWord);
+        if(firstWord === "he" || firstWord === "she") {
+            // start a reverse loop going back up the article
+            // console.log("Found he or she");
+            for(let j = i - 1; j >= 0; j--) {
+                let prev = sentences[j];
+                let found = false;
+                // console.log("      One of the prev::::",prev);
+                let firstWordOfPrev = prev[0];
+                if(util.isProperNoun(firstWordOfPrev)) {
+                    // console.log("Found a match:",firstWordOfPrev);
+                    sentences[i][0] = firstWordOfPrev;
+                    found = true;
+                } else {
+                    for(let k = 0; k < namesFound.length; k++) {
+                        let currName = namesFound[k];
+                        if(util.containsWord(prev,currName)) {
+                            // console.log("Found a match:",currName);
+                            sentences[i][0] = currName;
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if(found)
+                    break;
+            }
+        }
+    }
 }
 
 function detectProperNouns(sentences) {
@@ -607,28 +665,10 @@ function getTopicWords(textObject,num) {
         let type = nlp.text(word).tags()[0][0];
         // console.log(word,tag,type);
         if(word === "bbc" || word === "bbc news") continue;
-        let badTypes = (type !== "Date" && type !== "Value" && type !== "Adjective");
+        let badTypes = (type !== "Date" && type !== "Value" && type !== "Adjective") && !util.isMonthName(word);
         let goodTypes = (type === "Place");
         if(((goodTags.indexOf(tag) >= 0 || goodTypes) && badTypes) || util.isProperNoun(word))
             topicWords.push(word);
-
-        // if(util.isProperNoun(word))
-        //     topicWords.push(word);
-        // else if(type === "Place")
-        //     topicWords.push(word);
-        // else if(goodTags.indexOf(tag) >= 0 && badTypes)
-        //     topicWords.push(word);
-        // else if((goodTags.indexOf(tag) >= 0 || tag === "NNS") && type === "Adjective")
-        //     topicWords.push(word);
-
-        // if(goodTags.indexOf(tag) >= 0 && badTypes)
-        //     topicWords.push(word);
-        // else if(type === "Place")
-        //     topicWords.push(word);
-        // else if(util.isProperNoun(word))
-        //     topicWords.push(word);
-        // else if((goodTags.indexOf(tag) >= 0 || tag === "NNS") && type === "Adjective")
-        //     topicWords.push(word);
     }
     return topicWords;
 }

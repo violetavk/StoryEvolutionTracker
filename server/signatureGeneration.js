@@ -71,7 +71,7 @@ function adjustSentences(signatures,textObject) {
     // tagged = removeAdjectives(tagged,textObject);
     // tagged = removeBlacklistWords(tagged);
     tagged = removePastParticiples(tagged);
-    tagged = removePossessives(tagged);
+    // tagged = removePossessives(tagged);
     removeOtherPhrases(tagged,textObject);
     tagged = fixFormat(tagged);
 
@@ -297,10 +297,10 @@ function removeOtherPhrases(tagged,textObject) {
         if(commas.length === 1) {
             let pos = commas[0]/sentence.length;
             // console.log("comma at",pos);
-            if(pos >= 0.7) {
+            if(pos >= 0.8) {
                 sentence.splice(commas[0]);
                 sentence.push([".","."]);
-            } else if(pos <= 0.3) {
+            } else if(pos <= 0.2) {
                 sentence.splice(0,commas[0]+1);
             }
         }
@@ -343,7 +343,8 @@ function getPlainSignature(signatures) {
                 sentence += " ";
             }
             else if(nextWord === "." || nextWord === "," || nextWord === "'" || util.isNumeric(nextWord) ||
-                (word === "\"" && insideQuotes) || (word === "'" && nextWord === "s") || word === "#" || word === ";") {
+                (word === "\"" && insideQuotes) || (word === "'" && nextWord === "s") || word === "#" || word === ";" ||
+                 nextWord === ")" || nextWord === "%") {
                 // just continue
             }
             else if(nextWord === "\"" && !insideQuotes) {

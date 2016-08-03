@@ -49,3 +49,16 @@ exports.isNameAsTitle= function(word) {
     let title = divided[0];
     return titles.indexOf(title) > -1;
 };
+
+exports.isMonthName = function(word) {
+    return word === "january" || word === "february" || word === "march" || word === "april" ||
+        word === "may" || word === "june" || word === "july" || word === "august" || word === "september" ||
+        word === "october" || word === "november" || word === "december";
+}
+
+exports.containsWord = function(sentenceArray,word) {
+    for(let curr of sentenceArray) {
+        return (curr.toLowerCase() === word.toLowerCase());
+    }
+    return false;
+}
