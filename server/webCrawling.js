@@ -346,7 +346,7 @@ function mergeTopicWords(original,newer) { // can change this later on to includ
 
 function modifyURL(words) {
     let searchURL = "http://www.bbc.co.uk/search?filter=news&q="; // searching the BBC, first page of results only
-    for(let i = 0; i < 3; i++) {
+    for(let i = 0; i < 2; i++) {
         let word = words[i];
         if(word.indexOf(" ") > -1) {
             word = word.replace(/\s/g,'+');

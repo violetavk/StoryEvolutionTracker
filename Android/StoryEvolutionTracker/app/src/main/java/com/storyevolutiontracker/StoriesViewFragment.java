@@ -16,6 +16,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private JSONObject user;
@@ -93,8 +96,14 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                 JSONArray topicWords = topic.getJSONObject("modifiedTopicWords").names();
                 String urlParams = "";
                 for(int j = 0; j < topicWords.length(); j++) {
-                    urlParams += (topicWords.getString(0));
+                    String curr = topicWords.getString(j);
+                    curr = curr.replaceAll("\\s+","+");
+                    urlParams += ("words=" + curr + "&");
                 }
+                long timestamp = topic.getLong("lastTimeStamp");
+                urlParams += ("timestamp=" + timestamp);
+                Log.d("SVF","Would send: " + urlParams);
+                swipeLayout.setRefreshing(false);
             }
         } catch (JSONException e) {
             e.printStackTrace();
