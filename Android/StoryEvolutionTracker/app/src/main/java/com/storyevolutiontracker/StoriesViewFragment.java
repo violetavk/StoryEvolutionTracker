@@ -1,6 +1,7 @@
 package com.storyevolutiontracker;
 
 import android.app.Fragment;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -27,6 +28,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private SwipeRefreshLayout swipeLayout;
+    private final String getNextArticlePostUrl = "http://139.59.167.170:3000/get_next_article";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -38,7 +40,6 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         swipeLayout.setOnRefreshListener(this);
 
         TextView noTopicsText = (TextView) rootView.findViewById(R.id.no_topics_textview);
-//        RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.stories_recycler_view);
         SwipeRefreshLayout srl = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh_layout);
         try {
             user = new JSONObject(getArguments().getCharSequence(ValuesAndUtil.STORED_USER_DATA_EXTRA).toString());
@@ -103,8 +104,11 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                 long timestamp = topic.getLong("lastTimeStamp");
                 urlParams += ("timestamp=" + timestamp);
                 Log.d("SVF","Would send: " + urlParams);
-                swipeLayout.setRefreshing(false);
+                new DownloadNextArticleData().execute(urlParams,Integer.toString(i));
             }
+            ValuesAndUtil.getInstance().saveUserData(user,this.getActivity());
+            mAdapter.notifyDataSetChanged();
+            swipeLayout.setRefreshing(false);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -115,7 +119,43 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         // if found = true, add
     }
 
-    public void doPostRequest() {
+    private class DownloadNextArticleData extends AsyncTask<String, Void, String> {
 
+        private String id;
+
+        @Override
+        protected String doInBackground(String... strings) {
+            id = strings[1];
+            return ValuesAndUtil.getInstance().doPostRequest(getNextArticlePostUrl,strings[0]);
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            Log.d("ANS","DONE! " + s);
+            addNewArticleToUser(s,Integer.parseInt(id));
+        }
+    }
+
+    public void addNewArticleToUser(String data, int articleId) {
+        Log.d("SVF","Modifying topic " + articleId);
+        try {
+            JSONObject article = new JSONObject(data);
+            boolean found = article.getBoolean("found");
+            if(found) {
+                // update topic with new article; don't do anything if not found
+                article.remove("found");
+                JSONObject topic = topics.getJSONObject(articleId);
+                JSONArray timeline = topic.getJSONArray("timeline");
+                timeline = ValuesAndUtil.getInstance().addToExistingJSON(timeline,0,article);
+                topic.put("timeline",timeline);
+                topic.put("lastTimeStamp",article.getLong("date"));
+                topic.put("lastSignature",article.getString("signature"));
+                topics.put(articleId,topic);
+                user.put("topics",topic);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return;
+        }
     }
 }
