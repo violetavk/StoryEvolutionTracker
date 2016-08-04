@@ -366,13 +366,22 @@ function adjustTopicWords(textObject, pageObject) {
     weighBolded(tfidfs,textObject,pageObject);
     weighBasedOnLocation(tfidfs,textObject);
     weighStemmedWords(tfidfs,textObject);
-    adjustForNames(tfidfs,textObject);
+    weighProperNames(tfidfs,textObject.tfidfAvg);
+    // adjustForNames(tfidfs,textObject);
     tfidfs = sortTfidfs(tfidfs);
     // deleteAdjectives(tfidfs);
     // deleteVerbs(tfidfs);
 
     textObject.tfidfs = tfidfs;
     return textObject;
+}
+
+function weighProperNames(tfidfs, avg) {
+    for(let word in tfidfs) {
+        if(util.isProperNoun(word) && !util.isNameAsTitle(word)) {
+            tfidfs[word] = (tfidfs[word] + avg);
+        }
+    }
 }
 
 function weighBasedOnLocation(tfidfs, textObject) {
@@ -660,13 +669,15 @@ function getTopicWords(textObject,num) {
     let goodTags = ["NN","NNP","NNPS","NNS"];
     for(let word in tfidfs) {
         if(topicWords.length >= num) break;
-        if(word.indexOf("-") > -1) continue;
+        // if(word.indexOf("-") > -1) continue;
         let lexer = new pos.Lexer().lex(word);
         let tag = tagger.tag(lexer)[0][1];
         let type = nlp.text(word).tags()[0][0];
-        // console.log(word,tag,type);
+        console.log(word,tag,type);
         if(word === "bbc" || word === "bbc news") continue;
-        let badTypes = (type !== "Date" && type !== "Value" && type !== "Adjective") && !util.isMonthName(word);
+        if(util.isNameAsTitle(word)) continue;
+        if(util.isMonthName(word)) continue;
+        let badTypes = (type !== "Date" && type !== "Value" && type !== "Adjective");
         let goodTypes = (type === "Place");
         if(((goodTags.indexOf(tag) >= 0 || goodTypes) && badTypes) || util.isProperNoun(word))
             topicWords.push(word);
