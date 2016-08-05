@@ -15,6 +15,7 @@ exports.processText = function(objects) {
         textObject.sentenceWordsArray = processedWords.sentenceWords;
         textObject.properNouns = processedWords.properNouns;
         textObject.article = concatSentences(textObject);
+        textObject.properNounsObject = getAllProperNouns(textObject);
         textObject.wordFrequencies = getWordFrequencies(textObject);
         textObject.tfidfs = getTfIdf(textObject);
         textObject.stemmedWords = stemWords(textObject);
@@ -41,6 +42,29 @@ function processWords(pageObject) { // process words to detect certain classes o
     sentenceWords = detectURLs(sentenceWords);
     sentenceWords = detectNumbers(sentenceWords);
     return {sentenceWords, properNouns};
+}
+
+function getAllProperNouns(textObject) {
+    let article = textObject.article;
+    let properNouns = {};
+    for(let i = 0; i < article.length; i++) {
+        let word = article[i];
+        if(!util.isAlpha(word)) continue;
+        let currIsLowercase = !util.isUpperCase(word);
+        let lowercase = word.toLowerCase();
+        let prevIsText = true;
+        if(i - 1 >= 0 && !util.isAlphaNum(article[i-1])) {
+            prevIsText = false;
+        }
+        if(!properNouns[lowercase]) {
+            properNouns[lowercase] = !currIsLowercase && prevIsText;
+        } else {
+            if(currIsLowercase) {
+                properNouns[lowercase] = false;
+            } 
+        }
+    }
+    return properNouns;
 }
 
 function detectEquivalentNames(sentences, properNouns) {
@@ -312,9 +336,9 @@ function concatSentences(textObject) { // represents entire article as array of 
     for(let sentence of sentences) {
         article = article.concat(sentence);
     }
-    for(let i = 0; i < article.length; i++) {
-        article[i] = article[i].toLowerCase();
-    }
+    // for(let i = 0; i < article.length; i++) {
+    //     article[i] = article[i].toLowerCase();
+    // }
     return article;
 }
 
@@ -343,6 +367,11 @@ function getTfIdf(textObject) {
     let article = textObject.article;
     let freq = textObject.wordFrequencies;
 
+    // put it in here!
+    for(let i = 0; i < article.length; i++) {
+        article[i] = article[i].toLowerCase();
+    }
+
     tfidf.addDocument(article);
 
     let tfidfs = { };
@@ -366,7 +395,7 @@ function adjustTopicWords(textObject, pageObject) {
     weighBolded(tfidfs,textObject,pageObject);
     weighBasedOnLocation(tfidfs,textObject);
     weighStemmedWords(tfidfs,textObject);
-    weighProperNames(tfidfs,textObject.tfidfAvg);
+    weighProperNames(tfidfs,textObject);
     // adjustForNames(tfidfs,textObject);
     tfidfs = sortTfidfs(tfidfs);
     // deleteAdjectives(tfidfs);
@@ -376,10 +405,19 @@ function adjustTopicWords(textObject, pageObject) {
     return textObject;
 }
 
-function weighProperNames(tfidfs, avg) {
+function weighProperNames(tfidfs, textObject) {
+    let avg = textObject.tfidfAvg;
+    let properNounsObject = textObject.properNounsObject;
+    let tagger = new pos.Tagger();
     for(let word in tfidfs) {
-        if(util.isProperNoun(word) && !util.isNameAsTitle(word)) {
-            tfidfs[word] = (tfidfs[word] + avg);
+        let lexer = new pos.Lexer().lex(word);
+        let tag = tagger.tag(lexer)[0][1];
+        let type = nlp.text(word).tags()[0][0];
+        // console.log(word,type);
+        if(util.isNameAsTitle(word) || word === "bst" || word === "bbc") continue;
+        if(type === "Date" || type === "Value" || type === "Demonym") continue;
+        if(properNounsObject[word] || util.isProperNoun(word)) {
+            tfidfs[word] = (tfidfs[word] + avg*2.5);
         }
     }
 }
@@ -387,6 +425,9 @@ function weighProperNames(tfidfs, avg) {
 function weighBasedOnLocation(tfidfs, textObject) {
     let article = textObject.article;
     let avg = textObject.tfidfAvg;
+    for(let i = 0; i < article.length; i++) {
+        article[i] = article[i].toLowerCase();
+    }
     for(let word in tfidfs) {
         word = word.toLowerCase();
         let perc = article.indexOf(word)/article.length;

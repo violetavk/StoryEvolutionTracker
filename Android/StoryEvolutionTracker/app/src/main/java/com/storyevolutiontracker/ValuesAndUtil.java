@@ -87,12 +87,18 @@ public class ValuesAndUtil extends AppCompatActivity {
         Date now = new Date();
         long difference = now.getTime() - date.getTime();
         long diffHours = difference / (60 * 60 * 1000) % 24;
+        if(diffHours == 0) {
+            long diffMinutes = difference / (60 * 1000) % 60;
+            return diffMinutes + " minutes ago";
+        }
+        if(diffHours == 1) {
+            return "1 hour ago";
+        }
         if(diffHours <= 12) {
             return diffHours + " hours ago";
         }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, MMMM dd, yyyy HH:mm");
-        String dateStr = simpleDateFormat.format(date);
-        return dateStr;
+        return simpleDateFormat.format(date);
     }
 
     public JSONArray addToExistingJSON(JSONArray existing, int index, JSONObject toAdd) {

@@ -204,14 +204,35 @@ function chooseArticles(responses) {
 
             let currHeadline = allArticles[i].pageObject.headline;
             let topicWords = allArticles[i].textObject.topicWords;
-
+            console.log("Looking at: ", currHeadline);
             // criteria for deleting an article: if it matches original exactly, if it doesn't have a signature, or it is older than original
-            if(currHeadline === mainArticleHeadline ||
-                !allArticles[i].signatures.plainSignature ||
-                mainTimestamp >= allArticles[i].pageObject.date) {
-                    allArticles.splice(i,1);
-                    i--;
-                    continue;
+            // if(currHeadline === mainArticleHeadline ||
+            //     !allArticles[i].signatures.plainSignature ||
+            //     mainTimestamp >= allArticles[i].pageObject.date) {
+            //         let bool = mainTimestamp >= allArticles[i].pageObject.date;
+            //         console.log(mainTimestamp,allArticles[i].pageObject.date);
+            //         console.log("Skipping, curr is older?",bool);
+            //         allArticles.splice(i,1);
+            //         i--;
+            //         continue;
+            // }
+            if(currHeadline === mainArticleHeadline) {
+                console.log("Skipping because headline is the same");
+                allArticles.splice(i,1);
+                i--;
+                continue;
+            }
+            if(!allArticles[i].signatures.plainSignature) {
+                console.log("There was no signature, skipping");
+                allArticles.splice(i,1);
+                i--;
+                continue;
+            }
+            if(mainTimestamp >= allArticles[i].pageObject.date) {
+                console.log("Skipping because curr article is newer");
+                allArticles.splice(i,1);
+                i--;
+                continue;
             }
 
             points[i] = 0;
@@ -254,6 +275,7 @@ function chooseArticles(responses) {
         // calculate any deductions
         for(let i = 0; i < allArticles.length; i++) {
             points[i] = points[i] - (numTopicWords - overlap[i]);
+            console.log(allArticles[i].pageObject.headline,"- Points:",points[i],", Overlap:",overlap[i]);
         }
 
         // if there are no articles to process, finish here, b/c next steps require at least 1 article
@@ -274,6 +296,7 @@ function chooseArticles(responses) {
             allArticles[i].overlap = overlap[i]/numTopicWords;
         }
         avgPoints = avgPoints / points.length;
+        console.log("Avg pts:",avgPoints);
         responses.avgPoints = avgPoints;
         responses.relevantArticles = getAllRelevantArticles(allArticles,avgPoints);
         responses.chosenOne = getMostRelevantArticle(responses.relevantArticles);
@@ -346,7 +369,7 @@ function mergeTopicWords(original,newer) { // can change this later on to includ
 
 function modifyURL(words) {
     let searchURL = "http://www.bbc.co.uk/search?filter=news&q="; // searching the BBC, first page of results only
-    for(let i = 0; i < 3; i++) {
+    for(let i = 0; i < 2; i++) {
         let word = words[i];
         if(word.indexOf(" ") > -1) {
             word = word.replace(/\s/g,'+');
@@ -366,8 +389,9 @@ function modifyURL(words) {
 function getNextArticle(bufferList,words,timestamp,cb) {
     let pageData = bufferList.toString();
     let allResults = getAllResults(pageData);
-    allResults = filterOnTimestamp(allResults,timestamp);
+    // allResults = filterOnTimestamp(allResults,timestamp);
     allResults = getPotentialMatches(words,allResults);
+    console.log(allResults);
     let responses = {
         potentialFiles: allResults,
         isLocal: false,

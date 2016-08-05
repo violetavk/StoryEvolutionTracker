@@ -98,7 +98,15 @@ function getSentences(pageObject) {
         sentences.push(headline);
     }
 
-    for(let par of pageObject.paragraphs) {
+    let firstParagraph = pageObject.paragraphs[0];
+    if(firstParagraph && pageObject.bolded && !firstParagraph.includes(pageObject.bolded)) {
+        pageObject.paragraphs.splice(0,0,pageObject.bolded);
+    }
+
+    for(let i = 0; i < pageObject.paragraphs.length; i++) {
+        let par = pageObject.paragraphs[i];
+
+        
         // if a paragraph does not have a period, do not include
         if(par.indexOf(".") < 0) {
             continue; 

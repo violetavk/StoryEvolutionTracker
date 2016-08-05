@@ -4,7 +4,7 @@ let cheerio = require("cheerio");
 exports.bbcParser = function(data) {
     let $ = cheerio.load(data);
     let pageObject = {};
-    pageObject.date = parseInt($(".date").attr("data-seconds"));
+    pageObject.date = parseInt($(".date").attr("data-seconds"),10);
     pageObject.formattedDate = $(".date").attr("data-datetime");
     pageObject.section = $(".mini-info-list__section").first().text();
     pageObject.headline = $(".story-body__h1").text();
@@ -12,6 +12,10 @@ exports.bbcParser = function(data) {
 
     let paragraphs = [];
     let storyBody = $(".story-body__inner");
+    if(storyBody.length === 0) {
+        storyBody = $(".map-body");
+        pageObject.bolded = storyBody.find("p").first().text();
+    }
     let numHrElements = storyBody.find("hr").length;
     let insideHr = false;
 
