@@ -85,15 +85,16 @@ function adjustSentences(signatures,textObject) {
 function tagSentences(sentences) {
     console.log("Tagging sentences");
     let tagged = [];
+    let tagger = new pos.Tagger();
     for(let i = 0; i < sentences.length; i++) {
         let sentence = sentences[i];
         let taggedSentence = [];
         for(let j = 0; j < sentence.length; j++) {
-            let word = sentence[j];
+            let word = sentence[j].trim();
             let lexer = new pos.Lexer().lex(word);
-            let tagger = new pos.Tagger();
             let tag = tagger.tag(lexer)[0];
-            taggedSentence.push([word,tag[1]]);
+            if(tag)
+                taggedSentence.push([word,tag[1]]);
         }
         tagged.push(taggedSentence);
     }
