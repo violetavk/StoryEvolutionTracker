@@ -172,6 +172,7 @@ function parseAllPotentialArticles(responses) {
                 .then(function(res) {
                     allArticles.push(res);
                     done++;
+                    console.log("Done",done," and total num articles",potentialFiles.length);
                     if(done === potentialFiles.length) {
                         responses.allArticles = allArticles;
                         console.log("DONE parsing all articles");
