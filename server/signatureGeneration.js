@@ -15,11 +15,13 @@ exports.generateSignatures = function(objects) {
         signatures.adjustedSentences = adjustSentences(signatures,textObject);
         signatures.plainSignature = getPlainSignature(signatures);
         objects.signatures = signatures;
+        console.log("Done with generating signatures");
         resolve(objects);
     });
 };
 
 function getSentenceTfIdfs(sentences, tfidfs) {
+    console.log("Getting tfidfs");
     let values = [];
     let tagger = new pos.Tagger();
     for(let i = 0; i < sentences.length; i++) {
@@ -44,6 +46,7 @@ function getSentenceTfIdfs(sentences, tfidfs) {
 }
 
 function getTopNSentences(sentenceTfIdfs, pageObject, n) {
+    console.log("Getting top",n,"sentences");
     let actualSentences = pageObject.sentences;
     let temp = [];
     let topSentences = [];
@@ -65,6 +68,7 @@ function getTopNSentences(sentenceTfIdfs, pageObject, n) {
 }
 
 function adjustSentences(signatures,textObject) {
+    console.log("Adjusting sentences");
     // testing with only first sentence for now
     let tagged = signatures.taggedSentences;
 
@@ -79,6 +83,7 @@ function adjustSentences(signatures,textObject) {
 }
 
 function tagSentences(sentences) {
+    console.log("Tagging sentences");
     let tagged = [];
     for(let i = 0; i < sentences.length; i++) {
         let sentence = sentences[i];
@@ -111,6 +116,7 @@ function removeBlacklistWords(tagged) {
 }
 
 function removePastParticiples(tagged) {
+    console.log("Removing past participles");
     let pastParticiples = {rejected:"rejected",removed:"removed",had:"had",done:"did",said:"said",gone:"go",got:"got",gotten:"got",made:"made",known:"knew", thought:"thought",taken:"took",seen:"saw",come:"came",wanted:"wanted",used:"used",found:"found",given:"gave",told:"told", worked:"worked",called:"called",tried:"tried",asked:"asked",needed:"needed",felt:"felt",become:"became",left:"left",voted:"voted",managed:"managed",put:"put",meant:"meant",kept:"kept",let:"let",begun:"began",seemed:"seemed",helped:"helped",shown:"showed",heard:"heard",played:"played",run:"ran",moved:"moved",lived:"lived",believed:"believed",brought:"brought",happened:"happened",written:"wrote",sat:"sat",stood:"stood",lost:"lost",paid:"paid",met:"met",included:"included",continued:"continued",set:"set",learnt:"learnt",learned:"learned",changed:"changed",led:"led",understood:"understood",watched:"watched",followed:"followed",stopped:"stopped",created:"created",spoken:"spoke",read:"read",spent:"spent",grown:"grew",opened:"opened",walked:"walked",won:"won",taught:"taught",offered:"offered",remembered:"remembered",considered:"considered",appeared:"appeared",bought:"bought",served:"served",died:"died",sent:"sent",built:"built",stayed:"stayed",fallen:"fell",cut:"cut",reached:"reached",killed:"killed",raised:"raised",passed:"passed",sold:"sold",decided:"decided",returned:"returned",explained:"explained",hoped:"hoped",developed:"developed",carried:"carried",broken:"broke",received:"received",agreed:"agreed",supported:"supported",hit:"hit",produced:"produced",eaten:"ate",covered:"covered",caught:"caught",drawn:"drew",chosen:"chose"};
     for(let i = 0; i < tagged.length; i++) {
         let sentence = tagged[i];
@@ -279,6 +285,7 @@ function removeSentenceClauses(sentence,sentenceClauses,tfidfs,avg,top3words) {
 }
 
 function removeOtherPhrases(tagged,textObject) {
+    console.log("Removing other phrases");
     for(let i = 0; i < tagged.length; i++) {
         let sentence = tagged[i];
 
@@ -312,6 +319,7 @@ function removeOtherPhrases(tagged,textObject) {
 }
 
 function fixFormat(tagged) {
+    console.log("Fixing format");
     for(let i = 0; i < tagged.length; i++) {
         let sentence = tagged[i];
         let firstWord = sentence[0][0];
@@ -324,6 +332,7 @@ function fixFormat(tagged) {
 }
 
 function getPlainSignature(signatures) {
+    console.log("Getting plain signture");
     let topSentences = signatures.adjustedSentences;
     let signature = "";
 
