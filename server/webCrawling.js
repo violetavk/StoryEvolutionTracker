@@ -174,6 +174,7 @@ function parseAllPotentialArticles(responses) {
                     done++;
                     if(done === potentialFiles.length) {
                         responses.allArticles = allArticles;
+                        console.log("DONE parsing all articles");
                         resolve(responses);
                     }
                 });
