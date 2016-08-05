@@ -83,7 +83,6 @@ function adjustSentences(signatures,textObject) {
 }
 
 function tagSentences(sentences) {
-    console.log("Tagging sentences");
     let tagged = [];
     let tagger = new pos.Tagger();
     for(let i = 0; i < sentences.length; i++) {
@@ -98,7 +97,6 @@ function tagSentences(sentences) {
         }
         tagged.push(taggedSentence);
     }
-    // console.log(tagged);
     return tagged;
 }
 

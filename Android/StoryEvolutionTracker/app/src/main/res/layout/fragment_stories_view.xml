@@ -20,7 +20,7 @@
             android:scrollbars="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/lighterTeal"/>
+            android:background="@color/lightTeal"/>
     </android.support.v4.widget.SwipeRefreshLayout>
 
 

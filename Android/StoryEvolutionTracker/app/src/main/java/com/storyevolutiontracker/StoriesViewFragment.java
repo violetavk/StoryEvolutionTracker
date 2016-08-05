@@ -1,6 +1,9 @@
 package com.storyevolutiontracker;
 
 import android.app.Fragment;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,7 +44,6 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         swipeLayout.setOnRefreshListener(this);
 
         TextView noTopicsText = (TextView) rootView.findViewById(R.id.no_topics_textview);
-        SwipeRefreshLayout srl = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh_layout);
         try {
             user = new JSONObject(getArguments().getCharSequence(ValuesAndUtil.STORED_USER_DATA_EXTRA).toString());
         } catch (JSONException e) {
@@ -52,10 +55,10 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         Log.d("SVF","Has topics = " + hasTopics);
         if(!hasTopics) {
             noTopicsText.setText(getString(R.string.no_topics_available));
-            srl.setVisibility(View.INVISIBLE);
+            swipeLayout.setVisibility(View.INVISIBLE);
         } else {
             Log.d("SVF","Topics were not null");
-            srl.setVisibility(View.VISIBLE);
+            swipeLayout.setVisibility(View.VISIBLE);
             try {
                 topics = user.getJSONArray("topics");
                 setUpList(rootView,topics);
@@ -81,7 +84,14 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
 
     @Override
     public void onRefresh() {
-        refreshAllStories();
+        ConnectivityManager connMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            refreshAllStories();
+        } else {
+            Toast.makeText(getActivity(),"No Internet connection available",Toast.LENGTH_SHORT).show();
+            swipeLayout.setRefreshing(false);
+        }
     }
 
     public void refreshAllStories() {
@@ -107,8 +117,6 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                 new DownloadNextArticleData().execute(urlParams,Integer.toString(i));
             }
             ValuesAndUtil.getInstance().saveUserData(user,this.getActivity());
-            mAdapter.notifyDataSetChanged();
-            swipeLayout.setRefreshing(false);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -132,7 +140,15 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         @Override
         protected void onPostExecute(String s) {
             Log.d("ANS","DONE! " + s);
+            if(s == "IOException") {
+                Toast.makeText(getContext().getApplicationContext(),"Server not available, please contact application owner",Toast.LENGTH_SHORT).show();
+                mAdapter.notifyDataSetChanged();
+                swipeLayout.setRefreshing(false);
+                return;
+            }
             addNewArticleToUser(s,Integer.parseInt(id));
+            mAdapter.notifyDataSetChanged();
+            swipeLayout.setRefreshing(false);
         }
     }
 
@@ -150,8 +166,10 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                 topic.put("timeline",timeline);
                 topic.put("lastTimeStamp",article.getLong("date"));
                 topic.put("lastSignature",article.getString("signature"));
+                Log.d("SVF",topic.toString(2));
                 topics.put(articleId,topic);
                 user.put("topics",topic);
+                ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
             }
         } catch (JSONException e) {
             e.printStackTrace();

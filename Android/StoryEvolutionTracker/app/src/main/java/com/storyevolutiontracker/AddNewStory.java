@@ -99,8 +99,7 @@ public class AddNewStory extends AppCompatActivity {
     public void processURL(String url) {
         Log.d("ANS","Processing url: " + url);
 
-        ConnectivityManager connMgr = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
             // fetch data
@@ -118,8 +117,7 @@ public class AddNewStory extends AppCompatActivity {
             String urlParameters = "url_field=" + encodedURL + "&prod=true";
             new DownloadArticleData().execute(urlParameters);
         } else {
-            Snackbar.make(getCurrentFocus(),"No Internet Connection available.",Snackbar.LENGTH_SHORT).show();
-            return;
+            Toast.makeText(getApplicationContext(),"No Internet connection available",Toast.LENGTH_SHORT).show();
         }
     }
 

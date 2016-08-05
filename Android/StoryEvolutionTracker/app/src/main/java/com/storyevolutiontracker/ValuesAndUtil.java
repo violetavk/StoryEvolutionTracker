@@ -14,6 +14,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -87,15 +88,18 @@ public class ValuesAndUtil extends AppCompatActivity {
         Date now = new Date();
         long difference = now.getTime() - date.getTime();
         long diffHours = difference / (60 * 60 * 1000) % 24;
-        if(diffHours == 0) {
-            long diffMinutes = difference / (60 * 1000) % 60;
-            return diffMinutes + " minutes ago";
-        }
-        if(diffHours == 1) {
-            return "1 hour ago";
-        }
-        if(diffHours <= 12) {
-            return diffHours + " hours ago";
+        long diffDays = difference / (24 * 60 * 60 * 1000);
+        if(diffDays == 0) {
+            if(diffHours == 0) {
+                long diffMinutes = difference / (60 * 1000) % 60;
+                return diffMinutes + " minutes ago";
+            }
+            if(diffHours == 1) {
+                return "1 hour ago";
+            }
+            if(diffHours <= 12) {
+                return diffHours + " hours ago";
+            }
         }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, MMMM dd, yyyy HH:mm");
         return simpleDateFormat.format(date);
