@@ -69,10 +69,8 @@ router.post("/get_next_article", function(req,res) {
             };
         }
         console.log("Done with web crawling");
-        let stringResponse = JSON.stringify(response);
-        stringResponse = (stringResponse + "\0");
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.send(stringResponse);
+        res.send(JSON.stringify(response));
     });
 });
 

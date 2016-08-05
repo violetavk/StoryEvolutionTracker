@@ -159,6 +159,11 @@ function parseAllPotentialArticles(responses) {
             if(responses.isLocal) {
                 toParse = "file://" + dir + file;
             } else {
+                if(!file.link.includes("www.bbc.co.uk/news") && !file.link.includes("www.bbc.co.uk/sport")) {
+                    potentialFiles.splice(i,1);
+                    i--;
+                    continue;
+                }
                 toParse = file.link;
             }
             console.log(toParse);
@@ -172,7 +177,7 @@ function parseAllPotentialArticles(responses) {
                 .then(function(res) {
                     allArticles.push(res);
                     done++;
-                    console.log("Done",done," and total num articles",potentialFiles.length);
+                    console.log("Done",done," and total num articles",potentialFiles.length,"\n\n");
                     if(done === potentialFiles.length) {
                         responses.allArticles = allArticles;
                         console.log("DONE parsing all articles");
