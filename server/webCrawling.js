@@ -306,8 +306,11 @@ function chooseArticles(responses) {
         console.log("Avg pts:",avgPoints);
         responses.avgPoints = avgPoints;
         responses.relevantArticles = getAllRelevantArticles(allArticles,avgPoints);
+        console.log("Relevant articles:",responses.relevantArticles);
         responses.chosenOne = getMostRelevantArticle(responses.relevantArticles);
+        console.log("Chosen one:",responses.chosenOne);
         responses.modifiedTopicWords = mergeTopicWords(mainTopicWords,responses.chosenOne.textObject.topicWords);
+        console.log("Resolving..");
         resolve(responses);
         } catch (error) {
             reject(error);
