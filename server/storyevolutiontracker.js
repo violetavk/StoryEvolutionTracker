@@ -12,6 +12,9 @@ exports.parseAndGenerateSignature = function(link,cb) {
 
     // using Promises to process pages
     parseHtml(objects)
+        .catch(function(err) {
+            cb(err);
+        })
         .then(processText)
         .then(generateSignatures)
         .then(cb);

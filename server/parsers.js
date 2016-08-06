@@ -12,9 +12,13 @@ exports.bbcParser = function(data) {
 
     let paragraphs = [];
     let storyBody = $(".story-body__inner");
+    let hasStoryBody = $(".story-body").first().length > 0;
     if(storyBody.length === 0) {
         storyBody = $(".map-body");
-        pageObject.bolded = storyBody.find("p").first().text();
+        if(storyBody.find("p").length > 0)
+            pageObject.bolded = storyBody.find("p").first().text();
+        else
+            hasStoryBody = false;
     }
     let numHrElements = storyBody.find("hr").length;
     let insideHr = false;
@@ -43,6 +47,12 @@ exports.bbcParser = function(data) {
         }
     });
     pageObject.paragraphs = paragraphs;
+
+    if(!hasStoryBody || !pageObject.headline || pageObject.paragraphs.length === 0) {
+        return {
+            error: "Article is not suitable for tracking"
+        };
+    }
 
     return pageObject;
 };
@@ -89,6 +99,12 @@ exports.bbcSportsParser = function(data) {
         }
     });
     pageObject.paragraphs = paragraphs;
+
+    if(!pageObject.headline || pageObject.paragraphs.length === 0 || !pageObject.date) {
+        return {
+            error: "Article is not suitable for tracking"
+        };
+    }
 
     return pageObject;
 };

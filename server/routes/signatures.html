@@ -38,10 +38,14 @@
                     data: $("#form").serialize(),
                     success: function (result) {
                         console.log(result);
-                        formatRecentsResponse(result);
-                        formatResponse(result.pageObject, "#pageObject");
-                        formatResponse(result.textObject, "#textObject");
-                        formatResponse(result.signatures, "#signatures");
+                        if(result.success === false) {
+                            $("#pageObject").html(result.reason);
+                        } else {
+                            formatRecentsResponse(result);
+                            formatResponse(result.pageObject, "#pageObject");
+                            formatResponse(result.textObject, "#textObject");
+                            formatResponse(result.signatures, "#signatures");
+                        }
                     }
                 });
                 return false;

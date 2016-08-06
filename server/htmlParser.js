@@ -56,6 +56,11 @@ exports.parseHTML = function(objects) {
                 });
                 response.on("end", function(data) {
                     pageObject = parse(bufferList,options);
+
+                    if(pageObject.error) {
+                        reject(pageObject);
+                    }
+
                     pageObject.link = objects.link;
                     objects.pageObject = pageObject;
                     resolve(objects);
@@ -73,6 +78,11 @@ exports.parseHTML = function(objects) {
 function parse(buffer,options) {
     let pageData = buffer.toString();
     let pageObject = getBasics(pageData,options);
+
+    if(pageObject.error) {
+        return pageObject;
+    }
+
     pageObject.sentences = getSentences(pageObject);
     pageObject.article = concatSentences(pageObject);
     return pageObject;
@@ -86,7 +96,7 @@ function getBasics(pageData,options) {
     if(options.host === "www.bbc.co.uk" && section === "sport")
         return parsers.bbcSportsParser(pageData);
 
-    return {};
+    return {error: "Not a BBC News or BBC Sport article"};
 }
 
 function getSentences(pageObject) {

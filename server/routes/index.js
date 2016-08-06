@@ -76,8 +76,18 @@ router.post("/get_next_article", function(req,res) {
 
 function sendResponseSignatures(res,objects,prod) {
     let response = {};
+    if(objects.error) {
+        response = {
+            success: false,
+            reason: objects.error
+        };
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify(response));
+    }
+
     if(prod) {
         response = {
+            success: true,
             link: objects.link,
             date: objects.pageObject.date,
             section: objects.pageObject.section,

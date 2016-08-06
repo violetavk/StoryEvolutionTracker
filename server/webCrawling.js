@@ -6,9 +6,7 @@ let http = require("http");
 let url = require("url");
 let bl = require("bl");
 let cheerio = require("cheerio");
-let parseHtml = require("./htmlParser").parseHTML;
-let processText = require("./textProcessing").processText;
-let generateSignatures = require("./signatureGeneration").generateSignatures;
+let storyevolutiontracker = require("./storyevolutiontracker");
 
 const dir = "/Users/violet/Development/StoryEvolutionTracker/HTML Pages/";
 
@@ -92,7 +90,6 @@ function openDirectory() {
 }
 
 function getPotentialMatches(topicWords,articles) {
-    console.log("Get potential matches");
     let potential = [];
     for(let i = 0; i < articles.length; i++) {
         let article = articles[i];
@@ -168,22 +165,16 @@ function parseAllPotentialArticles(responses) {
             }
             console.log(toParse);
 
-            let objs = {
-                link:       toParse
-            };
-            parseHtml(objs)
-                .then(processText)
-                .then(generateSignatures)
-                .then(function(res) {
-                    allArticles.push(res);
-                    done++;
-                    console.log("Done",done," and total num articles",potentialFiles.length,"\n\n");
-                    if(done === potentialFiles.length) {
-                        responses.allArticles = allArticles;
-                        console.log("DONE parsing all articles");
-                        resolve(responses);
-                    }
-                });
+            storyevolutiontracker.parseAndGenerateSignature(toParse, function(res) {
+                allArticles.push(res);
+                done++;
+                console.log("Done",done," and total num articles",potentialFiles.length,"\n\n");
+                if(done === potentialFiles.length) {
+                    responses.allArticles = allArticles;
+                    console.log("DONE parsing all articles");
+                    resolve(responses);
+                }
+            });
         }
     });
 }
@@ -209,37 +200,23 @@ function chooseArticles(responses) {
         let overlap = [];
         for(let i = 0; i < allArticles.length; i++) {
 
+            if(allArticles[i].error) {
+                console.log("Skipping because this article is not suitable");
+                allArticles.splice(i,1);
+                i--;
+                continue;
+            }
+
             let currHeadline = allArticles[i].pageObject.headline;
             let topicWords = allArticles[i].textObject.topicWords;
             console.log("Looking at: ", currHeadline);
             // criteria for deleting an article: if it matches original exactly, if it doesn't have a signature, or it is older than original
-            // if(currHeadline === mainArticleHeadline ||
-            //     !allArticles[i].signatures.plainSignature ||
-            //     mainTimestamp >= allArticles[i].pageObject.date) {
-            //         let bool = mainTimestamp >= allArticles[i].pageObject.date;
-            //         console.log(mainTimestamp,allArticles[i].pageObject.date);
-            //         console.log("Skipping, curr is older?",bool);
-            //         allArticles.splice(i,1);
-            //         i--;
-            //         continue;
-            // }
-            if(currHeadline === mainArticleHeadline) {
-                console.log("Skipping because headline is the same");
-                allArticles.splice(i,1);
-                i--;
-                continue;
-            }
-            if(!allArticles[i].signatures.plainSignature) {
-                console.log("There was no signature, skipping");
-                allArticles.splice(i,1);
-                i--;
-                continue;
-            }
-            if(mainTimestamp >= allArticles[i].pageObject.date) {
-                console.log("Skipping because curr article is newer");
-                allArticles.splice(i,1);
-                i--;
-                continue;
+            if(currHeadline === mainArticleHeadline ||
+                !allArticles[i].signatures.plainSignature ||
+                mainTimestamp >= allArticles[i].pageObject.date) {
+                    allArticles.splice(i,1);
+                    i--;
+                    continue;
             }
 
             points[i] = 0;
@@ -308,7 +285,7 @@ function chooseArticles(responses) {
         responses.relevantArticles = getAllRelevantArticles(allArticles,avgPoints);
         console.log("Relevant articles:",responses.relevantArticles);
         responses.chosenOne = getMostRelevantArticle(responses.relevantArticles);
-        console.log("Chosen one:",responses.chosenOne);
+        console.log("Chosen one:",responses.chosenOne.pageObject.headline);
         responses.modifiedTopicWords = mergeTopicWords(mainTopicWords,responses.chosenOne.textObject.topicWords);
         console.log("Resolving..");
         resolve(responses);
