@@ -53,12 +53,12 @@ exports.crawler = function(objects) {
     });
 };
 
-exports.webCrawler = function(words,timestamp) {
+exports.webCrawler = function(words,timestamp,category) {
     console.log("----Crawling REAL web----");
     return new Promise(function(resolve,reject) {
         try {
             let bufferList = bl();
-            let searchURL = modifyURL(words);
+            let searchURL = modifyURL(words,category);
             http.get(searchURL, function(response) {
                 response.on("data", function(data) {
                     bufferList.append(data);
@@ -359,8 +359,8 @@ function mergeTopicWords(original,newer) { // can change this later on to includ
     return sortedObj;
 }
 
-function modifyURL(words) {
-    let searchURL = "http://www.bbc.co.uk/search?filter=news&q="; // searching the BBC, first page of results only
+function modifyURL(words,category) {
+    let searchURL = "http://www.bbc.co.uk/search?filter=" + category + "&q="; // searching the BBC, first page of results only
     for(let i = 0; i < 2; i++) {
         let word = words[i];
         if(word.indexOf(" ") > -1) {

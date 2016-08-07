@@ -60,7 +60,7 @@ exports.parseHTML = function(objects) {
                     if(pageObject.error) {
                         reject(pageObject);
                     }
-
+                    pageObject.category = options.path.split("/")[1];
                     pageObject.link = objects.link;
                     objects.pageObject = pageObject;
                     resolve(objects);

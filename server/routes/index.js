@@ -44,10 +44,12 @@ router.post('/process_crawl', function (req, res) {
 router.post("/get_next_article", function(req,res) {
     let timestamp = req.body.timestamp;
     let words = req.body.words;
+    let category = req.body.category;
     console.log("---- Getting NEXT ARTICLE ----");
     console.log("Recieved words:",words);
     console.log("Recieved timestamp:",timestamp);
-    storyevolutiontracker.findNextArticle(words,timestamp,function(obj) {
+    console.log("Recieved category:",category);
+    storyevolutiontracker.findNextArticle(words,timestamp,category,function(obj) {
         let next = obj.chosenOne;
         let response = {};
         if(!next) {
@@ -92,6 +94,7 @@ function sendResponseSignatures(res,objects,prod) {
             date: objects.pageObject.date,
             section: objects.pageObject.section,
             headline: objects.pageObject.headline,
+            category: objects.pageObject.category,
             topicWords: objects.textObject.topicWords,
             topicWordsFreq: objects.textObject.topicWordsFreq,
             signature: objects.signatures.plainSignature

@@ -32,7 +32,7 @@ exports.processThenCrawl = function(link,cb) {
         .then(cb);  
 };
 
-exports.findNextArticle = function(words,timestamp,cb) {
-    crawlWeb(words,timestamp)
+exports.findNextArticle = function(words,timestamp,category,cb) {
+    crawlWeb(words,timestamp,category)
         .then(cb);
 };
