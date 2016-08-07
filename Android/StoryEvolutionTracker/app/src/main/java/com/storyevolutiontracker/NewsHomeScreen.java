@@ -37,7 +37,7 @@ public class NewsHomeScreen extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         try {
-            user = new JSONObject(getIntent().getStringExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA));
+            user = ValuesAndUtil.getInstance().loadUserData(getApplicationContext());
             userName = user.getString("username");
             Log.d("debug","User name found:"+userName);
         } catch (JSONException e) {
@@ -48,9 +48,9 @@ public class NewsHomeScreen extends AppCompatActivity
         // set up screen content
         setContentView(R.layout.activity_news_home_screen);
         Fragment storiesViewFragment = new StoriesViewFragment();
-        Bundle args = new Bundle();
-        args.putCharSequence(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
-        storiesViewFragment.setArguments(args);
+//        Bundle args = new Bundle();
+//        args.putCharSequence(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
+//        storiesViewFragment.setArguments(args);
         FragmentManager fm = getFragmentManager();
         fm.beginTransaction().replace(R.id.content_news_home_screen,storiesViewFragment).commit();
 
@@ -62,7 +62,7 @@ public class NewsHomeScreen extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(view.getContext(),AddNewStory.class);
-                intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
+//                intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
                 startActivity(intent);
             }
         });
@@ -113,7 +113,7 @@ public class NewsHomeScreen extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Intent intent = new Intent(this,SettingsScreen.class);
-            intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
+//            intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
             startActivity(intent);
 
         }
@@ -126,21 +126,21 @@ public class NewsHomeScreen extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         FragmentManager fm = getFragmentManager();
-        Bundle args = new Bundle();
-        args.putCharSequence(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
+//        Bundle args = new Bundle();
+//        args.putCharSequence(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
 
         int id = item.getItemId();
         if (id == R.id.nav_news_home) {
             // Handle going home
             Fragment sv = new StoriesViewFragment();
-            sv.setArguments(args);
+//            sv.setArguments(args);
             fm.beginTransaction().replace(R.id.content_news_home_screen,sv).commit();
             navigationView.getMenu().getItem(0).setChecked(true);
         } else if (id == R.id.nav_manage_stories) {
 
         } else if (id == R.id.nav_profile) {
             Fragment userProfile = new UserProfileFragment();
-            userProfile.setArguments(args);
+//            userProfile.setArguments(args);
             fm.beginTransaction().replace(R.id.content_news_home_screen,userProfile).commit();
             navigationView.getMenu().getItem(2).setChecked(true);
         } else if (id == R.id.nav_help) {
@@ -153,4 +153,6 @@ public class NewsHomeScreen extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+
 }

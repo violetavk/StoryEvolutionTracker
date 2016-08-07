@@ -33,6 +33,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
     private RecyclerView.LayoutManager mLayoutManager;
     private SwipeRefreshLayout swipeLayout;
     private final String getNextArticlePostUrl = "http://139.59.167.170:3000/get_next_article";
+    private int done;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -44,12 +45,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         swipeLayout.setOnRefreshListener(this);
 
         TextView noTopicsText = (TextView) rootView.findViewById(R.id.no_topics_textview);
-        try {
-            user = new JSONObject(getArguments().getCharSequence(ValuesAndUtil.STORED_USER_DATA_EXTRA).toString());
-        } catch (JSONException e) {
-            Log.e("ERROR","LOADING STORIESVIEWFRAGMENT, BUT NO USER FOUND: " + e.getMessage());
-            return rootView;
-        }
+        user = ValuesAndUtil.getInstance().loadUserData(getActivity().getApplicationContext());
 
         boolean hasTopics = user.has("topics");
         Log.d("SVF","Has topics = " + hasTopics);
@@ -66,7 +62,6 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                 e.printStackTrace();
             }
         }
-
 
         return rootView;
     }
@@ -87,6 +82,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         ConnectivityManager connMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
+            done = 0;
             refreshAllStories();
         } else {
             Toast.makeText(getActivity(),"No Internet connection available",Toast.LENGTH_SHORT).show();
@@ -116,15 +112,11 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                 Log.d("SVF","Would send: " + urlParams);
                 new DownloadNextArticleData().execute(urlParams,Integer.toString(i));
             }
-            ValuesAndUtil.getInstance().saveUserData(user,this.getActivity());
+            Log.d("SVF","Done updating all articles");
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
-
-        // for each topic, do post request for new stories
-
-        // if found = true, add
     }
 
     private class DownloadNextArticleData extends AsyncTask<String, Void, String> {
@@ -140,15 +132,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         @Override
         protected void onPostExecute(String s) {
             Log.d("ANS","DONE! " + s);
-            if(s == "IOException") {
-                Toast.makeText(getContext().getApplicationContext(),"Server not available, please contact application owner",Toast.LENGTH_SHORT).show();
-                mAdapter.notifyDataSetChanged();
-                swipeLayout.setRefreshing(false);
-                return;
-            }
-            addNewArticleToUser(s,Integer.parseInt(id));
-            mAdapter.notifyDataSetChanged();
-            swipeLayout.setRefreshing(false);
+            doAfterPostSuccess(s,Integer.parseInt(id));
         }
     }
 
@@ -168,12 +152,71 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                 topic.put("lastSignature",article.getString("signature"));
                 Log.d("SVF",topic.toString(2));
                 topics.put(articleId,topic);
-                user.put("topics",topic);
+                user.put("topics",topics);
                 ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
             }
         } catch (JSONException e) {
             e.printStackTrace();
             return;
         }
+    }
+
+    public void doAfterPostSuccess(String s, int articleId) {
+        if(s == "IOException") {
+            Toast.makeText(getActivity().getApplicationContext(),"Server not available, please contact application owner",Toast.LENGTH_SHORT).show();
+            mAdapter.notifyDataSetChanged();
+            swipeLayout.setRefreshing(false);
+            return;
+        }
+        addNewArticleToUser(s,articleId);
+        done++;
+        Log.d("SVF","Done " + done + " out of " + topics.length());
+        if(done == topics.length()) {
+            swipeLayout.setRefreshing(false);
+            ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
+            mAdapter = new StoriesViewAdapter(topics);
+            mRecyclerView.setAdapter(mAdapter);
+            Log.d("SVF","Finished updating all articles");
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d("SVF","Called onPause in StoriesViewFragment");
+        ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d("SVF","Called onStart in StoriesViewFragment");
+        user = ValuesAndUtil.getInstance().loadUserData(getActivity().getApplicationContext());
+        try {
+            topics = user.getJSONArray("topics");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void onResume() {
+        super.onResume();
+        Log.d("SVF","Called onResume in StoriesViewFragment");
+        user = ValuesAndUtil.getInstance().loadUserData(getActivity().getApplicationContext());
+
+        try {
+            if(user.has("topics")) {
+                topics = user.getJSONArray("topics");
+                mRecyclerView.invalidate();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("SVF","Called onDestroy in StoriesViewFragment: " + user);
+//        ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
     }
 }

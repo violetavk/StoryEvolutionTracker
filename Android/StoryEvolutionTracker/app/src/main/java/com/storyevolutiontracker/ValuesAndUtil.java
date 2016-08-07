@@ -2,6 +2,7 @@ package com.storyevolutiontracker;
 
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -25,7 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class ValuesAndUtil extends AppCompatActivity {
+public class ValuesAndUtil {
 
     /* GLOBAL VALUES  */
     public final static String STORED_USER_DATA_EXTRA = "com.storyevolutiontracker.USERDATA";
@@ -53,6 +54,7 @@ public class ValuesAndUtil extends AppCompatActivity {
             while ((line = bufferedReader.readLine()) != null) {
                 sb.append(line).append("\n");
             }
+            Log.d("VAU","Loaded user data: " + sb.toString());
             return new JSONObject(sb.toString());
         } catch (FileNotFoundException e) {
             Log.e("Exception", "FileNotFoundException caught: " + e.toString());
@@ -72,6 +74,7 @@ public class ValuesAndUtil extends AppCompatActivity {
             outputStreamWriter = new OutputStreamWriter(context.openFileOutput(ValuesAndUtil.USER_DATA_FILE, Context.MODE_PRIVATE));
             outputStreamWriter.write(userData.toString());
             outputStreamWriter.close();
+            Log.d("VAU","Saved user data: " + userData);
         } catch (IOException e) {
             Log.e("error","Failed to save user data in ValuesAndUtil file: " + e.getMessage());
         }
@@ -131,16 +134,17 @@ public class ValuesAndUtil extends AppCompatActivity {
             URL obj = new URL(serverURL);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("POST");
+            con.setDoOutput(true);
+            con.setFixedLengthStreamingMode(urlParameters.getBytes().length);
             con.setRequestProperty("Cache-Control","no-cache");
             con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             Log.d("ANS",urlParameters);
 
             // Send post request
-            con.setDoOutput(true);
-            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            wr.writeBytes(urlParameters);
-            wr.flush();
-            wr.close();
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(con.getOutputStream());
+            outputStreamWriter.write(urlParameters);
+            outputStreamWriter.flush();
+            outputStreamWriter.close();
 
             int responseCode = con.getResponseCode();
             Log.d("ANS","\nSending 'POST' request to URL : " + serverURL);
@@ -149,7 +153,7 @@ public class ValuesAndUtil extends AppCompatActivity {
 
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String inputLine;
-            StringBuffer response = new StringBuffer();
+            StringBuilder response = new StringBuilder();
 
             while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);
@@ -161,6 +165,7 @@ public class ValuesAndUtil extends AppCompatActivity {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+            return "IOException";
         }
         return null;
     }

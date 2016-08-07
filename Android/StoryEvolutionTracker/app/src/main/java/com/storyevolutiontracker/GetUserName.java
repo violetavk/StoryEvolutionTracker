@@ -46,7 +46,7 @@ public class GetUserName extends AppCompatActivity {
         EditText editText = (EditText) findViewById(R.id.userName);
         String userName = editText.getText().toString().trim();
         JSONObject user = createUser(userName);
-        intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
+//        intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,user.toString());
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();

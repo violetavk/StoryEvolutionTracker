@@ -15,7 +15,6 @@ public class SettingsScreen extends AppCompatActivity {
     }
 
     public void onDeleteAllDataClick(View view) {
-        Snackbar.make(view,"Clicked delete all data",Snackbar.LENGTH_SHORT).show();
         ValuesAndUtil.getInstance().deleteUserData(getApplicationContext());
         Intent intent = new Intent(this,MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

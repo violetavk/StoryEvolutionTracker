@@ -29,7 +29,7 @@ public class ConfirmArticle extends AppCompatActivity {
 
         try {
             newArticleData = new JSONObject(getIntent().getStringExtra(ValuesAndUtil.NEW_ARTICLE_DATA));
-            userData = new JSONObject(getIntent().getStringExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA));
+            userData = ValuesAndUtil.getInstance().loadUserData(getApplicationContext());
 
             // display headline
             TextView headlineView = (TextView) findViewById(R.id.headline_field);
@@ -50,7 +50,7 @@ public class ConfirmArticle extends AppCompatActivity {
 
     public void onCancelledConfirmClick(View view) {
         Intent intent = new Intent(this,NewsHomeScreen.class);
-        intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,userData.toString());
+//        intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,userData.toString());
         startActivity(intent);
         finish();
     }
@@ -98,7 +98,7 @@ public class ConfirmArticle extends AppCompatActivity {
             ValuesAndUtil.getInstance().saveUserData(userData,getApplicationContext());
             Log.d("CA","Done with this! Saved!");
             Intent intent = new Intent(this,NewsHomeScreen.class);
-            intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,userData.toString());
+//            intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,userData.toString());
             startActivity(intent);
             finish();
         } catch (JSONException e) {

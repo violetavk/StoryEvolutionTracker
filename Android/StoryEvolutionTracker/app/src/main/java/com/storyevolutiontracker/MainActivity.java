@@ -28,8 +28,6 @@ import java.io.UnsupportedEncodingException;
 
 public class MainActivity extends AppCompatActivity {
 
-    public final static String userData = "user_data";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("myapp","User already existed");
             JSONObject user = ValuesAndUtil.getInstance().loadUserData(getApplicationContext());
             Intent intent = new Intent(this,NewsHomeScreen.class);
-            intent.putExtra("com.storyevolutiontracker.USERDATA",user.toString());
+//            intent.putExtra("com.storyevolutiontracker.USERDATA",user.toString());
             startActivity(intent);
         } else {
             Log.d("myapp","Creating new user");
@@ -55,30 +53,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public boolean userHasData() {
-        File file = getApplicationContext().getFileStreamPath(userData);
+        File file = getApplicationContext().getFileStreamPath(ValuesAndUtil.USER_DATA_FILE);
         return file.exists();
-    }
-
-    public JSONObject loadUserData() {
-        try {
-            FileInputStream fis = getApplicationContext().openFileInput(userData);
-            InputStreamReader isr = new InputStreamReader(fis, "UTF-8");
-            BufferedReader bufferedReader = new BufferedReader(isr);
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line).append("\n");
-            }
-            return new JSONObject(sb.toString());
-        } catch (FileNotFoundException e) {
-            Log.e("Exception", "FileNotFoundException caught: " + e.toString());
-        } catch (UnsupportedEncodingException e) {
-            Log.e("Exception", "UnsupportedEncodingException caught: " + e.toString());
-        } catch (IOException e) {
-            Log.e("Exception", "IOException caught: " + e.toString());
-        } catch (JSONException e) {
-            Log.e("Exception", "JSONException caught: " + e.toString());
-        }
-        return null;
     }
 }
