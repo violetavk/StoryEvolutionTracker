@@ -284,6 +284,11 @@ function chooseArticles(responses) {
         responses.avgPoints = avgPoints;
         responses.relevantArticles = getAllRelevantArticles(allArticles,avgPoints);
         console.log("Relevant articles:",responses.relevantArticles);
+        if(responses.relevantArticles.length === 0) {
+            responses.chosenOne = 0;
+            responses.modifiedTopicWords = {};
+            resolve(responses);
+        }
         responses.chosenOne = getMostRelevantArticle(responses.relevantArticles);
         console.log("Chosen one:",responses.chosenOne.pageObject.headline);
         responses.modifiedTopicWords = mergeTopicWords(mainTopicWords,responses.chosenOne.textObject.topicWords);

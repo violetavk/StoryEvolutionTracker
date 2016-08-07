@@ -174,7 +174,11 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         if(done == topics.length()) {
             swipeLayout.setRefreshing(false);
             ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
-            mAdapter = new StoriesViewAdapter(topics);
+            try {
+                mAdapter = new StoriesViewAdapter(user.getJSONArray("topics"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             mRecyclerView.setAdapter(mAdapter);
             Log.d("SVF","Finished updating all articles");
         }
