@@ -104,21 +104,22 @@ public class TimelineViewAdapter extends RecyclerView.Adapter<TimelineViewAdapte
             // deal with thumbs up
             final ImageButton thumbsUp = (ImageButton) view.findViewById(R.id.story_thumbsup);
             boolean isThumbsUp = story.getBoolean("thumbsUp");
-            if(isThumbsUp) {
-                thumbsUp.setColorFilter(R.color.Aqua);
-                Log.d("TVA","Has a thumbs up so setting the color filter");
-            } else {
-                Log.d("TVA","isThumbsUp was false");
-            }
+            if(isThumbsUp) thumbsUp.setColorFilter(R.color.Aqua);
+
+            // deal with thumbs down
+            final ImageButton thumbsDown = (ImageButton) view.findViewById(R.id.story_thumbsdown);
+            boolean isThumbsDown = story.getBoolean("thumbsDown");
+            if(isThumbsDown) thumbsDown.setColorFilter(R.color.Aqua);
+
             thumbsUp.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     try {
                         JSONObject curr = (JSONObject) timeline.get(position);
-                        boolean isThumbsUp = curr.getBoolean("thumbsUp");
-                        curr = doThumbsUp(curr, isThumbsUp, thumbsUp);
+                        curr = doThumbsUp(curr, thumbsUp, thumbsDown,view);
                         timeline.put(position,curr);
                         JSONObject user = ValuesAndUtil.getInstance().loadUserData(view.getContext());
+                        topic = user.getJSONArray("topics").getJSONObject(topicPosition);
                         topic.put("timeline",timeline);
                         JSONArray allTopics = user.getJSONArray("topics");
                         allTopics.put(topicPosition,topic);
@@ -130,13 +131,25 @@ public class TimelineViewAdapter extends RecyclerView.Adapter<TimelineViewAdapte
                 }
             });
 
-            // deal with thumbs down
-            final ImageButton thumbsDown = (ImageButton) view.findViewById(R.id.story_thumbsdown);
             thumbsDown.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Log.d("TVA","Clicked thumbs down");
-                    thumbsDown.setColorFilter(R.color.Aqua);
+                    try {
+                        JSONObject curr = (JSONObject) timeline.get(position);
+                        curr = doThumbsDown(curr, thumbsUp, thumbsDown, view);
+                        timeline.put(position,curr);
+                        JSONObject user = ValuesAndUtil.getInstance().loadUserData(view.getContext());
+                        topic = user.getJSONArray("topics").getJSONObject(topicPosition);
+                        topic.put("timeline",timeline);
+                        JSONArray allTopics = user.getJSONArray("topics");
+                        Log.d("TVA","AllTopics (before): " + allTopics);
+                        allTopics.put(topicPosition,topic);
+                        Log.d("TVA","AllTopics (after): " + allTopics);
+                        user.put("topics",allTopics);
+                        ValuesAndUtil.getInstance().saveUserData(user,view.getContext());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             });
 
@@ -145,17 +158,75 @@ public class TimelineViewAdapter extends RecyclerView.Adapter<TimelineViewAdapte
         }
     }
 
-    public JSONObject doThumbsUp(JSONObject story, boolean isThumbsUp, ImageButton btn) throws JSONException {
+    public JSONObject doThumbsUp(JSONObject story, ImageButton btnUp, ImageButton btnDown, View view) throws JSONException {
         Log.d("TVA","Clicked thumbs up");
-        if(isThumbsUp) {
+        if(story.getBoolean("thumbsUp")) {
             // thumbs up was already pressed, but it was clicked again, so revert back to original
             story.put("thumbsUp",false);
-            btn.clearColorFilter();
+            btnUp.clearColorFilter();
         } else {
             // thumbs up pressed, increase weight of topic words
+            addPoints(story,view);
             story.put("thumbsUp",true);
-            btn.setColorFilter(R.color.Aqua);
+            btnUp.setColorFilter(R.color.Aqua);
+            // check if thumbsDown, and do twice the addition
+            if(story.getBoolean("thumbsDown")) {
+                addPoints(story, view);
+                story.put("thumbsDown",false);
+                btnDown.clearColorFilter();
+            }
         }
+        return story;
+    }
+
+    public void addPoints(JSONObject story, View view) throws JSONException {
+        Log.d("TVA","Adding points");
+        JSONObject user = ValuesAndUtil.getInstance().loadUserData(view.getContext());
+        JSONArray topics = user.getJSONArray("topics");
+        JSONObject topic = topics.getJSONObject(topicPosition);
+        JSONObject modifiedTopicWords = topic.getJSONObject("modifiedTopicWords");
+        JSONArray currTopicWords = story.getJSONArray("topicWords");
+        Log.d("TVA","Modified TW: " + modifiedTopicWords);
+        Log.d("TVA","Curr TW: " + currTopicWords);
+        for(int i = 0; i < currTopicWords.length(); i++) {
+            String currWord = currTopicWords.getString(i);
+            if(modifiedTopicWords.has(currWord)) {
+                int currValue = modifiedTopicWords.getInt(currWord);
+                currValue = currValue + 1;
+                modifiedTopicWords.put(currWord,currValue);
+            } else {
+                modifiedTopicWords.put(currWord,2);
+            }
+        }
+        Log.d("TVA","After (modifiedTW): " + modifiedTopicWords);
+        topic.put("modifiedTopicWords",modifiedTopicWords);
+        topics.put(topicPosition,topic);
+        user.put("topics",topics);
+        ValuesAndUtil.getInstance().saveUserData(user,view.getContext());
+    }
+
+    public JSONObject doThumbsDown(JSONObject story, ImageButton btnUp, ImageButton btnDown, View view) throws JSONException {
+        Log.d("TVA","Clicked thumbs up");
+        if(story.getBoolean("thumbsDown")) {
+            // thumbs down was already pressed, but it was clicked again, so revert back to original
+            story.put("thumbsDown",false);
+            btnDown.clearColorFilter();
+        } else {
+            // thumbs up pressed, increase weight of topic words
+            story.put("thumbsDown",true);
+            btnDown.setColorFilter(R.color.Aqua);
+
+            // check if thumbsDown, and do twice the deduction
+            if(story.getBoolean("thumbsUp")) {
+                story.put("thumbsUp",false);
+                btnUp.clearColorFilter();
+            }
+        }
+        return story;
+    }
+
+    public JSONObject decreasePoints(JSONObject story, View view) {
+
         return story;
     }
 
