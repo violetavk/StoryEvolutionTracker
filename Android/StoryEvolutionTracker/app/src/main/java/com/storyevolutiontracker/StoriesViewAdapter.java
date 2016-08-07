@@ -54,7 +54,7 @@ public class StoriesViewAdapter extends RecyclerView.Adapter<StoriesViewAdapter.
         TextView originalSourceText = (TextView) view.findViewById(R.id.original_source_card);
         Button viewTimelineBtn = (Button) view.findViewById(R.id.view_timeline_btn);
         try {
-            final JSONObject topic = topics.getJSONObject(position);
+            final JSONObject topic = ValuesAndUtil.getInstance().loadUserData(view.getContext()).getJSONArray("topics").getJSONObject(position);
 
             // display signature
             String signature = topic.getString("lastSignature");
@@ -90,10 +90,12 @@ public class StoriesViewAdapter extends RecyclerView.Adapter<StoriesViewAdapter.
                 public void onClick(View view) {
                     Log.d("SVA","Clicked " + position);
                     Intent intent = new Intent(view.getContext(),ViewTimeline.class);
-                    intent.putExtra(ValuesAndUtil.TOPIC_FOR_TIMELINE_EXTRA,topic.toString());
+                    intent.putExtra("position",position);
                     view.getContext().startActivity(intent);
                 }
             });
+
+
         } catch (JSONException e) {
             e.printStackTrace();
         }

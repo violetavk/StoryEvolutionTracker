@@ -50,7 +50,6 @@ public class ConfirmArticle extends AppCompatActivity {
 
     public void onCancelledConfirmClick(View view) {
         Intent intent = new Intent(this,NewsHomeScreen.class);
-//        intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,userData.toString());
         startActivity(intent);
         finish();
     }
@@ -75,10 +74,19 @@ public class ConfirmArticle extends AppCompatActivity {
             String signature = newArticleData.getString("signature");
             topic.put("lastSignature",signature);
 
+            // get category on bbc
+            String category = newArticleData.getString("category");
+            topic.put("category",category);
+
             // put in modified topic words
             JSONObject modifiedTopicWords = newArticleData.getJSONObject("topicWordsFreq");
             topic.put("modifiedTopicWords",modifiedTopicWords);
             newArticleData.remove("topicWordsFreq");
+            newArticleData.remove("success");
+
+            // add thumbsUp and thumbsDown flags
+            newArticleData.put("thumbsUp",false);
+            newArticleData.put("thumbsDown",false);
 
             // create timeline
             JSONArray timeline = new JSONArray();
@@ -98,7 +106,6 @@ public class ConfirmArticle extends AppCompatActivity {
             ValuesAndUtil.getInstance().saveUserData(userData,getApplicationContext());
             Log.d("CA","Done with this! Saved!");
             Intent intent = new Intent(this,NewsHomeScreen.class);
-//            intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,userData.toString());
             startActivity(intent);
             finish();
         } catch (JSONException e) {

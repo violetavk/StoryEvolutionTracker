@@ -137,7 +137,6 @@ public class AddNewStory extends AppCompatActivity {
 
     public void goToConfirmScreen(String result) {
         Intent intent = new Intent(this,ConfirmArticle.class);
-//        intent.putExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA,getIntent().getStringExtra(ValuesAndUtil.STORED_USER_DATA_EXTRA));
         intent.putExtra(ValuesAndUtil.NEW_ARTICLE_DATA,result);
         startActivity(intent);
         finish();

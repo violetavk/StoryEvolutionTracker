@@ -109,6 +109,8 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                 }
                 long timestamp = topic.getLong("lastTimeStamp");
                 urlParams += ("timestamp=" + timestamp);
+                String category = topic.getString("category");
+                urlParams += ("&category="+category);
                 Log.d("SVF","Would send: " + urlParams);
                 new DownloadNextArticleData().execute(urlParams,Integer.toString(i));
             }
@@ -144,6 +146,8 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
             if(found) {
                 // update topic with new article; don't do anything if not found
                 article.remove("found");
+                article.put("thumbsUp",false);
+                article.put("thumbsDown",false);
                 JSONObject topic = topics.getJSONObject(articleId);
                 JSONArray timeline = topic.getJSONArray("timeline");
                 timeline = ValuesAndUtil.getInstance().addToExistingJSON(timeline,0,article);
@@ -154,6 +158,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                 topics.put(articleId,topic);
                 user.put("topics",topics);
                 ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
+                mAdapter.notifyItemChanged(articleId);
             }
         } catch (JSONException e) {
             e.printStackTrace();

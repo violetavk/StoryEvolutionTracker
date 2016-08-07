@@ -97,17 +97,18 @@
                 <ImageButton
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:id="@+id/story_thumbsup"
+                    android:id="@+id/story_thumbsdown"
                     android:src="@drawable/ic_thumb_down"
                     android:layout_gravity="end"
                     android:adjustViewBounds="true"
                     android:layout_weight="1"
-                    style="?android:attr/borderlessButtonStyle"/>
+                    style="?android:attr/borderlessButtonStyle"
+                    android:onClick="onThumbsUpClick"/>
 
                 <ImageButton
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:id="@+id/story_thumbsdown"
+                    android:id="@+id/story_thumbsup"
                     android:src="@drawable/ic_thumb_up"
                     android:layout_gravity="end"
                     android:adjustViewBounds="true"

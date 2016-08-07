@@ -211,12 +211,23 @@ function chooseArticles(responses) {
             let topicWords = allArticles[i].textObject.topicWords;
             console.log("Looking at: ", currHeadline);
             // criteria for deleting an article: if it matches original exactly, if it doesn't have a signature, or it is older than original
-            if(currHeadline === mainArticleHeadline ||
-                !allArticles[i].signatures.plainSignature ||
-                mainTimestamp >= allArticles[i].pageObject.date) {
-                    allArticles.splice(i,1);
-                    i--;
-                    continue;
+            if(currHeadline === mainArticleHeadline) {
+                console.log("Skipping because headline is the same");
+                allArticles.splice(i,1);
+                i--;
+                continue;
+            }
+            if(!allArticles[i].signatures.plainSignature) {
+                console.log("There was no signature, skipping");
+                allArticles.splice(i,1);
+                i--;
+                continue;
+            }
+            if(mainTimestamp >= allArticles[i].pageObject.date) {
+                console.log("Skipping because curr article is newer");
+                allArticles.splice(i,1);
+                i--;
+                continue;
             }
 
             points[i] = 0;
