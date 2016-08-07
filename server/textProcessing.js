@@ -710,7 +710,7 @@ function getTopicWords(textObject,num) {
     let goodTags = ["NN","NNP","NNPS","NNS"];
     for(let word in tfidfs) {
         if(topicWords.length >= num) break;
-        // if(word.indexOf("-") > -1) continue;
+        if(word.indexOf("-") > -1) continue;
         let lexer = new pos.Lexer().lex(word);
         let tag = tagger.tag(lexer)[0][1];
         let type = nlp.text(word).tags()[0][0];
