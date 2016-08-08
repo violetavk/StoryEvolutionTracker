@@ -142,9 +142,7 @@ public class TimelineViewAdapter extends RecyclerView.Adapter<TimelineViewAdapte
                         topic = user.getJSONArray("topics").getJSONObject(topicPosition);
                         topic.put("timeline",timeline);
                         JSONArray allTopics = user.getJSONArray("topics");
-                        Log.d("TVA","AllTopics (before): " + allTopics);
                         allTopics.put(topicPosition,topic);
-                        Log.d("TVA","AllTopics (after): " + allTopics);
                         user.put("topics",allTopics);
                         ValuesAndUtil.getInstance().saveUserData(user,view.getContext());
                     } catch (JSONException e) {
@@ -162,16 +160,17 @@ public class TimelineViewAdapter extends RecyclerView.Adapter<TimelineViewAdapte
         Log.d("TVA","Clicked thumbs up");
         if(story.getBoolean("thumbsUp")) {
             // thumbs up was already pressed, but it was clicked again, so revert back to original
+            modifyPoints(story,view,false);
             story.put("thumbsUp",false);
             btnUp.clearColorFilter();
         } else {
             // thumbs up pressed, increase weight of topic words
-            addPoints(story,view);
+            modifyPoints(story,view,true);
             story.put("thumbsUp",true);
             btnUp.setColorFilter(R.color.Aqua);
             // check if thumbsDown, and do twice the addition
             if(story.getBoolean("thumbsDown")) {
-                addPoints(story, view);
+                modifyPoints(story, view,true);
                 story.put("thumbsDown",false);
                 btnDown.clearColorFilter();
             }
@@ -179,45 +178,22 @@ public class TimelineViewAdapter extends RecyclerView.Adapter<TimelineViewAdapte
         return story;
     }
 
-    public void addPoints(JSONObject story, View view) throws JSONException {
-        Log.d("TVA","Adding points");
-        JSONObject user = ValuesAndUtil.getInstance().loadUserData(view.getContext());
-        JSONArray topics = user.getJSONArray("topics");
-        JSONObject topic = topics.getJSONObject(topicPosition);
-        JSONObject modifiedTopicWords = topic.getJSONObject("modifiedTopicWords");
-        JSONArray currTopicWords = story.getJSONArray("topicWords");
-        Log.d("TVA","Modified TW: " + modifiedTopicWords);
-        Log.d("TVA","Curr TW: " + currTopicWords);
-        for(int i = 0; i < currTopicWords.length(); i++) {
-            String currWord = currTopicWords.getString(i);
-            if(modifiedTopicWords.has(currWord)) {
-                int currValue = modifiedTopicWords.getInt(currWord);
-                currValue = currValue + 1;
-                modifiedTopicWords.put(currWord,currValue);
-            } else {
-                modifiedTopicWords.put(currWord,2);
-            }
-        }
-        Log.d("TVA","After (modifiedTW): " + modifiedTopicWords);
-        topic.put("modifiedTopicWords",modifiedTopicWords);
-        topics.put(topicPosition,topic);
-        user.put("topics",topics);
-        ValuesAndUtil.getInstance().saveUserData(user,view.getContext());
-    }
-
     public JSONObject doThumbsDown(JSONObject story, ImageButton btnUp, ImageButton btnDown, View view) throws JSONException {
         Log.d("TVA","Clicked thumbs up");
         if(story.getBoolean("thumbsDown")) {
             // thumbs down was already pressed, but it was clicked again, so revert back to original
+            modifyPoints(story,view,true);
             story.put("thumbsDown",false);
             btnDown.clearColorFilter();
         } else {
             // thumbs up pressed, increase weight of topic words
+            modifyPoints(story,view,false);
             story.put("thumbsDown",true);
             btnDown.setColorFilter(R.color.Aqua);
 
             // check if thumbsDown, and do twice the deduction
             if(story.getBoolean("thumbsUp")) {
+                modifyPoints(story,view,false);
                 story.put("thumbsUp",false);
                 btnUp.clearColorFilter();
             }
@@ -225,9 +201,33 @@ public class TimelineViewAdapter extends RecyclerView.Adapter<TimelineViewAdapte
         return story;
     }
 
-    public JSONObject decreasePoints(JSONObject story, View view) {
-
-        return story;
+    public void modifyPoints(JSONObject story, View view, boolean toAdd) throws JSONException {
+        JSONObject user = ValuesAndUtil.getInstance().loadUserData(view.getContext());
+        JSONArray topics = user.getJSONArray("topics");
+        JSONObject topic = topics.getJSONObject(topicPosition);
+        JSONObject modifiedTopicWords = topic.getJSONObject("modifiedTopicWords");
+        JSONArray currTopicWords = story.getJSONArray("topicWords");
+        for(int i = 0; i < currTopicWords.length(); i++) {
+            String currWord = currTopicWords.getString(i);
+            int num = 0;
+            if(toAdd) {
+                num = currTopicWords.length() - i; // the amount to add
+            } else {
+                num = (currTopicWords.length() - i) * -1; // the amount to subtract
+            }
+            if(modifiedTopicWords.has(currWord)) {
+                int currValue = modifiedTopicWords.getInt(currWord);
+                currValue = currValue + (num);
+                modifiedTopicWords.put(currWord,currValue);
+            } else {
+                modifiedTopicWords.put(currWord,num);
+            }
+        }
+        modifiedTopicWords = ValuesAndUtil.getInstance().sortByValue(modifiedTopicWords);
+        topic.put("modifiedTopicWords",modifiedTopicWords);
+        topics.put(topicPosition,topic);
+        user.put("topics",topics);
+        ValuesAndUtil.getInstance().saveUserData(user,view.getContext());
     }
 
     @Override

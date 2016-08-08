@@ -1,8 +1,6 @@
 package com.storyevolutiontracker;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Base64;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -10,21 +8,25 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class ValuesAndUtil {
 
@@ -168,6 +170,28 @@ public class ValuesAndUtil {
             return "IOException";
         }
         return null;
+    }
+
+    public JSONObject sortByValue(JSONObject original) throws JSONException {
+        Iterator<String> keys = original.keys();
+        Map<String,Integer> originalMap = new LinkedHashMap<>();
+        while(keys.hasNext()) {
+            String key = keys.next();
+            originalMap.put(key,original.getInt(key));
+        }
+        List<Map.Entry<String,Integer>> list = new LinkedList<>(originalMap.entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                return ( o2.getValue() ).compareTo( o1.getValue() );
+            }
+        });
+        Map<String,Integer> sortResult = new LinkedHashMap<>();
+        for (int i = 0; i < list.size(); i++) {
+            Map.Entry<String,Integer> entry = list.get(i);
+            sortResult.put( entry.getKey(), entry.getValue() );
+        }
+        return new JSONObject(sortResult);
     }
 
 }
