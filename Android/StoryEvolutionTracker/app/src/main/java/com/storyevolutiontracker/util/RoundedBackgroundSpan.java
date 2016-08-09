@@ -1,10 +1,12 @@
-package com.storyevolutiontracker;
+package com.storyevolutiontracker.util;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.text.style.ReplacementSpan;
+
+import com.storyevolutiontracker.R;
 
 /**
  * Created by violet on 02/08/2016.

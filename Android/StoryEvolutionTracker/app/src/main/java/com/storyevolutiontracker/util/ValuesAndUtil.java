@@ -1,4 +1,4 @@
-package com.storyevolutiontracker;
+package com.storyevolutiontracker.util;
 
 import android.content.Context;
 import android.util.Log;
@@ -31,10 +31,11 @@ import java.util.Map;
 public class ValuesAndUtil {
 
     /* GLOBAL VALUES  */
-    public final static String STORED_USER_DATA_EXTRA = "com.storyevolutiontracker.USERDATA";
     public final static String USER_DATA_FILE = "user_data";
     public final static String NEW_ARTICLE_DATA = "com.storyevolutiontracker.NEWARTICLEDATA";
-    public final static String TOPIC_FOR_TIMELINE_EXTRA = "com.storyevolutiontracker.TOPICFORTIMELINE";
+
+    public final static String SERVER_PROCESS_ARTICLE_URL = "http://139.59.167.170:3000/process_article";
+    public final static String SERVER_NEW_ARTICLES_URL = "http://139.59.167.170:3000/get_next_article";
 
     private static ValuesAndUtil valuesAndUtil;
 
@@ -149,9 +150,9 @@ public class ValuesAndUtil {
             outputStreamWriter.close();
 
             int responseCode = con.getResponseCode();
-            Log.d("ANS","\nSending 'POST' request to URL : " + serverURL);
-            Log.d("ANS","Post parameters : " + urlParameters);
-            Log.d("ANS","Response Code : " + responseCode);
+            Log.d("VAU","\nSending 'POST' request to URL : " + serverURL);
+            Log.d("VAU","Post parameters : " + urlParameters);
+            Log.d("VAU","Response Code : " + responseCode);
 
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String inputLine;

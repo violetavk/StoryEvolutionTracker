@@ -1,19 +1,18 @@
 package com.storyevolutiontracker;
 
 import android.content.Intent;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
-import android.text.style.BackgroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.storyevolutiontracker.util.RoundedBackgroundSpan;
+import com.storyevolutiontracker.util.ValuesAndUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;

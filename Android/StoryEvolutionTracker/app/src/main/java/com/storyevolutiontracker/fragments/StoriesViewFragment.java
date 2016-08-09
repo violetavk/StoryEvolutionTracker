@@ -1,4 +1,4 @@
-package com.storyevolutiontracker;
+package com.storyevolutiontracker.fragments;
 
 import android.app.Fragment;
 import android.content.Context;
@@ -6,7 +6,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,12 +16,18 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.storyevolutiontracker.R;
+import com.storyevolutiontracker.StoriesViewAdapter;
+import com.storyevolutiontracker.util.ValuesAndUtil;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
@@ -32,7 +37,6 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private SwipeRefreshLayout swipeLayout;
-    private final String getNextArticlePostUrl = "http://139.59.167.170:3000/get_next_article";
     private int done;
 
     @Override
@@ -66,7 +70,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         return rootView;
     }
 
-    public void setUpList(View rootView, JSONArray topics) {
+    public void setUpList(View rootView, JSONArray topics) throws JSONException {
         Log.d("SVF","Setting up topics list");
         Log.d("SVF",topics.toString());
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.stories_recycler_view);
@@ -75,6 +79,31 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new StoriesViewAdapter(topics);
         mRecyclerView.setAdapter(mAdapter);
+    }
+
+    public JSONArray sortTopicsArray(JSONArray topics) throws JSONException {
+        List<JSONObject> list = new ArrayList<>();
+        for(int i = 0; i < topics.length(); i++) {
+            list.add(topics.getJSONObject(i));
+        }
+        Collections.sort(list, new Comparator<JSONObject>() {
+            @Override
+            public int compare(JSONObject o1, JSONObject o2) {
+                try {
+                    Long l1 = o1.getLong("lastTimeStamp");
+                    Long l2 = o2.getLong("lastTimeStamp");
+                    return l2.compareTo(l1);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                return 0;
+            }
+        });
+        Log.d("SVF","Sorted topics: " + list);
+        JSONArray sorted = new JSONArray(list);
+        user.put("topics",sorted);
+        ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
+        return sorted;
     }
 
     @Override
@@ -128,7 +157,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         @Override
         protected String doInBackground(String... strings) {
             id = strings[1];
-            return ValuesAndUtil.getInstance().doPostRequest(getNextArticlePostUrl,strings[0]);
+            return ValuesAndUtil.getInstance().doPostRequest(ValuesAndUtil.SERVER_NEW_ARTICLES_URL,strings[0]);
         }
 
         @Override
@@ -162,12 +191,11 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            return;
         }
     }
 
     public void doAfterPostSuccess(String s, int articleId) {
-        if(s == "IOException") {
+        if(s.equals("IOException")) {
             Toast.makeText(getActivity().getApplicationContext(),"Server not available, please contact application owner",Toast.LENGTH_SHORT).show();
             mAdapter.notifyDataSetChanged();
             swipeLayout.setRefreshing(false);
@@ -180,7 +208,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
             swipeLayout.setRefreshing(false);
             ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
             try {
-                mAdapter = new StoriesViewAdapter(user.getJSONArray("topics"));
+                mAdapter = new StoriesViewAdapter(sortTopicsArray(user.getJSONArray("topics")));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -217,7 +245,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
             if(user.has("topics")) {
                 topics = user.getJSONArray("topics");
                 mRecyclerView.invalidate();
-                mAdapter = new StoriesViewAdapter(topics);
+                mAdapter = new StoriesViewAdapter(sortTopicsArray(topics));
                 mRecyclerView.setAdapter(mAdapter);
             }
         } catch (JSONException e) {

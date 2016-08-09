@@ -18,23 +18,35 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import org.json.JSONArray;
+import com.storyevolutiontracker.fragments.ManageStoriesFragment;
+import com.storyevolutiontracker.fragments.StoriesViewFragment;
+import com.storyevolutiontracker.fragments.UserProfileFragment;
+import com.storyevolutiontracker.util.UpdateNewsReceiver;
+import com.storyevolutiontracker.util.ValuesAndUtil;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class NewsHomeScreen extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    JSONObject user;
-    String userName;
-    DrawerLayout drawer;
-    NavigationView navigationView;
-    FloatingActionButton fab;
-    Toolbar toolbar;
+    private JSONObject user;
+    private String userName;
+    private DrawerLayout drawer;
+    private NavigationView navigationView;
+    private FloatingActionButton fab;
+    private Toolbar toolbar;
+    private UpdateNewsReceiver alarm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if(alarm == null) {
+            Log.d("NHS","Setting alarm for the first time");
+            alarm = new UpdateNewsReceiver();
+            alarm.setAlarm(getApplicationContext());
+        }
 
         try {
             user = ValuesAndUtil.getInstance().loadUserData(getApplicationContext());
@@ -110,7 +122,6 @@ public class NewsHomeScreen extends AppCompatActivity
         if (id == R.id.action_settings) {
             Intent intent = new Intent(this,SettingsScreen.class);
             startActivity(intent);
-
         }
 
         return super.onOptionsItemSelected(item);
@@ -129,7 +140,9 @@ public class NewsHomeScreen extends AppCompatActivity
             fm.beginTransaction().replace(R.id.content_news_home_screen,sv).commit();
             navigationView.getMenu().getItem(0).setChecked(true);
         } else if (id == R.id.nav_manage_stories) {
-
+            Fragment manageStories = new ManageStoriesFragment();
+            fm.beginTransaction().replace(R.id.content_news_home_screen,manageStories).commit();
+            navigationView.getMenu().getItem(1).setChecked(true);
         } else if (id == R.id.nav_profile) {
             Fragment userProfile = new UserProfileFragment();
             fm.beginTransaction().replace(R.id.content_news_home_screen,userProfile).commit();

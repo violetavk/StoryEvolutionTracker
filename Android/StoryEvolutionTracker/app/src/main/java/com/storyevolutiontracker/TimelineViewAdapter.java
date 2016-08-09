@@ -13,6 +13,8 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.storyevolutiontracker.util.RoundedBackgroundSpan;
+import com.storyevolutiontracker.util.ValuesAndUtil;
 import com.vipul.hp_hp.timelineview.TimelineView;
 
 import org.json.JSONArray;
@@ -105,11 +107,13 @@ public class TimelineViewAdapter extends RecyclerView.Adapter<TimelineViewAdapte
             final ImageButton thumbsUp = (ImageButton) view.findViewById(R.id.story_thumbsup);
             boolean isThumbsUp = story.getBoolean("thumbsUp");
             if(isThumbsUp) thumbsUp.setColorFilter(R.color.Aqua);
+            if(position == timeline.length() - 1) thumbsUp.setVisibility(View.INVISIBLE);
 
             // deal with thumbs down
             final ImageButton thumbsDown = (ImageButton) view.findViewById(R.id.story_thumbsdown);
             boolean isThumbsDown = story.getBoolean("thumbsDown");
             if(isThumbsDown) thumbsDown.setColorFilter(R.color.Aqua);
+            if(position == timeline.length() - 1) thumbsDown.setVisibility(View.INVISIBLE);
 
             thumbsUp.setOnClickListener(new View.OnClickListener() {
                 @Override

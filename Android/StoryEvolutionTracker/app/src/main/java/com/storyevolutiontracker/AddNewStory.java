@@ -18,19 +18,13 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import com.storyevolutiontracker.util.ValuesAndUtil;
+
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
 
 public class AddNewStory extends AppCompatActivity {
 
-    private final String processArticlePostURL = "http://139.59.167.170:3000/process_article";
     ProgressDialog progress;
 
     @Override
@@ -124,7 +118,7 @@ public class AddNewStory extends AppCompatActivity {
     private class DownloadArticleData extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... strings) {
-            return ValuesAndUtil.getInstance().doPostRequest(processArticlePostURL,strings[0]);
+            return ValuesAndUtil.getInstance().doPostRequest(ValuesAndUtil.SERVER_PROCESS_ARTICLE_URL,strings[0]);
         }
 
         @Override

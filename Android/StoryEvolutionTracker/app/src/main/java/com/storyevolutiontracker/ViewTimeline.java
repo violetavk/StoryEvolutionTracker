@@ -5,9 +5,9 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.View;
 
-import org.json.JSONArray;
+import com.storyevolutiontracker.util.ValuesAndUtil;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
