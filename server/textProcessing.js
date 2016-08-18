@@ -5,6 +5,8 @@ let util = require("./util.js");
 let pos = require('pos');
 let nlp = require("nlp_compromise");
 
+/* the main function that initiates text processing; it is part of a chain of operations,
+preceded by html parsing and succeeded by signature generation */
 exports.processText = function(objects) {
     console.log("-- Text Processing (with promise) --");
     return new Promise(function(resolve,reject) {
@@ -30,7 +32,8 @@ exports.processText = function(objects) {
     });
 };
 
-function processWords(pageObject) { // process words to detect certain classes of words
+/* Tokenizes words and detects various classes of words to combine into single entities */
+function processWords(pageObject) {
     let sentences = pageObject.sentences;
 
     let properNounsArray = detectProperNouns(sentences);
@@ -44,6 +47,7 @@ function processWords(pageObject) { // process words to detect certain classes o
     return {sentenceWords, properNouns};
 }
 
+/* Detects proper nouns by testing if the entities are capitalized throughout the entire article */
 function getAllProperNouns(textObject) {
     let article = textObject.article;
     let properNouns = {};
@@ -67,8 +71,12 @@ function getAllProperNouns(textObject) {
     return properNouns;
 }
 
+/* attempts to replace names with title with full name and to replace pronouns
+with the names they are referring to */
 function detectEquivalentNames(sentences, properNouns) {
     let namesFound = [];
+
+    // first detect names like Mr. Name and replace with full name
     for(let i = 1; i < sentences.length; i++) {
         let curr = sentences[i];
         for(let k = 0; k < curr.length; k++) {
@@ -90,29 +98,23 @@ function detectEquivalentNames(sentences, properNouns) {
         }
     }
 
-    // console.log("Looking for he/she name matches now");
+    // detect where "he" and "she" can be replaced by a full name
     for(let i = 1; i < sentences.length; i++) {
         let curr = sentences[i];
-        // console.log("Testing--->",curr);
         let firstWord = curr[0].toLowerCase();
-        // console.log("First word:",firstWord);
         if(firstWord === "he" || firstWord === "she") {
             // start a reverse loop going back up the article
-            // console.log("Found he or she");
             for(let j = i - 1; j >= 0; j--) {
                 let prev = sentences[j];
                 let found = false;
-                // console.log("      One of the prev::::",prev);
                 let firstWordOfPrev = prev[0];
                 if(util.isProperNoun(firstWordOfPrev)) {
-                    // console.log("Found a match:",firstWordOfPrev);
                     sentences[i][0] = firstWordOfPrev;
                     found = true;
                 } else {
                     for(let k = 0; k < namesFound.length; k++) {
                         let currName = namesFound[k];
                         if(util.containsWord(prev,currName)) {
-                            // console.log("Found a match:",currName);
                             sentences[i][0] = currName;
                             found = true;
                             break;
@@ -126,6 +128,7 @@ function detectEquivalentNames(sentences, properNouns) {
     }
 }
 
+/* finds words that are composed of two or more capitalized words to form one entity */
 function detectProperNouns(sentences) {
     let sentenceWords = [];
     let properNouns = [];
@@ -149,7 +152,6 @@ function detectProperNouns(sentences) {
                 let difference = i - capsStart;
                 if(capsStart !== -1 && difference > 1) {
                     let compoundWord = getWordFromArray(capsStart, i-1, words);
-                    // console.log("--------- Found: " + compoundWord);
                     properNouns.push(compoundWord);
                     words[capsStart] = compoundWord;
                     words.splice(capsStart+1, difference-1);
@@ -163,6 +165,7 @@ function detectProperNouns(sentences) {
     return {sentenceWords,properNouns};
 }
 
+/* detect names like Mr. Name in the article to represent as a single entity */
 function detectNames(sentenceWords) {
     let titles = ["Mr", "Mrs", "Ms", "Miss", "Mx", "Dr", "Prof", "Hon", "Rev"];
     for(let s = 0; s < sentenceWords.length; s++) {
@@ -184,13 +187,13 @@ function detectNames(sentenceWords) {
     return sentenceWords;
 }
 
+/* detect hyphenated words of any length to represent as a single entity */
 function detectHyphenatedWords(sentenceWords) {
     for(let s = 0; s < sentenceWords.length; s++) {
         let sentence = sentenceWords[s];
         for(let i = 0; i < sentence.length; i++) {
             if((i + 1) < sentence.length && sentence[i+1] === "-" && (i+2) < sentence.length) {
                 let hyphenated = sentence[i] + sentence[i+1] + sentence[i+2];
-                // console.log("Found hyphenated: " + hyphenated);
                 sentence[i] = hyphenated;
                 sentence.splice(i+1,2);
                 i--;
@@ -201,6 +204,7 @@ function detectHyphenatedWords(sentenceWords) {
     return sentenceWords;
 }
 
+/* detect URLs in the article text, like yelp.com to represent as a single entity */
 function detectURLs(sentenceWords) {
     let possibleDomains = ["com","net","co","uk","ru","de","org","jp","fr","br","it","au","edu","gov","ch","us","ca","io"];
     for(let s = 0; s < sentenceWords.length; s++) {
@@ -212,7 +216,6 @@ function detectURLs(sentenceWords) {
                 let isDomain = possibleDomains.indexOf(ending) > -1;
                 if(isDomain) {
                     let link = word + sentence[i+1] + ending;
-                    // console.log("Found url: " + link);
                     sentence[i] = link;
                     sentence.splice(i+1,2);
                     i--;
@@ -224,6 +227,7 @@ function detectURLs(sentenceWords) {
     return sentenceWords;
 }
 
+/* detect numbers of any length in the text to represent as a single number */
 function detectNumbers(sentenceWords) {
     for(let s = 0; s < sentenceWords.length; s++) {
         let sentence = sentenceWords[s];
@@ -231,7 +235,6 @@ function detectNumbers(sentenceWords) {
             let word = sentence[i];
             if((i+1) < sentence.length && sentence[i+1] === "," && (i+1) < sentence.length) {
                 let number = word + sentence[i+1] + sentence[i+2];
-                // console.log("Found number: " + number);
                 sentence[i] = number;
                 sentence.splice(i+1, 2);
                 i--;
@@ -242,6 +245,7 @@ function detectNumbers(sentenceWords) {
     return sentenceWords;
 }
 
+/* removes punctuation from a sentence if needed (not used in main process) */
 function removePunctuation(sentenceWords) {
     for(let s = 0; s < sentenceWords.length; s++) {
         let sentence = sentenceWords[s];
@@ -257,36 +261,8 @@ function removePunctuation(sentenceWords) {
     return sentenceWords;
 }
 
-function determineRelatedWords(textObject) {
-    let titles = ["Mr", "Mrs", "Ms", "Miss", "Mx", "Dr", "Prof", "Hon", "Rev"];
-    let properNouns = textObject.properNouns;
-    let locations = [];
-    // first split on space
-    for(let i = 0; i < properNouns.length; i++) {
-        let noun = properNouns[i];
-        noun = noun.split(" ");
-        properNouns[i] = noun;
-    }
-
-    for(let i = 0; i < properNouns.length; i++) {
-        let noun = properNouns[i];
-        let nounLocations = [];
-        for(let j = 0; j < properNouns.length; j++) {
-            if(i === j) continue;
-            let curr = properNouns[j];
-            for(let word of noun) {
-                if(titles.indexOf(word) > -1) continue;
-                if(curr.indexOf(word) > -1) {
-                    nounLocations.push(j);
-                }
-            }
-        }
-        locations.push(nounLocations);
-    }
-    // console.log(properNouns);
-    // console.log(locations);
-}
-
+/* not used - attempt to detect compound nouns, which are words that are not proper nouns but always
+appear together, eg. EU referendum */
 function detectCompoundNounsSentence(sentence) {
     console.log("Detecting inside: ",sentence);
     for(let i = 0; i < sentence.length; i++) {
@@ -304,6 +280,7 @@ function detectCompoundNounsSentence(sentence) {
     }
 }
 
+/* not used - tries to use a statistical approach to see how often two words appear together */
 function detectCompoundNouns(sentenceWords) {
     let followsMatrix = {};
     for(let s = 0; s < sentenceWords.length; s++) {
@@ -330,18 +307,17 @@ function detectCompoundNouns(sentenceWords) {
     return followsMatrix;
 }
 
-function concatSentences(textObject) { // represents entire article as array of words
+/* represent the entire article as an array of words and punctuation */
+function concatSentences(textObject) {
     let article = [];
     let sentences = textObject.sentenceWordsArray;
     for(let sentence of sentences) {
         article = article.concat(sentence);
     }
-    // for(let i = 0; i < article.length; i++) {
-    //     article[i] = article[i].toLowerCase();
-    // }
     return article;
 }
 
+/* get the number of times each word appears in the article */
 function getWordFrequencies(textObject) {
     let freq = {};
     let sentences = textObject.sentenceWordsArray;
@@ -362,6 +338,7 @@ function getWordFrequencies(textObject) {
     return freq;
 }
 
+/* get proportion of each word as an initial value for importance */
 function getImportances(textObject) {
     let article = textObject.article;
     let freq = textObject.wordFrequencies;
@@ -373,21 +350,14 @@ function getImportances(textObject) {
 
     let importances = { };
     for(let word in freq) {
-        if(util.isNumeric(word)) continue;
-
-        let occ = 0;
-        for(let i = 0; i < article.length; i++) {
-            if(word === article[i])
-                occ++;
-        }
-        let importance = occ / article.length * 100;
-        importances[word] = importance;
+        if(util.isNumeric(word)) continue; // if word is a number, skip it
+        importances[word] = freq[word] / article.length * 100;
     }
     return importances;
 }
 
+/* word weighing based on many different criteria; more steps can be added here */
 function adjustTopicWords(textObject, pageObject) {
-    // there will be a variety of processes in here
     let importanceValues = textObject.importanceValues;
 
     weighHeadline(importanceValues,textObject,pageObject);
@@ -405,6 +375,7 @@ function adjustTopicWords(textObject, pageObject) {
     return textObject;
 }
 
+/* gives more weight to proper nouns */
 function weighProperNames(importanceValues, textObject) {
     let avg = textObject.importanceAvg;
     let properNounsObject = textObject.properNounsObject;
@@ -418,6 +389,7 @@ function weighProperNames(importanceValues, textObject) {
     }
 }
 
+/* weighs the first half of the article slightly higher */
 function weighBasedOnLocation(importanceValues, textObject) {
     let article = textObject.article;
     let avg = textObject.importanceAvg;
@@ -435,6 +407,7 @@ function weighBasedOnLocation(importanceValues, textObject) {
     return importanceValues;
 }
 
+/* weights words in the headline more */
 function weighHeadline(importanceValues,textObject,pageObject) {
     if(!pageObject.headline) return textObject.importanceValues;
     let sentences = textObject.sentenceWordsArray;
@@ -451,6 +424,7 @@ function weighHeadline(importanceValues,textObject,pageObject) {
     return importanceValues;
 }
 
+/* weighs the section slightly higher if it exists in the text */
 function weighSection(importanceValues, section) {
     section = section.toLowerCase();
     let sectionImportance = importanceValues[section];
@@ -461,6 +435,7 @@ function weighSection(importanceValues, section) {
     return importanceValues;
 }
 
+/* weighs the bolded sentence on BBC articles slightly higher */
 function weighBolded(importanceValues,textObject,pageObject) {
     if(!pageObject.bolded) return textObject.importanceValues;
     let sentences = textObject.sentenceWordsArray;
@@ -476,6 +451,7 @@ function weighBolded(importanceValues,textObject,pageObject) {
     return importanceValues;
 }
 
+/* gets the average of the importance values */
 function getImportanceAverage(importanceValues) {
     let sum = 0;
     let number = 0;
@@ -486,7 +462,8 @@ function getImportanceAverage(importanceValues) {
     return sum / number;
 }
 
-function stemWords(textObject) { // stem words using porter-stemmer
+/* stem words using porter stemmer and redistribute weights */
+function stemWords(textObject) {
     let sentences = textObject.sentenceWordsArray;
     let stemmed = {};
 
@@ -513,13 +490,12 @@ function stemWords(textObject) { // stem words using porter-stemmer
     return stemmed;
 }
 
+/* weighing stemmed words; a main display word gets the the weight of its stems */
 function weighStemmedWords(importanceValues,textObject) {
     let stemmed = textObject.stemmedWords;
-    // let freq = textObject.wordFrequencies;
     for(let stem in stemmed) {
         if(!importanceValues[stem]) continue;
         let totalImportance = 0;
-        // let freqSum = 0;
         let related = stemmed[stem];
 
         if(related.length === 1) continue; // don't bother with calculations since result would equal current importance
@@ -527,25 +503,7 @@ function weighStemmedWords(importanceValues,textObject) {
         // first add up all importanceValues of each related word and add up frequencies
         for(let i = 0; i < related.length; i++) {
             totalImportance += importanceValues[related[i]];
-            // freqSum += freq[related[i]];
         }
-
-        // calculate the denominator for the skewed average result
-        // let denominator = related.length === 1 ? 1 : related.length - 1; // -1 is to skew favorably for slightly higher values
-
-        // new importance is dependent on all of its related words, denominator for avg. calculation set by formula above
-        // let adjustedImportance = totalImportance / denominator;
-        // console.log(stem,"adjusted importance =",adjustedImportance);
-
-        // distribute the new weights based on the frequency of the word
-        // for(let i = 0; i < related.length; i++) {
-            // let word = related[i];
-            // importanceValues[word] = adjustedImportance * (freq[word]/freqSum);
-
-            // importanceValues[word] = importanceValues[word] + (adjustedImportance * (freq[word]/freqSum)); // way too high
-            // importanceValues[word] = importanceValues[word] + adjustedImportance;
-            // console.log("setting",word,"to",importanceValues[word]);
-        // }
 
         // choose which version of stem to keep, taking importanceValues from its related words
         let displayWord = getDisplayWord(textObject,stem);
@@ -553,87 +511,12 @@ function weighStemmedWords(importanceValues,textObject) {
         for(let i = 0; i < related.length; i++) {
             let word = related[i];
             if(word === displayWord) continue;
-            // importanceValues[displayWord] += importanceValues[word];
             delete importanceValues[word];
         }
     }
-
 }
 
-function adjustForNames(importanceValues,textObject) {
-    let tagger = new pos.Tagger();
-    for(let word in importanceValues) {
-        if(util.isNameAsTitle(word)) {
-            // console.log("Detected a name:",word);
-            let lastName = word.split(" ")[1];
-
-            // find the matching names
-            let names = findNameMatches(lastName,word,importanceValues);
-            let baseName = names[0];
-            let baseImportance = importanceValues[baseName];
-            let currImportance = importanceValues[word];
-            let maxImportance = baseImportance > currImportance ? baseImportance : currImportance;
-            // console.log(word,currImportance);
-            // console.log(baseName,baseImportance);
-            // console.log("Giving",baseName,"importance of",maxImportance);
-            importanceValues[baseName] = maxImportance;
-            importanceValues[word] = maxImportance * 0.4;
-        } else if(util.isNormalWord(word)) {
-            // name is either a first name or last name
-            // console.log("testing",word);
-            let names = findNameMatches(word,word,importanceValues);
-            // console.log("matches:",names);
-            if(names.length === 0 || names.length > 1) continue;
-            let baseName = names[0];
-
-            // various tests
-            let lexer = new pos.Lexer().lex(word);
-            let tag = tagger.tag(lexer)[0][1];
-            let nlpTag = nlp.text(word).tags()[0][0];
-            // console.log(tag,nlpTag);
-            if(nlpTag !== "Actor" && nlpTag !== "Person" && nlpTag !== "Place") {
-                // console.log("Skipping this one b/c NOT an actor or person");
-                continue;
-            }
-            // console.log(nlp.text(word).tags()[0][0],"-",tag);
-            // if(nlp.text(baseName).tags()[0][0] === "")
-            if(baseName.indexOf(" ") < 0) continue;
-            let baseImportance = importanceValues[baseName];
-            let currImportance = importanceValues[word];
-            let maxImportance = baseImportance > currImportance ? baseImportance : currImportance;
-            importanceValues[baseName] = maxImportance;
-            importanceValues[word] = maxImportance * 0.2;
-        } else if(util.isProperNoun(word)) {
-            // console.log("testing",word);
-            let names = findNameMatches(word,word,importanceValues);
-            // console.log("matches:",names);
-            if(names.length === 0) continue;
-            let nameImportance = importanceValues[word] > importanceValues[names[0]] ? importanceValues[word] : importanceValues[names[0]];
-            if(word.length < names[0].length) {
-                // keep curr, increase its importance to max
-                // console.log("Keeping",word,"- setting importance to",nameImportance);
-                importanceValues[word] = nameImportance;
-                delete importanceValues[names[0]];
-            } else {
-                // replace with names[0], delete word
-                // console.log("Keeping",names[0],"- setting importance to",nameImportance);
-                importanceValues[names[0]] = nameImportance;
-                delete importanceValues[word];
-            }
-        }
-    }
-}
-
-function findNameMatches(name,original,importanceValues) {
-    let matches = [];
-    for(let word in importanceValues) {
-        if(word.indexOf(name) > -1 && word !== original) {
-            matches.push(word);
-        }
-    }
-    return matches;
-}
-
+/* sorts the object with the importance values in descending order */
 function sortByDescendingImportance(importanceValues) {
     let sorted = [];
     let sortedImportanceValues = {};
@@ -647,6 +530,7 @@ function sortByDescendingImportance(importanceValues) {
     return sortedImportanceValues;
 }
 
+/* not used - attempts to delete adjectives from the list of importance values */
 function deleteAdjectives(importanceValues) {
     let tagger = new pos.Tagger();
     for(let word in importanceValues) {
@@ -658,6 +542,7 @@ function deleteAdjectives(importanceValues) {
     }
 }
 
+/* not used - attempts to delete verbs from the list of importance values */
 function deleteVerbs(importanceValues) {
     let tagger = new pos.Tagger();
     for(let word in importanceValues) {
@@ -669,6 +554,7 @@ function deleteVerbs(importanceValues) {
     }
 }
 
+/* for a stemmed word, get the word with the highest importance to represent the stem */
 function getDisplayWord(textObject, word) {
     let stemmedWords = textObject.stemmedWords;
     let importanceValues = textObject.importanceValues;
@@ -688,6 +574,7 @@ function getDisplayWord(textObject, word) {
     return displayWord;
 }
 
+/* utility function to extract several indexes from an array to form a single word */
 function getWordFromArray(startIndex, endIndex, wordsArray) {
     let word = "";
     for(let i = startIndex; i <= endIndex; i++) {
@@ -700,6 +587,8 @@ function getWordFromArray(startIndex, endIndex, wordsArray) {
     return word;
 }
 
+/* using part-of-speech tagging libraries, determine some number of topic words from main
+importance object  */
 function getTopicWords(textObject,num) {
     let topicWords = [];
     let tagger = new pos.Tagger();
@@ -723,6 +612,7 @@ function getTopicWords(textObject,num) {
     return topicWords;
 }
 
+/* converts an array of words into an object with values of one */
 function convertToObject(topicWords) {
     let obj = {};
     for(let word of topicWords) {

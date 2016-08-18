@@ -2,6 +2,7 @@
 let util = require("./util.js");
 let pos = require('pos');
 
+/* main function for this module that initiates signature generation */
 exports.generateSignatures = function(objects) {
     console.log("-- Generating Signatures for",objects.pageObject.headline," --");
     return new Promise(function(resolve,reject) {
@@ -20,8 +21,8 @@ exports.generateSignatures = function(objects) {
     });
 };
 
+/* calculates an importance value for each sentence */
 function getSentenceImportances(sentences, importanceValues) {
-    console.log("Getting importanceValues");
     let values = [];
     let tagger = new pos.Tagger();
     for(let i = 0; i < sentences.length; i++) {
@@ -45,6 +46,7 @@ function getSentenceImportances(sentences, importanceValues) {
     return values;
 }
 
+/* gets the top n sentences and returns them in array in chronological order */
 function getTopNSentences(sentenceImportances, pageObject, n) {
     console.log("Getting top",n,"sentences");
     let actualSentences = pageObject.sentences;
@@ -67,6 +69,7 @@ function getTopNSentences(sentenceImportances, pageObject, n) {
     return topSentences;
 }
 
+/* performing sequence of operations to modify/shorten sentence */
 function adjustSentences(signatures,textObject) {
     console.log("Adjusting sentences");
     // testing with only first sentence for now
@@ -82,6 +85,7 @@ function adjustSentences(signatures,textObject) {
     return tagged;
 }
 
+/* tags each word of sentence with part of speech */
 function tagSentences(sentences) {
     let tagged = [];
     let tagger = new pos.Tagger();
@@ -100,6 +104,7 @@ function tagSentences(sentences) {
     return tagged;
 }
 
+/* removes blacklist words from a sentence */
 function removeBlacklistWords(tagged) {
     for(let i = 0; i < tagged.length; i++) {
         let sentence = tagged[i];
@@ -114,6 +119,7 @@ function removeBlacklistWords(tagged) {
     return tagged;
 }
 
+/* removes past participles from a sentence and replaces them with simpler verb tense */
 function removePastParticiples(tagged) {
     console.log("Removing past participles");
     let pastParticiples = {rejected:"rejected",removed:"removed",had:"had",done:"did",said:"said",gone:"go",got:"got",gotten:"got",made:"made",known:"knew", thought:"thought",taken:"took",seen:"saw",come:"came",wanted:"wanted",used:"used",found:"found",given:"gave",told:"told", worked:"worked",called:"called",tried:"tried",asked:"asked",needed:"needed",felt:"felt",become:"became",left:"left",voted:"voted",managed:"managed",put:"put",meant:"meant",kept:"kept",let:"let",begun:"began",seemed:"seemed",helped:"helped",shown:"showed",heard:"heard",played:"played",run:"ran",moved:"moved",lived:"lived",believed:"believed",brought:"brought",happened:"happened",written:"wrote",sat:"sat",stood:"stood",lost:"lost",paid:"paid",met:"met",included:"included",continued:"continued",set:"set",learnt:"learnt",learned:"learned",changed:"changed",led:"led",understood:"understood",watched:"watched",followed:"followed",stopped:"stopped",created:"created",spoken:"spoke",read:"read",spent:"spent",grown:"grew",opened:"opened",walked:"walked",won:"won",taught:"taught",offered:"offered",remembered:"remembered",considered:"considered",appeared:"appeared",bought:"bought",served:"served",died:"died",sent:"sent",built:"built",stayed:"stayed",fallen:"fell",cut:"cut",reached:"reached",killed:"killed",raised:"raised",passed:"passed",sold:"sold",decided:"decided",returned:"returned",explained:"explained",hoped:"hoped",developed:"developed",carried:"carried",broken:"broke",received:"received",agreed:"agreed",supported:"supported",hit:"hit",produced:"produced",eaten:"ate",covered:"covered",caught:"caught",drawn:"drew",chosen:"chose"};
@@ -135,6 +141,7 @@ function removePastParticiples(tagged) {
     return tagged;
 }
 
+/* removes posessives from sentence to make shorter */
 function removePossessives(tagged) {
     for(let i = 0; i < tagged.length; i++) {
         let sentence = tagged[i];
@@ -158,6 +165,7 @@ function removePossessives(tagged) {
     return tagged;
 }
 
+/* not used -  attempt to remove adjectives from sentence to make shorter */
 function removeAdjectives(tagged, textObject) {
     let importanceValues = textObject.importanceValues;
     let avg = textObject.importanceAvg;
@@ -192,6 +200,7 @@ function removeAdjectives(tagged, textObject) {
     return tagged;
 }
 
+/* not used - attempts to remove clause phrases from sentences to make shorter */
 function removeClausePhrases(tagged,textObject,top3words) {
     let importanceValues = textObject.importanceValues;
     let avg = textObject.importanceAvg;
@@ -236,6 +245,7 @@ function removeClausePhrases(tagged,textObject,top3words) {
     return tagged;
 }
 
+/* not used - helper function for removing clauses from sentence */
 function removeSentenceClauses(sentence,sentenceClauses,importanceValues,avg,top3words) {
     console.log("importance threshold:",(avg*5.5));
     for(let clause of sentenceClauses) {
@@ -277,6 +287,7 @@ function removeSentenceClauses(sentence,sentenceClauses,importanceValues,avg,top
     return sentence;
 }
 
+/* removing smaller unnecessary parts of sentence */
 function removeOtherPhrases(tagged,textObject) {
     console.log("Removing other phrases");
     for(let i = 0; i < tagged.length; i++) {
@@ -291,8 +302,6 @@ function removeOtherPhrases(tagged,textObject) {
             else if(test === "-")
                 otherSeparators.push(k);
         }
-        // console.log(i,"commas:",commas);
-        // console.log(i,"others:",otherSeparators);
 
         if(commas.length === 1) {
             let pos = commas[0]/sentence.length;
@@ -311,6 +320,7 @@ function removeOtherPhrases(tagged,textObject) {
     }
 }
 
+/* recapitalizes words as needed to make valid-looking sentence */
 function fixFormat(tagged) {
     console.log("Fixing format");
     for(let i = 0; i < tagged.length; i++) {
@@ -324,6 +334,7 @@ function fixFormat(tagged) {
     return tagged;
 }
 
+/* concatenates all words to get a plaintext signature */
 function getPlainSignature(signatures) {
     console.log("Getting plain signture");
     let topSentences = signatures.adjustedSentences;
@@ -367,6 +378,7 @@ function getPlainSignature(signatures) {
     return signature;
 }
 
+/* helper function for blacklist words */
 function isOnBlacklist(word) {
     let blacklist = ["the","an","a"];
     return (blacklist.indexOf(word.toLowerCase().trim()) > -1);

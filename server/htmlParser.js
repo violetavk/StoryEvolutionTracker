@@ -1,6 +1,4 @@
-#!/usr/bin/env node
 "use strict";
-
 let http = require("http");
 let url = require("url");
 let bl = require("bl");
@@ -10,6 +8,7 @@ let fs = require("fs");
 let parsers = require("./parsers.js");
 let util = require("./util.js");
 
+/* the main function that initiates html parsing */
 exports.parseHTML = function(objects) {
     return new Promise(function(resolve, reject) {
         console.log("-- HTML Parsing (with promises) --");
@@ -75,6 +74,7 @@ exports.parseHTML = function(objects) {
     });
 };
 
+/* main function for extracting information from article */
 function parse(buffer,options) {
     let pageData = buffer.toString();
     let pageObject = getBasics(pageData,options);
@@ -88,6 +88,7 @@ function parse(buffer,options) {
     return pageObject;
 }
 
+/* use a parser specific for the source to do the extraction */
 function getBasics(pageData,options) {
     let section = options.path.split("/")[1];
 
@@ -99,6 +100,7 @@ function getBasics(pageData,options) {
     return {error: "Not a BBC News or BBC Sport article"};
 }
 
+/* tokenize into sentences and extract only the useful sentences from the articles */
 function getSentences(pageObject) {
     let sentenceTokenizer = new natural.SentenceTokenizer();
     let sentences = [];
@@ -115,7 +117,6 @@ function getSentences(pageObject) {
 
     for(let i = 0; i < pageObject.paragraphs.length; i++) {
         let par = pageObject.paragraphs[i];
-
         
         // if a paragraph does not have a period, do not include
         if(par.indexOf(".") < 0) {
@@ -163,6 +164,7 @@ function getSentences(pageObject) {
     return sentences;
 }
 
+/* concatenate sentences that were improperly split on a name with title using a period */
 function fixNames(sentences) {
     let titles = ["Mrs", "Mr", "Ms", "Miss", "Mx", "Dr", "Prof", "Hon", "Rev"];
     // process sentences to make sure they're correctly tokenized
@@ -190,6 +192,7 @@ function fixNames(sentences) {
     return sentences; 
 }
 
+/* fix incorrect sentence tokenization where next sentence begins with lowercase letter */
 function fixImproperSplits(sentences) {
     // if a sentence was tokenized incorrectly, like on a url, the next sentence begins with a lowercase letter
     for(let i = 0; i < sentences.length; i++) {
@@ -212,6 +215,7 @@ function fixImproperSplits(sentences) {
     return sentences;
 }
 
+/* concatenate all sentences to make one long string */
 function concatSentences(pageObject) {
     let doc = "";
     if(pageObject.bolded) {
@@ -223,6 +227,7 @@ function concatSentences(pageObject) {
     return doc;
 }
 
+/* check is there is a quote in the sentence and someone is saying something */
 function isSpeakingSentence(sentence, numQuotes) {
     if(numQuotes < 2) return false;
     let speakingWords = ["said","explained","read","commented"];
@@ -234,5 +239,3 @@ function isSpeakingSentence(sentence, numQuotes) {
     }
     return false;
 }
-
-// module.exports = htmlParser;

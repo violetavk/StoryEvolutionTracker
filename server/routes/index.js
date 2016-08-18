@@ -4,6 +4,7 @@ let router = express.Router();
 let storyevolutiontracker = require("./../storyevolutiontracker");
 let recentLinks = [];
 
+/* START - gets pages for webapp only */
 router.get('/signatures', function (req, res) {
     res.sendFile(__dirname + "/" + "signatures.html");
 });
@@ -11,15 +12,21 @@ router.get('/signatures', function (req, res) {
 router.get('/crawler',function(req, res) {
    res.sendFile(__dirname + "/" + "crawler.html");
 });
+/* END - gets pages for webapp only */
 
+/* Route that is called to process a single article */
 router.post('/process_article', function (req, res) {
     let link = req.body.url_field.trim();
     let prod = req.body.prod;
+    let startTime = Date.now();
+    console.log("[START] process_article",link,"--",new Date(startTime));
     if (link !== undefined) {
         if (recentLinks.indexOf(link) < 0) {
             recentLinks.push(link);
         }
         storyevolutiontracker.parseAndGenerateSignature(link,function(objects) {
+            let endTime = Date.now();
+            console.log("[FINISH -",(endTime-startTime),"millis] process_article",link,"--",new Date(endTime));
             sendResponseSignatures(res,objects,prod);
         });
     }
@@ -27,6 +34,7 @@ router.post('/process_article', function (req, res) {
         console.log("Error, link was undefined");
 });
 
+/* FOR LOCAL CRAWLING ONLY - DEVELOPMENT ONLY */
 router.post('/process_crawl', function (req, res) {
     let link = req.body.url_field.trim();
     if (link !== undefined) {
@@ -41,14 +49,16 @@ router.post('/process_crawl', function (req, res) {
         console.log("Error, link was undefined");
 });
 
+/* Route for getting an update for a story */
 router.post("/get_next_article", function(req,res) {
     let timestamp = req.body.timestamp;
     let words = req.body.words;
     let category = req.body.category;
-    console.log("---- Getting NEXT ARTICLE ----");
-    console.log("Recieved words:",words);
-    console.log("Recieved timestamp:",timestamp);
-    console.log("Recieved category:",category);
+    let startTime = Date.now();
+    console.log("[START] get_next_article --",new Date(startTime));
+    console.log("  Recieved words:",words);
+    console.log("  Recieved timestamp:",timestamp);
+    console.log("  Recieved category:",category);
     storyevolutiontracker.findNextArticle(words,timestamp,category,function(obj) {
         let next = obj.chosenOne;
         let response = {};
@@ -70,12 +80,14 @@ router.post("/get_next_article", function(req,res) {
             // modifiedTopicWords: obj.modifiedTopicWords
             };
         }
-        console.log("Done with web crawling");
+        let endTime = Date.now();
+        console.log("[FINISH -",(endTime-startTime),"millis] get_next_article --",new Date(endTime));
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.send(JSON.stringify(response));
     });
 });
 
+/* Sends a response after completion of signature generation; different responses for dev and prod */
 function sendResponseSignatures(res,objects,prod) {
     let response = {};
     if(objects.error) {
@@ -108,12 +120,11 @@ function sendResponseSignatures(res,objects,prod) {
             signatures: objects.signatures
         };
     }
-
-    console.log("Done with sending signature response");
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(response));
 }
 
+/* Sends a dev response for local crawler */
 function sendResponseCrawler(res,objects) {
     let response = {
         recentLinks:    recentLinks,

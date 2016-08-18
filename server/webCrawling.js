@@ -8,10 +8,10 @@ let bl = require("bl");
 let cheerio = require("cheerio");
 let storyevolutiontracker = require("./storyevolutiontracker");
 
+/* Local directory for saved news articles - change this if you wish to test with local articles */
 const dir = "/Users/violet/Development/StoryEvolutionTracker/HTML Pages/";
 
-// searching on bbc: http://www.bbc.co.uk/search?filter=news&q=XXXXXXX
-
+/* DEVELOPMENT ONLY - crawling for local directory only*/
 exports.crawler = function(objects) {
     console.log("-----Crawling Web------");
     return new Promise(function(resolve,reject) {
@@ -40,8 +40,6 @@ exports.crawler = function(objects) {
                 crawled.avgPoints = result.avgPoints;
                 crawled.relevantArticles = result.relevantArticles;
                 crawled.chosenOne = result.chosenOne;
-                crawled.modifiedTopicWords = result.modifiedTopicWords;
-
                 objects.crawled = crawled;
                 let endtime = Date.now();
                 console.log("Duration:",(endtime-starttime),"millis");
@@ -53,6 +51,7 @@ exports.crawler = function(objects) {
     });
 };
 
+/* MAIN FUNCTION that is called to find updates for a story */
 exports.webCrawler = function(words,timestamp,category) {
     console.log("----Crawling REAL web----");
     return new Promise(function(resolve,reject) {
@@ -78,6 +77,7 @@ exports.webCrawler = function(words,timestamp,category) {
     });
 };
 
+/* opens directory for local crawling */
 function openDirectory() {
     let allFiles = fs.readdirSync(dir);
     let htmlFiles = [];
@@ -89,6 +89,7 @@ function openDirectory() {
     return htmlFiles;
 }
 
+/* finds potential matches by comparing topic words and headlines */
 function getPotentialMatches(topicWords,articles) {
     let potential = [];
     for(let i = 0; i < articles.length; i++) {
@@ -136,6 +137,7 @@ function getPotentialMatches(topicWords,articles) {
     return potential;
 }
 
+/* parses all potential files to retrieve topic words and signatures */
 function parseAllPotentialArticles(responses) {
     let potentialFiles = responses.potentialFiles;
     let done = 0;
@@ -168,7 +170,7 @@ function parseAllPotentialArticles(responses) {
             storyevolutiontracker.parseAndGenerateSignature(toParse, function(res) {
                 allArticles.push(res);
                 done++;
-                console.log("Done",done," and total num articles",potentialFiles.length,"\n\n");
+                console.log("Done",done,"out of",potentialFiles.length,"\n");
                 if(done === potentialFiles.length) {
                     responses.allArticles = allArticles;
                     console.log("DONE parsing all articles");
@@ -179,6 +181,7 @@ function parseAllPotentialArticles(responses) {
     });
 }
 
+/* chooses an article for story after parsing all articles */
 function chooseArticles(responses) {
     console.log("--- Choosing which articles fit ---");
     return new Promise(function(resolve,reject) {
@@ -209,7 +212,7 @@ function chooseArticles(responses) {
 
             let currHeadline = allArticles[i].pageObject.headline;
             let topicWords = allArticles[i].textObject.topicWords;
-            console.log("Looking at: ", currHeadline);
+
             // criteria for deleting an article: if it matches original exactly, if it doesn't have a signature, or it is older than original
             if(currHeadline === mainArticleHeadline) {
                 console.log("Skipping because headline is the same");
@@ -278,7 +281,6 @@ function chooseArticles(responses) {
             responses.avgPoints = 0;
             responses.relevantArticles = [];
             responses.chosenOne = 0;
-            responses.modifiedTopicWords = {};
             resolve(responses);
         }
 
@@ -291,19 +293,14 @@ function chooseArticles(responses) {
             allArticles[i].overlap = overlap[i]/numTopicWords;
         }
         avgPoints = avgPoints / points.length;
-        console.log("Avg pts:",avgPoints);
         responses.avgPoints = avgPoints;
         responses.relevantArticles = getAllRelevantArticles(allArticles,avgPoints);
-        console.log("Relevant articles:",responses.relevantArticles);
         if(responses.relevantArticles.length === 0) {
             responses.chosenOne = 0;
-            responses.modifiedTopicWords = {};
             resolve(responses);
         }
         responses.chosenOne = getMostRelevantArticle(responses.relevantArticles);
         console.log("Chosen one:",responses.chosenOne.pageObject.headline);
-        responses.modifiedTopicWords = mergeTopicWords(mainTopicWords,responses.chosenOne.textObject.topicWords);
-        console.log("Resolving..");
         resolve(responses);
         } catch (error) {
             reject(error);
@@ -311,6 +308,7 @@ function chooseArticles(responses) {
     });
 }
 
+/* retrieves only the relevant articles according to the threshold */
 function getAllRelevantArticles(allArticles, avg) {
     let relevantArticles = [];
     for(let article of allArticles) {
@@ -335,41 +333,12 @@ function getAllRelevantArticles(allArticles, avg) {
     return relevantArticles;
 }
 
+/* most relevant article is first one so return it */
 function getMostRelevantArticle(relevantArticles) {
     return relevantArticles[0];
 }
 
-function mergeTopicWords(original,newer) { // can change this later on to include flag for positive or negative
-    // if array not in frequency object form
-    if(original instanceof Array) {
-        let tmp = {};
-        for(let w of original) {
-            tmp[w] = 1;
-        }
-        original = tmp;
-    }
-
-    // increment each word to strengthen
-    for(let word of newer) {
-        if(original[word] > 0)
-            original[word] = (original[word] + 1);
-        else
-            original[word] = 1;
-    }
-
-    // finally sort
-    let sorted = [];
-    let sortedObj = {};
-    for(let word in original)
-        sorted.push([word,original[word]]);
-    sorted.sort(function(a,b) {return b[1] - a[1];});
-    for(let i = 0; i < sorted.length; i++) {
-        sortedObj[sorted[i][0]] = sorted[i][1];
-    }
-    console.log(sortedObj);
-    return sortedObj;
-}
-
+/* build a URL to perform a search criteria with on BBC */
 function modifyURL(words,category) {
     let searchURL = "http://www.bbc.co.uk/search?filter=" + category + "&q="; // searching the BBC, first page of results only
     for(let i = 0; i < 2; i++) {
@@ -377,7 +346,6 @@ function modifyURL(words,category) {
         if(word.indexOf(" ") > -1) {
             word = word.replace(/\s/g,'+');
         }
-        console.log(word);
         searchURL += (word + "+");
     }
     console.log(searchURL);
@@ -389,12 +357,12 @@ function modifyURL(words,category) {
     };
 }
 
+/* main function that is called after retrieving search results */
 function getNextArticle(bufferList,words,timestamp,cb) {
     let pageData = bufferList.toString();
     let allResults = getAllResults(pageData);
     // allResults = filterOnTimestamp(allResults,timestamp);
     allResults = getPotentialMatches(words,allResults);
-    console.log(allResults);
     let responses = {
         potentialFiles: allResults,
         isLocal: false,
@@ -406,6 +374,7 @@ function getNextArticle(bufferList,words,timestamp,cb) {
         .then(cb);
 }
 
+/* parses search results page to extract only useful info */
 function getAllResults(pageData) {
     let $ = cheerio.load(pageData);
     let results = [];
@@ -427,6 +396,7 @@ function getAllResults(pageData) {
     return results;
 }
 
+/* filters on timestamp during article selection from search results */
 function filterOnTimestamp(articles,timestamp) {
     // even though articles are filtered on timestamp later, save some performance of not parsing unnecessary articles
     for(let i = 0; i < articles.length; i++) {
