@@ -9,8 +9,8 @@ exports.generateSignatures = function(objects) {
         let pageObject = objects.pageObject;
         let textObject = objects.textObject;
 
-        signatures.sentenceTfIdfs = getSentenceTfIdfs(textObject.sentenceWordsArray,textObject.tfidfs);
-        signatures.topSentences = getTopNSentences(signatures.sentenceTfIdfs, pageObject, 2);
+        signatures.sentenceImportances = getSentenceImportances(textObject.sentenceWordsArray,textObject.importanceValues);
+        signatures.topSentences = getTopNSentences(signatures.sentenceImportances, pageObject, 2);
         signatures.taggedSentences = tagSentences(signatures.topSentences);
         signatures.adjustedSentences = adjustSentences(signatures,textObject);
         signatures.plainSignature = getPlainSignature(signatures);
@@ -20,15 +20,15 @@ exports.generateSignatures = function(objects) {
     });
 };
 
-function getSentenceTfIdfs(sentences, tfidfs) {
-    console.log("Getting tfidfs");
+function getSentenceImportances(sentences, importanceValues) {
+    console.log("Getting importanceValues");
     let values = [];
     let tagger = new pos.Tagger();
     for(let i = 0; i < sentences.length; i++) {
         let sentenceValue = 0;
         let sentence = sentences[i];
         for(let word of sentence) {
-            let curr = tfidfs[word.toLowerCase()];
+            let curr = importanceValues[word.toLowerCase()];
             if(curr) {
                 let lexer = new pos.Lexer().lex(word);
                 let tag = tagger.tag(lexer)[0][1];
@@ -45,20 +45,20 @@ function getSentenceTfIdfs(sentences, tfidfs) {
     return values;
 }
 
-function getTopNSentences(sentenceTfIdfs, pageObject, n) {
+function getTopNSentences(sentenceImportances, pageObject, n) {
     console.log("Getting top",n,"sentences");
     let actualSentences = pageObject.sentences;
     let temp = [];
     let topSentences = [];
     for(let i = 0; i < n && i < actualSentences.length; i++) {
-        let tfIdfSentence = sentenceTfIdfs[i];
-        let id = tfIdfSentence[0];
+        let currSentence = sentenceImportances[i];
+        let id = currSentence[0];
         if(id === 0) {
             // do not add the headline to the summary
             n++;
             continue;
         }
-        temp.push(tfIdfSentence);
+        temp.push(currSentence);
     }
     temp.sort(function(a,b) {return a[0] - b[0]});
     for(let i = 0; i < temp.length; i++) {
@@ -143,7 +143,6 @@ function removePossessives(tagged) {
             let word = pair[0];
             let tag = pair[1];
             if(tag === "PP$" || tag === "PRP$") {
-                // console.log("Found possessive:",word);
                 if(j - 1 >= 0) {
                     let prevWord = sentence[j-1];
                     let prevTag = prevWord[1];
@@ -160,8 +159,8 @@ function removePossessives(tagged) {
 }
 
 function removeAdjectives(tagged, textObject) {
-    let tfidfs = textObject.tfidfs;
-    let avg = textObject.tfidfAvg;
+    let importanceValues = textObject.importanceValues;
+    let avg = textObject.importanceAvg;
     for(let i = 0; i < tagged.length; i++) {
         let sentence = tagged[i];
         for(let j = 0; j < sentence.length; j++) {
@@ -180,7 +179,7 @@ function removeAdjectives(tagged, textObject) {
                     let nextTag = sentence[j+1][1];
                     if(nextTag === "MD" || nextTag === "VBN") continue;
                 }
-                if(tfidfs[word] > avg*1.5) {
+                if(importanceValues[word] > avg*1.5) {
                     continue;
                 }
 
@@ -194,8 +193,8 @@ function removeAdjectives(tagged, textObject) {
 }
 
 function removeClausePhrases(tagged,textObject,top3words) {
-    let tfidfs = textObject.tfidfs;
-    let avg = textObject.tfidfAvg;
+    let importanceValues = textObject.importanceValues;
+    let avg = textObject.importanceAvg;
     for(let i = 0; i < tagged.length; i++) {
         let sentence = tagged[i];
         let clause = false;
@@ -232,22 +231,22 @@ function removeClausePhrases(tagged,textObject,top3words) {
                 clause = false;
             }
         }
-        tagged[i] = removeSentenceClauses(sentence,sentenceClauses,tfidfs,avg,top3words);
+        tagged[i] = removeSentenceClauses(sentence,sentenceClauses,importanceValues,avg,top3words);
     }
     return tagged;
 }
 
-function removeSentenceClauses(sentence,sentenceClauses,tfidfs,avg,top3words) {
+function removeSentenceClauses(sentence,sentenceClauses,importanceValues,avg,top3words) {
     console.log("importance threshold:",(avg*5.5));
     for(let clause of sentenceClauses) {
         let start = clause[0];
         let end = clause[1];
 
         //debug only
-        console.log("---");
-        for(let i = start; i <= end; i++) {
-            console.log(sentence[i][0]);
-        }
+        // console.log("---");
+        // for(let i = start; i <= end; i++) {
+        //     console.log(sentence[i][0]);
+        // }
 
         // blacklist some prepositions
         let first = sentence[start][0];

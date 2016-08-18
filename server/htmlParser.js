@@ -149,8 +149,9 @@ function getSentences(pageObject) {
                 if(numQuotes % 2 === 0) 
                     sentences.push(s);
             }
-            else if(openQuotes)
-                continue; // skip over the sentence if currently inside a quote
+            else if(openQuotes) {
+                // skip over the sentence if currently inside a quote
+            }
             else
                 sentences.push(s);
         }

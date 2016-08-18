@@ -17,9 +17,9 @@ exports.processText = function(objects) {
         textObject.article = concatSentences(textObject);
         textObject.properNounsObject = getAllProperNouns(textObject);
         textObject.wordFrequencies = getWordFrequencies(textObject);
-        textObject.tfidfs = getTfIdf(textObject);
+        textObject.importanceValues = getImportances(textObject);
         textObject.stemmedWords = stemWords(textObject);
-        textObject.tfidfAvg = getTfIdfAverage(textObject.tfidfs);
+        textObject.importanceAvg = getImportanceAverage(textObject.importanceValues);
         detectEquivalentNames(textObject.sentenceWordsArray, textObject.properNouns);
         textObject = adjustTopicWords(textObject,pageObject);
         textObject.topicWords = getTopicWords(textObject,8);
@@ -173,7 +173,7 @@ function detectNames(sentenceWords) {
                 // found a title, like Mr
                 if((i + 1) < sentence.length && sentence[i+1] === "." && (i + 2) < sentence.length) {
                     // found a period after the title, so join the name following it
-                    sentence[i] = word + sentence[i+1] + " " + sentence[i+2];;
+                    sentence[i] = word + sentence[i + 1] + " " + sentence[i + 2];
                     sentence.splice(i+1,2);
                     i--;
                 }
@@ -362,7 +362,7 @@ function getWordFrequencies(textObject) {
     return freq;
 }
 
-function getTfIdf(textObject) { 
+function getImportances(textObject) {
     let article = textObject.article;
     let freq = textObject.wordFrequencies;
 
@@ -371,7 +371,7 @@ function getTfIdf(textObject) {
         article[i] = article[i].toLowerCase();
     }
 
-    let tfidfs = { };
+    let importances = { };
     for(let word in freq) {
         if(util.isNumeric(word)) continue;
 
@@ -380,111 +380,107 @@ function getTfIdf(textObject) {
             if(word === article[i])
                 occ++;
         }
-        let newTfidf = occ / article.length * 100;
-        tfidfs[word] = newTfidf;
+        let importance = occ / article.length * 100;
+        importances[word] = importance;
     }
-    return tfidfs;
+    return importances;
 }
 
 function adjustTopicWords(textObject, pageObject) {
     // there will be a variety of processes in here
-    let tfidfs = textObject.tfidfs;
+    let importanceValues = textObject.importanceValues;
 
-    weighHeadline(tfidfs,textObject,pageObject);
-    weighSection(tfidfs,pageObject.section);
-    weighBolded(tfidfs,textObject,pageObject);
-    weighBasedOnLocation(tfidfs,textObject);
-    weighStemmedWords(tfidfs,textObject);
-    weighProperNames(tfidfs,textObject);
-    // adjustForNames(tfidfs,textObject);
-    tfidfs = sortTfidfs(tfidfs);
-    // deleteAdjectives(tfidfs);
-    // deleteVerbs(tfidfs);
+    weighHeadline(importanceValues,textObject,pageObject);
+    weighSection(importanceValues,pageObject.section);
+    weighBolded(importanceValues,textObject,pageObject);
+    weighBasedOnLocation(importanceValues,textObject);
+    weighStemmedWords(importanceValues,textObject);
+    weighProperNames(importanceValues,textObject);
+    // adjustForNames(importanceValues,textObject);
+    importanceValues = sortByDescendingImportance(importanceValues);
+    // deleteAdjectives(importanceValues);
+    // deleteVerbs(importanceValues);
 
-    textObject.tfidfs = tfidfs;
+    textObject.importanceValues = importanceValues;
     return textObject;
 }
 
-function weighProperNames(tfidfs, textObject) {
-    let avg = textObject.tfidfAvg;
+function weighProperNames(importanceValues, textObject) {
+    let avg = textObject.importanceAvg;
     let properNounsObject = textObject.properNounsObject;
-    let tagger = new pos.Tagger();
-    for(let word in tfidfs) {
-        let lexer = new pos.Lexer().lex(word);
-        // let tag = tagger.tag(lexer)[0][1];
+    for(let word in importanceValues) {
         let type = nlp.text(word).tags()[0][0];
-        // console.log(word,type);
         if(util.isNameAsTitle(word) || word === "bst" || word === "bbc") continue;
         if(type === "Date" || type === "Value" || type === "Demonym") continue;
         if(properNounsObject[word] || util.isProperNoun(word)) {
-            tfidfs[word] = (tfidfs[word] + avg*2.5);
+            importanceValues[word] = (importanceValues[word] + avg*2.5);
         }
     }
 }
 
-function weighBasedOnLocation(tfidfs, textObject) {
+function weighBasedOnLocation(importanceValues, textObject) {
     let article = textObject.article;
-    let avg = textObject.tfidfAvg;
+    let avg = textObject.importanceAvg;
     for(let i = 0; i < article.length; i++) {
         article[i] = article[i].toLowerCase();
     }
-    for(let word in tfidfs) {
+    for(let word in importanceValues) {
         word = word.toLowerCase();
         let perc = article.indexOf(word)/article.length;
         if(perc < .5) {
-            tfidfs[word] = tfidfs[word] + avg*0.75;
+            importanceValues[word] = importanceValues[word] + avg*0.75;
         }
     }
 
-    return tfidfs;
+    return importanceValues;
 }
 
-function weighHeadline(tfidfs,textObject,pageObject) {
-    if(!pageObject.headline) return textObject.tfidfs;
+function weighHeadline(importanceValues,textObject,pageObject) {
+    if(!pageObject.headline) return textObject.importanceValues;
     let sentences = textObject.sentenceWordsArray;
     let headline = sentences[0];
-    if(!headline) return tfidfs;
+    if(!headline) return importanceValues;
     for(let word of headline) {
         word = word.toLowerCase();
         if(util.isStopWord(word)) continue;
-        let currTfidf = tfidfs[word];
-        if(currTfidf) {
-            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg*3; // increase importance of word if it's in headline, avg?
+        let currImportance = importanceValues[word];
+        if(currImportance) {
+            importanceValues[word] = importanceValues[word] + textObject.importanceAvg*3;
         }
     }
-    return tfidfs;
+    return importanceValues;
 }
 
-function weighSection(tfidfs, section) {
+function weighSection(importanceValues, section) {
     section = section.toLowerCase();
-    let sectionTfidf = tfidfs[section];
-    if(sectionTfidf) {
-        tfidfs[sectionTfidf] = tfidfs[section] + 0.5;
+    let sectionImportance = importanceValues[section];
+    if(sectionImportance) {
+        importanceValues[sectionImportance] = importanceValues[section] + 0.5;
 
     }
-    return tfidfs;
+    return importanceValues;
 }
 
-function weighBolded(tfidfs,textObject,pageObject) {
-    if(!pageObject.bolded) return textObject.tfidfs;
+function weighBolded(importanceValues,textObject,pageObject) {
+    if(!pageObject.bolded) return textObject.importanceValues;
     let sentences = textObject.sentenceWordsArray;
     let bolded  = sentences[1];
     for(let word of bolded) {
         word = word.toLowerCase();
         if(util.isStopWord(word)) continue;
         if(!util.isAlphaNum(word)) continue;
-        if(tfidfs[word]) {
-            tfidfs[word] = tfidfs[word] + textObject.tfidfAvg*1.5; // a proportion of avg (as important but not quite)
+        if(importanceValues[word]) {
+            importanceValues[word] = importanceValues[word] + textObject.importanceAvg*1.5; // a proportion of avg (as important but not quite)
         }
     }
-    return tfidfs;
+    return importanceValues;
 }
 
-function getTfIdfAverage(tfidfs) {
+function getImportanceAverage(importanceValues) {
     let sum = 0;
     let number = 0;
-    for(let word in tfidfs) {
-        sum += tfidfs[word];
+    for(let word in importanceValues) {
+        sum += importanceValues[word];
         number++;
     }
     return sum / number;
@@ -517,75 +513,75 @@ function stemWords(textObject) { // stem words using porter-stemmer
     return stemmed;
 }
 
-function weighStemmedWords(tfidfs,textObject) {
+function weighStemmedWords(importanceValues,textObject) {
     let stemmed = textObject.stemmedWords;
-    let freq = textObject.wordFrequencies;
+    // let freq = textObject.wordFrequencies;
     for(let stem in stemmed) {
-        if(!tfidfs[stem]) continue;
-        let totalTfidf = 0;
+        if(!importanceValues[stem]) continue;
+        let totalImportance = 0;
         // let freqSum = 0;
         let related = stemmed[stem];
 
-        if(related.length === 1) continue; // don't bother with calculations since result would equal current tfidf
+        if(related.length === 1) continue; // don't bother with calculations since result would equal current importance
 
-        // first add up all tfidfs of each related word and add up frequencies
+        // first add up all importanceValues of each related word and add up frequencies
         for(let i = 0; i < related.length; i++) {
-            totalTfidf += tfidfs[related[i]];
+            totalImportance += importanceValues[related[i]];
             // freqSum += freq[related[i]];
         }
 
         // calculate the denominator for the skewed average result
         // let denominator = related.length === 1 ? 1 : related.length - 1; // -1 is to skew favorably for slightly higher values
 
-        // new tfidf is dependent on all of its related words, denominator for avg. calculation set by formula above
-        // let adjustedTfIdf = totalTfidf / denominator;
-        // console.log(stem,"adjusted tfidf =",adjustedTfIdf);
+        // new importance is dependent on all of its related words, denominator for avg. calculation set by formula above
+        // let adjustedImportance = totalImportance / denominator;
+        // console.log(stem,"adjusted importance =",adjustedImportance);
 
         // distribute the new weights based on the frequency of the word
         // for(let i = 0; i < related.length; i++) {
             // let word = related[i];
-            // tfidfs[word] = adjustedTfIdf * (freq[word]/freqSum);
+            // importanceValues[word] = adjustedImportance * (freq[word]/freqSum);
 
-            // tfidfs[word] = tfidfs[word] + (adjustedTfIdf * (freq[word]/freqSum)); // way too high
-            // tfidfs[word] = tfidfs[word] + adjustedTfIdf;
-            // console.log("setting",word,"to",tfidfs[word]);
+            // importanceValues[word] = importanceValues[word] + (adjustedImportance * (freq[word]/freqSum)); // way too high
+            // importanceValues[word] = importanceValues[word] + adjustedImportance;
+            // console.log("setting",word,"to",importanceValues[word]);
         // }
 
-        // choose which version of stem to keep, taking tfidfs from its related words
+        // choose which version of stem to keep, taking importanceValues from its related words
         let displayWord = getDisplayWord(textObject,stem);
-        tfidfs[displayWord] = totalTfidf;
+        importanceValues[displayWord] = totalImportance;
         for(let i = 0; i < related.length; i++) {
             let word = related[i];
             if(word === displayWord) continue;
-            // tfidfs[displayWord] += tfidfs[word];
-            delete tfidfs[word];
+            // importanceValues[displayWord] += importanceValues[word];
+            delete importanceValues[word];
         }
     }
 
 }
 
-function adjustForNames(tfidfs,textObject) {
+function adjustForNames(importanceValues,textObject) {
     let tagger = new pos.Tagger();
-    for(let word in tfidfs) {
+    for(let word in importanceValues) {
         if(util.isNameAsTitle(word)) {
             // console.log("Detected a name:",word);
             let lastName = word.split(" ")[1];
 
             // find the matching names
-            let names = findNameMatches(lastName,word,tfidfs);
+            let names = findNameMatches(lastName,word,importanceValues);
             let baseName = names[0];
-            let baseTfidf = tfidfs[baseName];
-            let currTfidf = tfidfs[word];
-            let maxTfidf = baseTfidf > currTfidf ? baseTfidf : currTfidf;
-            // console.log(word,currTfidf);
-            // console.log(baseName,baseTfidf);
-            // console.log("Giving",baseName,"tfidf of",maxTfidf);
-            tfidfs[baseName] = maxTfidf;
-            tfidfs[word] = maxTfidf * 0.4;
+            let baseImportance = importanceValues[baseName];
+            let currImportance = importanceValues[word];
+            let maxImportance = baseImportance > currImportance ? baseImportance : currImportance;
+            // console.log(word,currImportance);
+            // console.log(baseName,baseImportance);
+            // console.log("Giving",baseName,"importance of",maxImportance);
+            importanceValues[baseName] = maxImportance;
+            importanceValues[word] = maxImportance * 0.4;
         } else if(util.isNormalWord(word)) {
             // name is either a first name or last name
             // console.log("testing",word);
-            let names = findNameMatches(word,word,tfidfs);
+            let names = findNameMatches(word,word,importanceValues);
             // console.log("matches:",names);
             if(names.length === 0 || names.length > 1) continue;
             let baseName = names[0];
@@ -602,35 +598,35 @@ function adjustForNames(tfidfs,textObject) {
             // console.log(nlp.text(word).tags()[0][0],"-",tag);
             // if(nlp.text(baseName).tags()[0][0] === "")
             if(baseName.indexOf(" ") < 0) continue;
-            let baseTfidf = tfidfs[baseName];
-            let currTfidf = tfidfs[word];
-            let maxTfidf = baseTfidf > currTfidf ? baseTfidf : currTfidf;
-            tfidfs[baseName] = maxTfidf;
-            tfidfs[word] = maxTfidf * 0.2;
+            let baseImportance = importanceValues[baseName];
+            let currImportance = importanceValues[word];
+            let maxImportance = baseImportance > currImportance ? baseImportance : currImportance;
+            importanceValues[baseName] = maxImportance;
+            importanceValues[word] = maxImportance * 0.2;
         } else if(util.isProperNoun(word)) {
             // console.log("testing",word);
-            let names = findNameMatches(word,word,tfidfs);
+            let names = findNameMatches(word,word,importanceValues);
             // console.log("matches:",names);
             if(names.length === 0) continue;
-            let nameTfidf = tfidfs[word] > tfidfs[names[0]] ? tfidfs[word] : tfidfs[names[0]];
+            let nameImportance = importanceValues[word] > importanceValues[names[0]] ? importanceValues[word] : importanceValues[names[0]];
             if(word.length < names[0].length) {
-                // keep curr, increase its tfidf to max
-                // console.log("Keeping",word,"- setting tfidf to",nameTfidf);
-                tfidfs[word] = nameTfidf;
-                delete tfidfs[names[0]];
+                // keep curr, increase its importance to max
+                // console.log("Keeping",word,"- setting importance to",nameImportance);
+                importanceValues[word] = nameImportance;
+                delete importanceValues[names[0]];
             } else {
                 // replace with names[0], delete word
-                // console.log("Keeping",names[0],"- setting tfidf to",nameTfidf);
-                tfidfs[names[0]] = nameTfidf;
-                delete tfidfs[word];
+                // console.log("Keeping",names[0],"- setting importance to",nameImportance);
+                importanceValues[names[0]] = nameImportance;
+                delete importanceValues[word];
             }
         }
     }
 }
 
-function findNameMatches(name,original,tfidfs) {
+function findNameMatches(name,original,importanceValues) {
     let matches = [];
-    for(let word in tfidfs) {
+    for(let word in importanceValues) {
         if(word.indexOf(name) > -1 && word !== original) {
             matches.push(word);
         }
@@ -638,54 +634,54 @@ function findNameMatches(name,original,tfidfs) {
     return matches;
 }
 
-function sortTfidfs(tfidfs) {
+function sortByDescendingImportance(importanceValues) {
     let sorted = [];
-    let sortedTfIdfs = {};
-    for(let word in tfidfs) {
-        sorted.push([word,tfidfs[word]]);
+    let sortedImportanceValues = {};
+    for(let word in importanceValues) {
+        sorted.push([word,importanceValues[word]]);
     }
     sorted.sort(function(a,b) {return b[1] - a[1];});
     for(let i = 0; i < sorted.length; i++) {
-        sortedTfIdfs[sorted[i][0]] = sorted[i][1];
+        sortedImportanceValues[sorted[i][0]] = sorted[i][1];
     }
-    return sortedTfIdfs;
+    return sortedImportanceValues;
 }
 
-function deleteAdjectives(tfidfs) {
+function deleteAdjectives(importanceValues) {
     let tagger = new pos.Tagger();
-    for(let word in tfidfs) {
+    for(let word in importanceValues) {
         let lexer = new pos.Lexer().lex(word);
         let tag = tagger.tag(lexer)[0][1];
         if((tag === "JJ" || tag === "JJR" || tag === "JJS") && !util.isProperNoun(word)) {
-            delete tfidfs[word];
+            delete importanceValues[word];
         }
     }
 }
 
-function deleteVerbs(tfidfs) {
+function deleteVerbs(importanceValues) {
     let tagger = new pos.Tagger();
-    for(let word in tfidfs) {
+    for(let word in importanceValues) {
         let lexer = new pos.Lexer().lex(word);
         let tag = tagger.tag(lexer)[0][1];
         if((tag === "VBD" || tag === "VBG" || tag === "VBN" || tag === "VBP" || tag === "VBZ") && !util.isProperNoun(word)) {
-            delete tfidfs[word];
+            delete importanceValues[word];
         }
     }
 }
 
 function getDisplayWord(textObject, word) {
     let stemmedWords = textObject.stemmedWords;
-    let tfidfs = textObject.tfidfs;
+    let importanceValues = textObject.importanceValues;
     let relatedWords = stemmedWords[word];
     let displayWord = relatedWords[0];
-    let displayWordTfIdf = tfidfs[displayWord];
+    let displayWordImportance = importanceValues[displayWord];
 
     for(let i = 1; i < relatedWords.length; i++) {
         let nextWord = relatedWords[i];
-        let nextTfIdf = tfidfs[nextWord];
-        if(nextTfIdf > displayWordTfIdf) {
+        let nextWordImportance = importanceValues[nextWord];
+        if(nextWordImportance > displayWordImportance) {
             displayWord = nextWord;
-            displayWordTfIdf = nextTfIdf;
+            displayWordImportance = nextWordImportance;
         }
     }
 
@@ -707,9 +703,9 @@ function getWordFromArray(startIndex, endIndex, wordsArray) {
 function getTopicWords(textObject,num) {
     let topicWords = [];
     let tagger = new pos.Tagger();
-    let tfidfs = textObject.tfidfs;
+    let importanceValues = textObject.importanceValues;
     let goodTags = ["NN","NNP","NNPS","NNS"];
-    for(let word in tfidfs) {
+    for(let word in importanceValues) {
         if(topicWords.length >= num) break;
         if(word.indexOf("-") > -1) continue;
         let lexer = new pos.Lexer().lex(word);
