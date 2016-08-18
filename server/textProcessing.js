@@ -362,27 +362,27 @@ function getWordFrequencies(textObject) {
     return freq;
 }
 
-function getTfIdf(textObject) {
-    let tfidf = new natural.TfIdf();
+function getTfIdf(textObject) { 
     let article = textObject.article;
     let freq = textObject.wordFrequencies;
 
-    // put it in here!
+    // normalize article to lower case
     for(let i = 0; i < article.length; i++) {
         article[i] = article[i].toLowerCase();
     }
-
-    tfidf.addDocument(article);
 
     let tfidfs = { };
     for(let word in freq) {
         if(util.isNumeric(word)) continue;
 
-        let toTest = [];
-        toTest.push(word);
-        tfidfs[word] = tfidf.tfidf(toTest, 0);
+        let occ = 0;
+        for(let i = 0; i < article.length; i++) {
+            if(word === article[i])
+                occ++;
+        }
+        let newTfidf = occ / article.length * 100;
+        tfidfs[word] = newTfidf;
     }
-
     return tfidfs;
 }
 
@@ -411,7 +411,7 @@ function weighProperNames(tfidfs, textObject) {
     let tagger = new pos.Tagger();
     for(let word in tfidfs) {
         let lexer = new pos.Lexer().lex(word);
-        let tag = tagger.tag(lexer)[0][1];
+        // let tag = tagger.tag(lexer)[0][1];
         let type = nlp.text(word).tags()[0][0];
         // console.log(word,type);
         if(util.isNameAsTitle(word) || word === "bst" || word === "bbc") continue;
@@ -523,7 +523,7 @@ function weighStemmedWords(tfidfs,textObject) {
     for(let stem in stemmed) {
         if(!tfidfs[stem]) continue;
         let totalTfidf = 0;
-        let freqSum = 0;
+        // let freqSum = 0;
         let related = stemmed[stem];
 
         if(related.length === 1) continue; // don't bother with calculations since result would equal current tfidf
@@ -531,32 +531,33 @@ function weighStemmedWords(tfidfs,textObject) {
         // first add up all tfidfs of each related word and add up frequencies
         for(let i = 0; i < related.length; i++) {
             totalTfidf += tfidfs[related[i]];
-            freqSum += freq[related[i]];
+            // freqSum += freq[related[i]];
         }
 
         // calculate the denominator for the skewed average result
-        let denominator = related.length === 1 ? 1 : related.length - 1; // -1 is to skew favorably for slightly higher values
+        // let denominator = related.length === 1 ? 1 : related.length - 1; // -1 is to skew favorably for slightly higher values
 
         // new tfidf is dependent on all of its related words, denominator for avg. calculation set by formula above
-        let adjustedTfIdf = totalTfidf / denominator;
+        // let adjustedTfIdf = totalTfidf / denominator;
         // console.log(stem,"adjusted tfidf =",adjustedTfIdf);
 
         // distribute the new weights based on the frequency of the word
-        for(let i = 0; i < related.length; i++) {
-            let word = related[i];
-            tfidfs[word] = adjustedTfIdf * (freq[word]/freqSum);
+        // for(let i = 0; i < related.length; i++) {
+            // let word = related[i];
+            // tfidfs[word] = adjustedTfIdf * (freq[word]/freqSum);
 
             // tfidfs[word] = tfidfs[word] + (adjustedTfIdf * (freq[word]/freqSum)); // way too high
             // tfidfs[word] = tfidfs[word] + adjustedTfIdf;
             // console.log("setting",word,"to",tfidfs[word]);
-        }
+        // }
 
         // choose which version of stem to keep, taking tfidfs from its related words
         let displayWord = getDisplayWord(textObject,stem);
+        tfidfs[displayWord] = totalTfidf;
         for(let i = 0; i < related.length; i++) {
             let word = related[i];
             if(word === displayWord) continue;
-            tfidfs[displayWord] += tfidfs[word];
+            // tfidfs[displayWord] += tfidfs[word];
             delete tfidfs[word];
         }
     }

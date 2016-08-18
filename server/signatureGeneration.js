@@ -256,11 +256,6 @@ function removeSentenceClauses(sentence,sentenceClauses,tfidfs,avg,top3words) {
         // check if any are important; if yes, must include this clause
         let important = false;
         for(let i = start; i <= end; i++) {
-            // if(tfidfs[sentence[i][0]] > avg*5.5) {
-            //     console.log("->deemed",sentence[i][0],"is important");
-            //     important = true;
-            //
-            // }
             let curr = sentence[i][0].toLowerCase().trim();
             if(curr in top3words)
                 important = true;
@@ -350,7 +345,7 @@ function getPlainSignature(signatures) {
             if(util.isAlpha(word) && util.isNumeric(nextWord)) {
                 sentence += " ";
             }
-            else if(nextWord[0] === ")" || nextWord[0] === "." || nextWord[0] === "," || nextWord[0] === "'" || util.isNumeric(nextWord) ||
+            else if(nextWord[0] === ")" || nextWord[0] === "." || nextWord[0] === "," || nextWord[0] === "'" ||
                 (word === "\"" && insideQuotes) || (word === "'" && nextWord === "s") || word === "#" || word === ";" ||
                 nextWord[0] === "%" || word[0] === "(") {
                 // just continue

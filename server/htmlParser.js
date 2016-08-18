@@ -70,7 +70,7 @@ exports.parseHTML = function(objects) {
                 })
             });
         } else {
-            reject(new Error("Neither a file or http"));
+            reject({error: "Neither a file nor http url"});
         }
     });
 };
