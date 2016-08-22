@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.storyevolutiontracker.fragments.HelpFragment;
 import com.storyevolutiontracker.fragments.ManageStoriesFragment;
 import com.storyevolutiontracker.fragments.StoriesViewFragment;
 import com.storyevolutiontracker.fragments.UserProfileFragment;
@@ -144,6 +145,8 @@ public class NewsHomeScreen extends AppCompatActivity
             navigationView.getMenu().getItem(2).setChecked(true);
             fab.setVisibility(View.INVISIBLE);
         } else if (id == R.id.nav_help) {
+            Fragment help = new HelpFragment();
+            fm.beginTransaction().replace(R.id.content_news_home_screen,help).commit();
             navigationView.getMenu().getItem(3).setChecked(true);
             fab.setVisibility(View.INVISIBLE);
         } else if (id == R.id.nav_about) {

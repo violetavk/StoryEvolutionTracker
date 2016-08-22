@@ -43,4 +43,27 @@
     <string name="notApplicable">Not applicable</string>
     <string name="noInterestsFound">No interests found. Begin tracking stories to register your interests!</string>
     <string name="interests">Interests</string>
+    <string name="help">Help</string>
+    <string name="which_news_sources">Which news sources are allowed?</string>
+    <string name="sources_text">You can track BBC News and BBC Sport articles. Support for new sources will be added in the future.</string>
+    <string name="how_to_track">How do I begin tracking news stories?</string>
+    <string name="option1">Option 1</string>
+    <string name="option1instr">Open a BBC article in your device\'s browser. Copy the URL of the page. Press the add new story button and paste the URL into the text field or press the \"Copy from Clipboard\" button. This format is accepted:</string>
+    <string name="option1example">e.g. http://www.bbc.co.uk/news/business-37159288</string>
+    <string name="option2">Option 2</string>
+    <string name="option2example">e.g. Ryan Lochte: Speedo and Ralph Lauren end sponsorship - http://www.bbc.co.uk/news/business-37159288</string>
+    <string name="what_are_pink_words">What are the words with the pink backgrounds?</string>
+    <string name="pink_words_expl">These are topic words that work like tags for representing the main topic of a story. These get updated when you upvote or downvote an article in your timeline.</string>
+    <string name="what_is_a_timeline">What is a timeline?</string>
+    <string name="timeline_expl">It shows how your news story progresses over time. Newer developments are on the top of the timeline. These updates are retrieved automatically.</string>
+    <string name="how_to_get_new_updates">How do I get new updates for my tracked stories?</string>
+    <string name="how_to_get_new_updates_expl">You can either pull the My Tracked Stories screen down to manually refresh, or set an automatic background update frequency in the settings.</string>
+    <string name="what_is_a_story">What are the entries on the My Tracked Stories screen?</string>
+    <string name="what_is_a_story_expl">Each entry is one of your tracked stories. A new one is created for each article you submit. The main text is the signature of the most recent article for that story. They are sorted from most to least recent.</string>
+    <string name="what_is_a_signature">What is a signature?</string>
+    <string name="what_is_a_signature_expl">This is a quick summary of an article. You can see each development\'s signature in the timeline.</string>
+    <string name="what_are_thumbsup_thumbsdown">What do the thumbs-up and thumbs-down buttons in the timeline do?</string>
+    <string name="what_are_thumbsup_thumbsdown_expl">You can provide feedback on each automatically retrieved article. If an article fits exactly what you want to read about, you can give it a thumbs-up
+        to upvote it. The topic words of that article get strengthed for the story and new articles in the future will attempt to be more about those topic words. It\'s similar for downvoting an article. More feedback equals more
+        precise articles in the future.</string>
 </resources>
