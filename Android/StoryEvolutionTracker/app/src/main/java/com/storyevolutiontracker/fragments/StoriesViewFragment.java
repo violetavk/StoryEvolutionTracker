@@ -81,31 +81,6 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         mRecyclerView.setAdapter(mAdapter);
     }
 
-    public JSONArray sortTopicsArray(JSONArray topics) throws JSONException {
-        List<JSONObject> list = new ArrayList<>();
-        for(int i = 0; i < topics.length(); i++) {
-            list.add(topics.getJSONObject(i));
-        }
-        Collections.sort(list, new Comparator<JSONObject>() {
-            @Override
-            public int compare(JSONObject o1, JSONObject o2) {
-                try {
-                    Long l1 = o1.getLong("lastTimeStamp");
-                    Long l2 = o2.getLong("lastTimeStamp");
-                    return l2.compareTo(l1);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                return 0;
-            }
-        });
-        Log.d("SVF","Sorted topics: " + list);
-        JSONArray sorted = new JSONArray(list);
-        user.put("topics",sorted);
-        ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
-        return sorted;
-    }
-
     @Override
     public void onRefresh() {
         ConnectivityManager connMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -174,20 +149,22 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
             boolean found = article.getBoolean("found");
             if(found) {
                 // update topic with new article; don't do anything if not found
-                article.remove("found");
-                article.put("thumbsUp",false);
-                article.put("thumbsDown",false);
-                JSONObject topic = topics.getJSONObject(articleId);
-                JSONArray timeline = topic.getJSONArray("timeline");
-                timeline = ValuesAndUtil.getInstance().addToExistingJSON(timeline,0,article);
-                topic.put("timeline",timeline);
-                topic.put("lastTimeStamp",article.getLong("date"));
-                topic.put("lastSignature",article.getString("signature"));
-                Log.d("SVF",topic.toString(2));
-                topics.put(articleId,topic);
-                user.put("topics",topics);
-                ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
-                mAdapter.notifyItemChanged(articleId);
+                if(!ValuesAndUtil.getInstance().articleAlreadyExists(article,topics,articleId)) {
+                    article.remove("found");
+                    article.put("thumbsUp",false);
+                    article.put("thumbsDown",false);
+                    JSONObject topic = topics.getJSONObject(articleId);
+                    JSONArray timeline = topic.getJSONArray("timeline");
+                    timeline = ValuesAndUtil.getInstance().addToExistingJSON(timeline,0,article);
+                    topic.put("timeline",timeline);
+                    topic.put("lastTimeStamp",article.getLong("date"));
+                    topic.put("lastSignature",article.getString("signature"));
+                    Log.d("SVF",topic.toString(2));
+                    topics.put(articleId,topic);
+                    user.put("topics",topics);
+                    ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
+                    mAdapter.notifyItemChanged(articleId);
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -208,7 +185,10 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
             swipeLayout.setRefreshing(false);
             ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
             try {
-                mAdapter = new StoriesViewAdapter(sortTopicsArray(user.getJSONArray("topics")));
+                JSONArray sortedTopics = ValuesAndUtil.getInstance().sortTopicsArray(user.getJSONArray("topics"));
+                user.put("topics",sortedTopics);
+                ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
+                mAdapter = new StoriesViewAdapter(sortedTopics);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -229,11 +209,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         super.onStart();
         Log.d("SVF","Called onStart in StoriesViewFragment");
         user = ValuesAndUtil.getInstance().loadUserData(getActivity().getApplicationContext());
-        try {
-            topics = user.getJSONArray("topics");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        topics = user.optJSONArray("topics");
     }
 
     public void onResume() {
@@ -245,17 +221,14 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
             if(user.has("topics")) {
                 topics = user.getJSONArray("topics");
                 mRecyclerView.invalidate();
-                mAdapter = new StoriesViewAdapter(sortTopicsArray(topics));
+                JSONArray sortedTopics = ValuesAndUtil.getInstance().sortTopicsArray(user.getJSONArray("topics"));
+                user.put("topics",sortedTopics);
+                ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
+                mAdapter = new StoriesViewAdapter(sortedTopics);
                 mRecyclerView.setAdapter(mAdapter);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }
-
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d("SVF","Called onDestroy in StoriesViewFragment: " + user);
-//        ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
     }
 }

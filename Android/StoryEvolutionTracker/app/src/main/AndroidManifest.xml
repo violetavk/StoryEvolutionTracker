@@ -27,7 +27,8 @@
         <activity
             android:name=".GetUserName"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize"/>
         <activity
             android:name=".NewsHomeScreen"
             android:label="@string/title_activity_news_home_screen"

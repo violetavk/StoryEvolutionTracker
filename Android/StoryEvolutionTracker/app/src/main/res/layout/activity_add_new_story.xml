@@ -53,5 +53,4 @@
         android:background="@color/colorPrimary"
         android:onClick="onBeginTrackingClick"/>
 
-
 </LinearLayout>

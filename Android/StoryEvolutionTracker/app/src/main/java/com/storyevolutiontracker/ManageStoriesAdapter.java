@@ -1,6 +1,7 @@
 package com.storyevolutiontracker;
 
-import android.content.Intent;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -18,39 +19,41 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class StoriesViewAdapter extends RecyclerView.Adapter<StoriesViewAdapter.ViewHolder> {
+public class ManageStoriesAdapter extends RecyclerView.Adapter<ManageStoriesAdapter.ViewHolder> {
 
     private JSONArray topics;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public View view;
-        public ViewHolder(View v) {
-            super(v);
-            view = v;
+        public ViewHolder(View itemView) {
+            super(itemView);
+            view = itemView;
         }
     }
 
-    public StoriesViewAdapter(JSONArray topics) {
+    public ManageStoriesAdapter(JSONArray topics) {
         this.topics = topics;
     }
 
     @Override
-    public StoriesViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.story_card, parent, false);
+    public ManageStoriesAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.manage_story_card, parent, false);
         ViewHolder vh = new ViewHolder(v);
         return vh;
     }
 
     @Override
-    public void onBindViewHolder(StoriesViewAdapter.ViewHolder holder, final int position) {
+    public void onBindViewHolder(ManageStoriesAdapter.ViewHolder holder, final int position) {
         View view = holder.view;
         TextView infotext = (TextView) view.findViewById(R.id.signature_text_card);
         TextView lastUpdated = (TextView) view.findViewById(R.id.last_updated_card);
         TextView basedOnTopicWords = (TextView) view.findViewById(R.id.based_on_topic_words_textview);
         TextView originalSourceText = (TextView) view.findViewById(R.id.original_source_card);
-        Button viewTimelineBtn = (Button) view.findViewById(R.id.view_timeline_btn);
+        Button deleteButton = (Button) view.findViewById(R.id.delete_story_btn);
         try {
-            final JSONObject topic = ValuesAndUtil.getInstance().loadUserData(view.getContext()).getJSONArray("topics").getJSONObject(position);
+            JSONObject user = ValuesAndUtil.getInstance().loadUserData(view.getContext());
+            if(!user.has("topics")) return;
+            final JSONObject topic = user.getJSONArray("topics").getJSONObject(position);
 
             // display signature
             String signature = topic.getString("lastSignature");
@@ -81,17 +84,43 @@ public class StoriesViewAdapter extends RecyclerView.Adapter<StoriesViewAdapter.
             source += "\"";
             originalSourceText.setText(source);
 
-            viewTimelineBtn.setOnClickListener(new View.OnClickListener() {
+            // manage delete button
+            deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View view) {
-                    Log.d("SVA","Clicked " + position);
-                    Intent intent = new Intent(view.getContext(),ViewTimeline.class);
-                    intent.putExtra("position",position);
-                    view.getContext().startActivity(intent);
+                public void onClick(final View view) {
+                    final AlertDialog.Builder dialog = new AlertDialog.Builder(view.getContext());
+                    dialog.setTitle("Delete story")
+                            .setMessage("Are you sure you want to delete this story? It will no longer be tracked.")
+                            .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Log.d("MSA","Clicked delete on " + position);
+                                    deleteSelectedStory(view, position);
+                                }
+                            })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    Log.d("MSA","Delete dialog was closed");
+                                }
+                            });
+                    dialog.create().show();
                 }
             });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
-
+    public void deleteSelectedStory(View view, int position) {
+        JSONObject user = ValuesAndUtil.getInstance().loadUserData(view.getContext());
+        try {
+            JSONArray topics = user.getJSONArray("topics");
+            topics.remove(position);
+            this.topics = topics;
+            user.put("topics",topics);
+            ValuesAndUtil.getInstance().saveUserData(user,view.getContext());
+            this.notifyDataSetChanged();
         } catch (JSONException e) {
             e.printStackTrace();
         }

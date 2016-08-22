@@ -58,10 +58,8 @@ public class TimelineViewAdapter extends RecyclerView.Adapter<TimelineViewAdapte
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
         try {
-            Log.d("TVA","Binding for " + position);
             JSONObject story = (JSONObject) timeline.get(position);
             CardView view = holder.cardView;
-            Log.d("TVA",story.toString(2));
 
             // show the date published
             TextView dateView = (TextView) view.findViewById(R.id.date_view_timeline);
@@ -73,7 +71,7 @@ public class TimelineViewAdapter extends RecyclerView.Adapter<TimelineViewAdapte
 
             // show the topic words
             TextView topicWordsTextView = (TextView) view.findViewById(R.id.topicwords_timeline);
-            JSONArray topicWords = story.getJSONArray("topicWords");
+            final JSONArray topicWords = story.getJSONArray("topicWords");
             SpannableStringBuilder ssb = new SpannableStringBuilder();
             for(int i = 0; i < 5 && i < topicWords.length(); i++) {
                 String toAdd = " ";
@@ -128,6 +126,9 @@ public class TimelineViewAdapter extends RecyclerView.Adapter<TimelineViewAdapte
                         JSONArray allTopics = user.getJSONArray("topics");
                         allTopics.put(topicPosition,topic);
                         user.put("topics",allTopics);
+                        JSONObject interests = user.getJSONObject("interests");
+                        JSONObject newInterests = ValuesAndUtil.getInstance().addToInterests(interests,topicWords);
+                        user.put("interests",newInterests);
                         ValuesAndUtil.getInstance().saveUserData(user,view.getContext());
                     } catch (JSONException e) {
                         e.printStackTrace();

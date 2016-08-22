@@ -2,7 +2,7 @@
 <android.support.v7.widget.CardView
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/card_view"
+    android:id="@+id/manage_story_card_view"
     android:layout_gravity="center"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -56,13 +56,13 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/view_timeline_btn"
-            android:text="@string/view_timeline_label"
+            android:id="@+id/delete_story_btn"
+            android:text="@string/delete_story_text"
             android:background="@drawable/ripple"
             android:layout_gravity="bottom|center"
             android:textAppearance="@style/TextAppearance.AppCompat.Button"
             style="?borderlessButtonStyle"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/Red"
             android:textStyle="bold"
             />
     </LinearLayout>

@@ -38,6 +38,8 @@ public class UpdateNewsSchedulingService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         user = ValuesAndUtil.getInstance().loadUserData(getApplicationContext());
+        if(user == null)
+            return;
         done = 0;
         numberUpdated = 0;
         this.intent = intent;
@@ -117,20 +119,22 @@ public class UpdateNewsSchedulingService extends IntentService {
             boolean found = article.getBoolean("found");
             if(found) {
                 // update topic with new article; don't do anything if not found
-                numberUpdated++;
-                article.remove("found");
-                article.put("thumbsUp",false);
-                article.put("thumbsDown",false);
-                JSONObject topic = topics.getJSONObject(articleId);
-                JSONArray timeline = topic.getJSONArray("timeline");
-                timeline = ValuesAndUtil.getInstance().addToExistingJSON(timeline,0,article);
-                topic.put("timeline",timeline);
-                topic.put("lastTimeStamp",article.getLong("date"));
-                topic.put("lastSignature",article.getString("signature"));
-                Log.d("SVF",topic.toString(2));
-                topics.put(articleId,topic);
-                user.put("topics",topics);
-                ValuesAndUtil.getInstance().saveUserData(user,getApplicationContext());
+                if(!ValuesAndUtil.getInstance().articleAlreadyExists(article,topics,articleId)) {
+                    numberUpdated++;
+                    article.remove("found");
+                    article.put("thumbsUp",false);
+                    article.put("thumbsDown",false);
+                    JSONObject topic = topics.getJSONObject(articleId);
+                    JSONArray timeline = topic.getJSONArray("timeline");
+                    timeline = ValuesAndUtil.getInstance().addToExistingJSON(timeline,0,article);
+                    topic.put("timeline",timeline);
+                    topic.put("lastTimeStamp",article.getLong("date"));
+                    topic.put("lastSignature",article.getString("signature"));
+                    Log.d("SVF",topic.toString(2));
+                    topics.put(articleId,topic);
+                    user.put("topics",topics);
+                    ValuesAndUtil.getInstance().saveUserData(user,getApplicationContext());
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();

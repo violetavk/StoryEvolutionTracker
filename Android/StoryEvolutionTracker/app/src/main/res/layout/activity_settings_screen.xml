@@ -7,7 +7,71 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
     tools:context="com.storyevolutiontracker.SettingsScreen">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/background_update_freq"
+        android:textSize="18sp"
+        android:textStyle="bold"/>
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/radio_never"
+            android:text="@string/never"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:onClick="onClickUpdateFrequency"/>
+        <RadioButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/radio_15mins"
+            android:text="@string/every15mins"
+            android:layout_marginBottom="5dp"
+            android:onClick="onClickUpdateFrequency"/>
+        <RadioButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/radio_30mins"
+            android:text="@string/every30mins"
+            android:layout_marginBottom="5dp"
+            android:onClick="onClickUpdateFrequency"/>
+        <RadioButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/radio_oneHour"
+            android:text="@string/everyHour"
+            android:layout_marginBottom="5dp"
+            android:onClick="onClickUpdateFrequency"/>
+        <RadioButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/radio_6hours"
+            android:text="@string/every6Hours"
+            android:layout_marginBottom="5dp"
+            android:onClick="onClickUpdateFrequency"/>
+        <RadioButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/radio_onceAday"
+            android:text="@string/onceAday"
+            android:onClick="onClickUpdateFrequency"/>
+    </RadioGroup>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/LightGrey"
+        android:layout_marginLeft="1dp"
+        android:layout_marginRight="1dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"/>
 
     <Button
         android:layout_width="match_parent"

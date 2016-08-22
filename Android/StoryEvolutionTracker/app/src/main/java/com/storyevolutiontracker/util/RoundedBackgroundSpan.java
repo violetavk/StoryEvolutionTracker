@@ -9,7 +9,7 @@ import android.text.style.ReplacementSpan;
 import com.storyevolutiontracker.R;
 
 /**
- * Created by violet on 02/08/2016.
+ * Thanks to solution at http://stackoverflow.com/questions/19292838/android-spannablestring-set-background-behind-part-of-text
  */
 public class RoundedBackgroundSpan extends ReplacementSpan {
     private static int CORNER_RADIUS = 8;

@@ -14,8 +14,7 @@
         android:textSize="40dp"
         android:textAlignment="center"
         android:paddingTop="50dp"
-        android:textColor="@color/White"
-        />
+        android:textColor="@color/White" />
 
     <EditText
         android:layout_width="match_parent"
@@ -41,7 +40,6 @@
         android:layout_gravity="center"
         android:textColor="@color/White"
         android:background="@color/colorPrimary"
-        android:onClick="onContinue"
-        />
+        android:onClick="onContinue" />
 
 </LinearLayout>

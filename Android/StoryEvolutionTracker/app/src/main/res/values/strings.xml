@@ -30,4 +30,17 @@
     <string name="timeline_label">Timeline</string>
     <string name="view_online">View Online</string>
     <string name="manually_fetch_label">Fetch new stories</string>
+    <string name="delete_story_text">Delete Story</string>
+    <string name="no_topics_to_manage_text">There are no tracked stories to manage.</string>
+    <string name="background_update_freq">How often to check for new updates:</string>
+    <string name="every15mins">Every 15 minutes</string>
+    <string name="every30mins">Every 30 minutes</string>
+    <string name="everyHour">Every hour</string>
+    <string name="every6Hours">Every 6 hours</string>
+    <string name="onceAday">Once a day</string>
+    <string name="never">Never - manual updates only</string>
+    <string name="unsuitableFormat">Article is not suitable for tracking, please choose another article</string>
+    <string name="notApplicable">Not applicable</string>
+    <string name="noInterestsFound">No interests found. Begin tracking stories to register your interests!</string>
+    <string name="interests">Interests</string>
 </resources>

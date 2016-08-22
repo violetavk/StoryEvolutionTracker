@@ -36,7 +36,6 @@ public class AddNewStory extends AppCompatActivity {
         EditText yourEditText= (EditText) findViewById(R.id.url_field);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.showSoftInput(yourEditText, InputMethodManager.SHOW_IMPLICIT);
-
     }
 
     public void onPasteClick(View view) {
@@ -53,7 +52,6 @@ public class AddNewStory extends AppCompatActivity {
             }
         }
     }
-
 
     public void onBeginTrackingClick(View view) {
         /*** START: error checking ***/

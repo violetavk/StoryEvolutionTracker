@@ -23,6 +23,4 @@
             android:background="@color/lightTeal"/>
     </android.support.v4.widget.SwipeRefreshLayout>
 
-
-
 </RelativeLayout>

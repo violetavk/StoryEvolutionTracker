@@ -36,17 +36,10 @@ public class NewsHomeScreen extends AppCompatActivity
     private NavigationView navigationView;
     private FloatingActionButton fab;
     private Toolbar toolbar;
-    private UpdateNewsReceiver alarm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if(alarm == null) {
-            Log.d("NHS","Setting alarm for the first time");
-            alarm = new UpdateNewsReceiver();
-            alarm.setAlarm(getApplicationContext());
-        }
 
         try {
             user = ValuesAndUtil.getInstance().loadUserData(getApplicationContext());
@@ -139,18 +132,23 @@ public class NewsHomeScreen extends AppCompatActivity
             Fragment sv = new StoriesViewFragment();
             fm.beginTransaction().replace(R.id.content_news_home_screen,sv).commit();
             navigationView.getMenu().getItem(0).setChecked(true);
+            fab.setVisibility(View.VISIBLE);
         } else if (id == R.id.nav_manage_stories) {
             Fragment manageStories = new ManageStoriesFragment();
             fm.beginTransaction().replace(R.id.content_news_home_screen,manageStories).commit();
             navigationView.getMenu().getItem(1).setChecked(true);
+            fab.setVisibility(View.INVISIBLE);
         } else if (id == R.id.nav_profile) {
             Fragment userProfile = new UserProfileFragment();
             fm.beginTransaction().replace(R.id.content_news_home_screen,userProfile).commit();
             navigationView.getMenu().getItem(2).setChecked(true);
+            fab.setVisibility(View.INVISIBLE);
         } else if (id == R.id.nav_help) {
-
+            navigationView.getMenu().getItem(3).setChecked(true);
+            fab.setVisibility(View.INVISIBLE);
         } else if (id == R.id.nav_about) {
-
+            navigationView.getMenu().getItem(4).setChecked(true);
+            fab.setVisibility(View.INVISIBLE);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

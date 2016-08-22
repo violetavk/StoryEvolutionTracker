@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.storyevolutiontracker.util.ValuesAndUtil;
@@ -27,15 +28,27 @@ public class ConfirmArticle extends AppCompatActivity {
             newArticleData = new JSONObject(getIntent().getStringExtra(ValuesAndUtil.NEW_ARTICLE_DATA));
             userData = ValuesAndUtil.getInstance().loadUserData(getApplicationContext());
 
-            // display headline
             TextView headlineView = (TextView) findViewById(R.id.headline_field);
-            String headline = newArticleData.getString("headline");
-            headlineView.setText(headline);
-
-            // display date published
             TextView dateView = (TextView) findViewById(R.id.datepub_field);
-            long dateMillis = newArticleData.getInt("date");
-            dateView.setText(ValuesAndUtil.getInstance().formatDate(dateMillis));
+            Button confirmBtn = (Button) findViewById(R.id.ok_confirmarticle);
+
+            boolean success = newArticleData.getBoolean("success");
+            if(success) {
+                // display headline
+                String headline = newArticleData.getString("headline");
+                headlineView.setText(headline);
+                // display date
+                long dateMillis = newArticleData.getInt("date");
+                dateView.setText(ValuesAndUtil.getInstance().formatDate(dateMillis));
+            } else {
+                // display an error message instead because the article is not suitable for tracking
+                headlineView.setText(R.string.unsuitableFormat);
+                headlineView.setTextColor(getResources().getColor(R.color.Red));
+                dateView.setText(R.string.notApplicable);
+                dateView.setTextColor(getResources().getColor(R.color.Red));
+                confirmBtn.setVisibility(View.INVISIBLE);
+            }
+
 
         } catch (JSONException e) {
             Log.e("ERROR","Failed reading JSON: " + e.getMessage());
@@ -49,7 +62,6 @@ public class ConfirmArticle extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-
 
     public void onConfirmedArticleClick(View view) {
         JSONObject topic = new JSONObject();
@@ -99,6 +111,16 @@ public class ConfirmArticle extends AppCompatActivity {
                 topics.put(topic);
                 userData.put("topics",topics);
             }
+
+            if(userData.has("interests")) {
+                JSONObject currInterests = userData.getJSONObject("interests");
+                JSONObject newInterests = ValuesAndUtil.getInstance().addToInterests(currInterests,topicWords);
+                userData.put("interests", newInterests);
+            } else {
+                JSONObject interests = ValuesAndUtil.getInstance().addToInterests(new JSONObject(),topicWords);
+                userData.put("interests", interests);
+            }
+
             ValuesAndUtil.getInstance().saveUserData(userData,getApplicationContext());
             Log.d("CA","Done with this! Saved!");
             Intent intent = new Intent(this,NewsHomeScreen.class);

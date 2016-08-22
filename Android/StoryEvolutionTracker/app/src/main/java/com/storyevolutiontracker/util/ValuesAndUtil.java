@@ -195,4 +195,59 @@ public class ValuesAndUtil {
         return new JSONObject(sortResult);
     }
 
+    public boolean articleAlreadyExists(JSONObject article, JSONArray topics, int articleId) throws JSONException {
+        String newArticleSignature = article.getString("signature").trim();
+        JSONArray timeline = topics.getJSONObject(articleId).getJSONArray("timeline");
+        for(int i = 0; i < timeline.length(); i++) {
+            JSONObject currArticle = timeline.getJSONObject(i);
+            String currArticleSignature = currArticle.getString("signature").trim();
+            if(currArticleSignature.equals(newArticleSignature)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public JSONArray sortTopicsArray(JSONArray topics) throws JSONException {
+        List<JSONObject> list = new ArrayList<>();
+        for(int i = 0; i < topics.length(); i++) {
+            list.add(topics.getJSONObject(i));
+        }
+        Collections.sort(list, new Comparator<JSONObject>() {
+            @Override
+            public int compare(JSONObject o1, JSONObject o2) {
+                try {
+                    Long l1 = o1.getLong("lastTimeStamp");
+                    Long l2 = o2.getLong("lastTimeStamp");
+                    return l2.compareTo(l1);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                return 0;
+            }
+        });
+        Log.d("SVF","Sorted topics: " + list);
+        return new JSONArray(list);
+    }
+
+    public JSONObject addToInterests(JSONObject interests, JSONArray topicWords) {
+        try {
+            for(int i = 0; i < topicWords.length(); i++) {
+                String curr = topicWords.getString(i);
+                if(interests.has(curr)) {
+                    // increment
+                    int value = interests.getInt(curr) + 1;
+                    interests.put(curr, value);
+                } else {
+                    // create new
+                    interests.put(curr, 1);
+                }
+            }
+            JSONObject sortedInterests = sortByValue(interests);
+            return sortedInterests;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return interests;
+    }
 }

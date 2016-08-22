@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <TextView
+        android:id="@+id/no_topics_to_manage_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hi from manage stories"/>
+        android:gravity="center"
+        android:paddingTop="@dimen/fab_margin"/>
 
-</LinearLayout>
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/manage_stories_recycler_view"
+        android:background="@color/Red">
+    </android.support.v7.widget.RecyclerView>
+
+</RelativeLayout>

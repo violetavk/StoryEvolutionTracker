@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="updateFrequencyOptions">
+        <item>@string/never</item>
+        <item>@string/every15mins</item>
+        <item>@string/every30mins</item>
+        <item>@string/everyHour</item>
+        <item>@string/every6Hours</item>
+        <item>@string/onceAday</item>
+    </array>
+</resources>
