@@ -16,7 +16,7 @@ public class HelpFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_help, container, false);
-        getActivity().setTitle(getResources().getString(R.string.help));
+        getActivity().setTitle(getResources().getString(R.string.help_label));
 
         TextView instrTracking = (TextView) rootView.findViewById(R.id.instr_tracking);
         SpannableStringBuilder ssb1 = new SpannableStringBuilder();

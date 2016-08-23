@@ -43,7 +43,6 @@
     <string name="notApplicable">Not applicable</string>
     <string name="noInterestsFound">No interests found. Begin tracking stories to register your interests!</string>
     <string name="interests">Interests</string>
-    <string name="help">Help</string>
     <string name="which_news_sources">Which news sources are allowed?</string>
     <string name="sources_text">You can track BBC News and BBC Sport articles. Support for new sources will be added in the future.</string>
     <string name="how_to_track">How do I begin tracking news stories?</string>
@@ -66,4 +65,14 @@
     <string name="what_are_thumbsup_thumbsdown_expl">You can provide feedback on each automatically retrieved article. If an article fits exactly what you want to read about, you can give it a thumbs-up
         to upvote it. The topic words of that article get strengthed for the story and new articles in the future will attempt to be more about those topic words. It\'s similar for downvoting an article. More feedback equals more
         precise articles in the future.</string>
+    <string name="version">v1.0</string>
+    <string name="about_prog">This app is part of a project for King\'s College London, created by Violet Avkhukova.</string>
+    <string name="acknowledgements">Acknowledgements</string>
+    <string name="thx_to_git">Thanks to <a href="https://github.com/cheeriojs/cheerio">cheerio</a>,
+        <a href="https://github.com/NaturalNode/natural">natural</a>, <a href="https://github.com/dariusk/pos-js">pos-js</a>,
+        and <a href="https://github.com/nlp-compromise/nlp_compromise">nlp-compromise</a> for some of the backend functionality.</string>
+    <string name="thx_for_icon">Thanks to <a href="http://www.flaticon.com/authors/freepik">Freepik</a> at
+        <a href="www.flaticon.com">flaticon</a> for the app logo.</string>
+    <string name="contact_info_label">Contact Information</string>
+    <string name="contact_info_info">You can send me feedback or bugs to <a href="mailto:violetavkhukova@gmail.com">my email (press here)</a>.</string>
 </resources>
