@@ -37,7 +37,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private SwipeRefreshLayout swipeLayout;
-    private int done;
+    private int done, numUpdated;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -87,6 +87,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
             done = 0;
+            numUpdated = 0;
             refreshAllStories();
         } else {
             Toast.makeText(getActivity(),"No Internet connection available",Toast.LENGTH_SHORT).show();
@@ -118,7 +119,6 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                 Log.d("SVF","Would send: " + urlParams);
                 new DownloadNextArticleData().execute(urlParams,Integer.toString(i));
             }
-            Log.d("SVF","Done updating all articles");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -164,6 +164,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                     user.put("topics",topics);
                     ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
                     mAdapter.notifyItemChanged(articleId);
+                    numUpdated++;
                 }
             }
         } catch (JSONException e) {
@@ -189,6 +190,9 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                 user.put("topics",sortedTopics);
                 ValuesAndUtil.getInstance().saveUserData(user,getActivity().getApplicationContext());
                 mAdapter = new StoriesViewAdapter(sortedTopics);
+                if(numUpdated == 0) {
+                    Toast.makeText(getActivity(),"No updates found for any stories",Toast.LENGTH_SHORT).show();
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
