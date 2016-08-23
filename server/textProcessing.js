@@ -8,7 +8,7 @@ let nlp = require("nlp_compromise");
 /* the main function that initiates text processing; it is part of a chain of operations,
 preceded by html parsing and succeeded by signature generation */
 exports.processText = function(objects) {
-    console.log("-- Text Processing (with promise) --");
+    console.log("-- Text Processing for ",objects.pageObject.headline,"--");
     return new Promise(function(resolve,reject) {
         let pageObject = objects.pageObject;
 
