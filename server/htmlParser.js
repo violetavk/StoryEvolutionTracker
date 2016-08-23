@@ -198,18 +198,44 @@ function fixImproperSplits(sentences) {
     for(let i = 0; i < sentences.length; i++) {
         let curr = sentences[i];
         let isLowerCase = /^[a-z0-9]+$/.test(curr[0]);
+        let isURL = false;
+        let wouldMergeWithHeadline = (i === 1);
+        let possibleDomains = util.getAllPossibleDomains();
+        for(let j = 0; j < possibleDomains.length; j++) {
+            // checking if it's a URL, if it is, it must be in the beginning of the sentence b/c it was split apart
+            if(curr.indexOf(possibleDomains[j]) === 0) {
+                isURL = true;
+                break;
+            }
+        }
         if(isLowerCase && i-1 >= 0) {
             // the first letter of the sentence is lowercase, so it must be merged with previous sentence
             let prevIndex = i - 1;
             let prevSentence = sentences[prevIndex];
             let newSentence = "";
-            if(prevSentence.charAt(prevSentence.length-1) === ".")
-                newSentence = prevSentence.concat(curr);
-            else
+            if(prevSentence.charAt(prevSentence.length-1) === ".") {
+                if(isURL) {
+                    // simply concat with nothing else, b/c it's actually a URL
+                    newSentence = prevSentence.concat(curr);
+                } else {
+                    // the sentence that is about to be merged isn't a URL, so make it look nice with prev
+                    newSentence = prevSentence.substring(0,prevSentence.length-1).concat(", ",curr);
+                }
+            }
+            else {
+                // the prev sentence doesn't finish with a period, so just continue it
                 newSentence = prevSentence.concat(" ", curr);
-            sentences[prevIndex] = newSentence;
-            sentences.splice(i,1);
-            i--;
+            }
+
+            if(wouldMergeWithHeadline) {
+                // if merging with previous headline, we don't want this to go away b/c its important
+                sentences[i] = newSentence;
+            } else {
+                // the default case; remove the sentence with lowercase b/c it's part of prev now
+                sentences[prevIndex] = newSentence;
+                sentences.splice(i,1);
+                i--;
+            }
         }
     }
     return sentences;

@@ -77,3 +77,7 @@ exports.containsWord = function(sentenceArray,word) {
     }
     return false;
 };
+
+exports.getAllPossibleDomains = function() {
+    return ["com","net","co","uk","ru","de","org","jp","fr","br","it","au","edu","gov","ch","us","ca","io"];
+};

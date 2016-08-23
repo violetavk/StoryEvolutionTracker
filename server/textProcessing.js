@@ -206,7 +206,7 @@ function detectHyphenatedWords(sentenceWords) {
 
 /* detect URLs in the article text, like yelp.com to represent as a single entity */
 function detectURLs(sentenceWords) {
-    let possibleDomains = ["com","net","co","uk","ru","de","org","jp","fr","br","it","au","edu","gov","ch","us","ca","io"];
+    let possibleDomains = util.getAllPossibleDomains();
     for(let s = 0; s < sentenceWords.length; s++) {
         let sentence = sentenceWords[s];
         for(let i = 0; i < sentence.length; i++) {
@@ -600,7 +600,7 @@ function getTopicWords(textObject,num) {
         let lexer = new pos.Lexer().lex(word);
         let tag = tagger.tag(lexer)[0][1];
         let type = nlp.text(word).tags()[0][0];
-        console.log(word,tag,type);
+        // console.log(word,tag,type);
         if(word === "bbc" || word === "bbc news") continue;
         if(util.isNameAsTitle(word)) continue;
         if(util.isMonthName(word)) continue;
