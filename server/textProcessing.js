@@ -366,7 +366,6 @@ function adjustTopicWords(textObject, pageObject) {
     weighBasedOnLocation(importanceValues,textObject);
     weighStemmedWords(importanceValues,textObject);
     weighProperNames(importanceValues,textObject);
-    // adjustForNames(importanceValues,textObject);
     importanceValues = sortByDescendingImportance(importanceValues);
     // deleteAdjectives(importanceValues);
     // deleteVerbs(importanceValues);
@@ -440,6 +439,7 @@ function weighBolded(importanceValues,textObject,pageObject) {
     if(!pageObject.bolded) return textObject.importanceValues;
     let sentences = textObject.sentenceWordsArray;
     let bolded  = sentences[1];
+    if(sentences.length === 1) bolded = sentences[0];
     for(let word of bolded) {
         word = word.toLowerCase();
         if(util.isStopWord(word)) continue;
