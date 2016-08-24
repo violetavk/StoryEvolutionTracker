@@ -1,113 +1,103 @@
 .
-└── StoryEvolutionTracker
-    ├── Android
+└── StoryEvolutionTracker (main project folder)
+    ├── Android (all android app contents)
     │   └── StoryEvolutionTracker
     │       ├── app
-    │       │   ├── build.gradle
-    │       │   ├── proguard-rules.pro
-    │       │   └── src
-    │       │       ├── androidTest
-    │       │       │   └── java
-    │       │       │       └── com
-    │       │       │           └── storyevolutiontracker
-    │       │       │               └── ApplicationTest.java
-    │       │       ├── main
-    │       │       │   ├── AndroidManifest.xml
-    │       │       │   ├── java
-    │       │       │   │   └── com
-    │       │       │   │       └── storyevolutiontracker
-    │       │       │   │           ├── AddNewStory.java
-    │       │       │   │           ├── ConfirmArticle.java
-    │       │       │   │           ├── GetUserName.java
-    │       │       │   │           ├── MainActivity.java
-    │       │       │   │           ├── ManageStoriesAdapter.java
-    │       │       │   │           ├── NewsHomeScreen.java
-    │       │       │   │           ├── SettingsScreen.java
-    │       │       │   │           ├── StoriesViewAdapter.java
-    │       │       │   │           ├── TimelineViewAdapter.java
-    │       │       │   │           ├── ViewTimeline.java
-    │       │       │   │           ├── fragments
-    │       │       │   │           │   ├── AboutFragment.java
-    │       │       │   │           │   ├── HelpFragment.java
-    │       │       │   │           │   ├── ManageStoriesFragment.java
-    │       │       │   │           │   ├── StoriesViewFragment.java
-    │       │       │   │           │   └── UserProfileFragment.java
-    │       │       │   │           └── util
-    │       │       │   │               ├── RoundedBackgroundSpan.java
-    │       │       │   │               ├── UpdateNewsBootReceiver.java
-    │       │       │   │               ├── UpdateNewsReceiver.java
-    │       │       │   │               ├── UpdateNewsSchedulingService.java
-    │       │       │   │               └── ValuesAndUtil.java
-    │       │       │   └── res
-    │       │       │       ├── drawable
-    │       │       │       │   ├── ic_add_circle_black.xml
-    │       │       │       │   ├── ic_help_outline_black.xml
-    │       │       │       │   ├── ic_info_outline_black.xml
-    │       │       │       │   ├── ic_menu_manage.xml
-    │       │       │       │   ├── ic_menu_send.xml
-    │       │       │       │   ├── ic_menu_share.xml
-    │       │       │       │   ├── ic_person_outline_black.xml
-    │       │       │       │   ├── ic_share.xml
-    │       │       │       │   ├── ic_sort_black.xml
-    │       │       │       │   ├── ic_thumb_down.xml
-    │       │       │       │   ├── ic_thumb_up.xml
-    │       │       │       │   ├── news_icon.xml
-    │       │       │       │   ├── ripple.xml
-    │       │       │       │   └── side_nav_bar.xml
-    │       │       │       ├── layout
-    │       │       │       │   ├── activity_add_new_story.xml
-    │       │       │       │   ├── activity_confirm_article.xml
-    │       │       │       │   ├── activity_get_user_name.xml
-    │       │       │       │   ├── activity_main.xml
-    │       │       │       │   ├── activity_new_user_welcome.xml
-    │       │       │       │   ├── activity_news_home_screen.xml
-    │       │       │       │   ├── activity_settings_screen.xml
-    │       │       │       │   ├── activity_view_timeline.xml
-    │       │       │       │   ├── app_bar_news_home_screen.xml
-    │       │       │       │   ├── content_news_home_screen.xml
-    │       │       │       │   ├── fragment_about.xml
-    │       │       │       │   ├── fragment_help.xml
-    │       │       │       │   ├── fragment_manage_stories.xml
-    │       │       │       │   ├── fragment_stories_view.xml
-    │       │       │       │   ├── fragment_user_profile.xml
-    │       │       │       │   ├── item_timeline.xml
-    │       │       │       │   ├── manage_story_card.xml
-    │       │       │       │   ├── nav_header_news_home_screen.xml
-    │       │       │       │   └── story_card.xml
-    │       │       │       ├── menu
-    │       │       │       │   ├── activity_news_home_screen_drawer.xml
-    │       │       │       │   ├── menu_main.xml
-    │       │       │       │   └── news_home_screen.xml
-    │       │       │       ├── mipmap-hdpi
-    │       │       │       │   ├── ic_launcher.png
-    │       │       │       │   └── qm.png
-    │       │       │       ├── mipmap-mdpi
-    │       │       │       │   ├── ic_launcher.png
-    │       │       │       │   └── qm.png
-    │       │       │       ├── mipmap-xhdpi
-    │       │       │       │   ├── ic_launcher.png
-    │       │       │       │   └── qm.png
-    │       │       │       ├── mipmap-xxhdpi
-    │       │       │       │   ├── ic_launcher.png
-    │       │       │       │   └── qm.png
-    │       │       │       ├── mipmap-xxxhdpi
-    │       │       │       │   ├── ic_launcher.png
-    │       │       │       │   └── qm.png
-    │       │       │       ├── values
-    │       │       │       │   ├── arrays.xml
-    │       │       │       │   ├── colors.xml
-    │       │       │       │   ├── dimens.xml
-    │       │       │       │   ├── strings.xml
-    │       │       │       │   └── styles.xml
-    │       │       │       ├── values-v21
-    │       │       │       │   └── styles.xml
-    │       │       │       └── values-w820dp
-    │       │       │           └── dimens.xml
-    │       │       └── test
-    │       │           └── java
-    │       │               └── com
-    │       │                   └── storyevolutiontracker
-    │       │                       └── ExampleUnitTest.java
+    │       │   ├── build.gradle (build file for android app, contains all dependencies on external libraries)
+    │       │   ├── proguard-rules.pro (created by Android studio, not used)
+    │       │   └── src (all source code for app)
+    │       │       └── main
+    │       │           ├── AndroidManifest.xml (all activities, services, and permissions defined here)
+    │       │           ├── java
+    │       │           │   └── com
+    │       │           │       └── storyevolutiontracker
+    │       │           │           ├── AddNewStory.java (functionality for adding a new story to track)
+    │       │           │           ├── ConfirmArticle.java (activity for confirming an article to track)
+    │       │           │           ├── GetUserName.java (activity for getting user's name)
+    │       │           │           ├── MainActivity.java (first activity called by app)
+    │       │           │           ├── ManageStoriesAdapter.java (activity for managing user stories, manages the list of stories)
+    │       │           │           ├── NewsHomeScreen.java (screen that manages add button, sidebar navigation)
+    │       │           │           ├── SettingsScreen.java (activity for user settings)
+    │       │           │           ├── StoriesViewAdapter.java (functionality for viewing all stories, manages the list of stories)
+    │       │           │           ├── TimelineViewAdapter.java (funtionality for viewing timeline of a story, manages the timeline)
+    │       │           │           ├── ViewTimeline.java (called to view a timeline, embodies TimelineViewAdapter)
+    │       │           │           ├── fragments (each screen that is called via navigation bar)
+    │       │           │           │   ├── AboutFragment.java (displays info about app)
+    │       │           │           │   ├── HelpFragment.java (help screen for user)
+    │       │           │           │   ├── ManageStoriesFragment.java (screen for displaying each story to manage)
+    │       │           │           │   ├── StoriesViewFragment.java (screen for displaying all stories on main screen)
+    │       │           │           │   └── UserProfileFragment.java (screen for displaying user profile)
+    │       │           │           └── util
+    │       │           │               ├── RoundedBackgroundSpan.java (mechanism for showing topic words in pink background)
+    │       │           │               ├── UpdateNewsBootReceiver.java (enables notification service to re-enable on boot)
+    │       │           │               ├── UpdateNewsReceiver.java (main notification service functionality, defines various alarms)
+    │       │           │               ├── UpdateNewsSchedulingService.java (code that executes when alarm goes off)
+    │       │           │               └── ValuesAndUtil.java (contains various global values and utility functions)
+    │       │           └── res
+    │       │               ├── drawable
+    │       │               │   ├── ic_add_circle_black.xml
+    │       │               │   ├── ic_help_outline_black.xml
+    │       │               │   ├── ic_info_outline_black.xml
+    │       │               │   ├── ic_menu_manage.xml
+    │       │               │   ├── ic_menu_send.xml
+    │       │               │   ├── ic_menu_share.xml
+    │       │               │   ├── ic_person_outline_black.xml
+    │       │               │   ├── ic_share.xml
+    │       │               │   ├── ic_sort_black.xml
+    │       │               │   ├── ic_thumb_down.xml
+    │       │               │   ├── ic_thumb_up.xml
+    │       │               │   ├── news_icon.xml
+    │       │               │   ├── ripple.xml
+    │       │               │   └── side_nav_bar.xml
+    │       │               ├── layout
+    │       │               │   ├── activity_add_new_story.xml
+    │       │               │   ├── activity_confirm_article.xml
+    │       │               │   ├── activity_get_user_name.xml
+    │       │               │   ├── activity_main.xml
+    │       │               │   ├── activity_new_user_welcome.xml
+    │       │               │   ├── activity_news_home_screen.xml
+    │       │               │   ├── activity_settings_screen.xml
+    │       │               │   ├── activity_view_timeline.xml
+    │       │               │   ├── app_bar_news_home_screen.xml
+    │       │               │   ├── content_news_home_screen.xml
+    │       │               │   ├── fragment_about.xml
+    │       │               │   ├── fragment_help.xml
+    │       │               │   ├── fragment_manage_stories.xml
+    │       │               │   ├── fragment_stories_view.xml
+    │       │               │   ├── fragment_user_profile.xml
+    │       │               │   ├── item_timeline.xml
+    │       │               │   ├── manage_story_card.xml
+    │       │               │   ├── nav_header_news_home_screen.xml
+    │       │               │   └── story_card.xml
+    │       │               ├── menu
+    │       │               │   ├── activity_news_home_screen_drawer.xml
+    │       │               │   ├── menu_main.xml
+    │       │               │   └── news_home_screen.xml
+    │       │               ├── mipmap-hdpi
+    │       │               │   ├── ic_launcher.png
+    │       │               │   └── qm.png
+    │       │               ├── mipmap-mdpi
+    │       │               │   ├── ic_launcher.png
+    │       │               │   └── qm.png
+    │       │               ├── mipmap-xhdpi
+    │       │               │   ├── ic_launcher.png
+    │       │               │   └── qm.png
+    │       │               ├── mipmap-xxhdpi
+    │       │               │   ├── ic_launcher.png
+    │       │               │   └── qm.png
+    │       │               ├── mipmap-xxxhdpi
+    │       │               │   ├── ic_launcher.png
+    │       │               │   └── qm.png
+    │       │               ├── values
+    │       │               │   ├── arrays.xml
+    │       │               │   ├── colors.xml
+    │       │               │   ├── dimens.xml
+    │       │               │   ├── strings.xml
+    │       │               │   └── styles.xml
+    │       │               ├── values-v21
+    │       │               │   └── styles.xml
+    │       │               └── values-w820dp
+    │       │                   └── dimens.xml
     │       ├── build.gradle
     │       ├── gradle
     │       │   └── wrapper
@@ -117,7 +107,6 @@
     │       ├── gradlew
     │       ├── gradlew.bat
     │       └── settings.gradle
-    ├── README.md
     ├── Reports
     │   ├── Final
     │   │   ├── Final\ report.tex
