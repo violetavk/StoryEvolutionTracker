@@ -51,7 +51,12 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         TextView noTopicsText = (TextView) rootView.findViewById(R.id.no_topics_textview);
         user = ValuesAndUtil.getInstance().loadUserData(getActivity().getApplicationContext());
 
-        boolean hasTopics = user.has("topics");
+        boolean hasTopics = false;
+        try {
+            hasTopics = user.has("topics") && user.getJSONArray("topics").length() > 0;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         Log.d("SVF","Has topics = " + hasTopics);
         if(!hasTopics) {
             noTopicsText.setText(getString(R.string.no_topics_available));
@@ -159,6 +164,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
                     topic.put("timeline",timeline);
                     topic.put("lastTimeStamp",article.getLong("date"));
                     topic.put("lastSignature",article.getString("signature"));
+                    topic.put("lastUpdated",System.currentTimeMillis());
                     Log.d("SVF",topic.toString(2));
                     topics.put(articleId,topic);
                     user.put("topics",topics);
@@ -222,7 +228,7 @@ public class StoriesViewFragment extends Fragment implements SwipeRefreshLayout.
         user = ValuesAndUtil.getInstance().loadUserData(getActivity().getApplicationContext());
 
         try {
-            if(user.has("topics")) {
+            if(user.has("topics") && user.getJSONArray("topics").length() > 0) {
                 topics = user.getJSONArray("topics");
                 mRecyclerView.invalidate();
                 JSONArray sortedTopics = ValuesAndUtil.getInstance().sortTopicsArray(user.getJSONArray("topics"));

@@ -78,6 +78,10 @@ public class ConfirmArticle extends AppCompatActivity {
             long timestamp = newArticleData.getLong("date");
             topic.put("lastTimeStamp",timestamp);
 
+            // put when the story was updated
+            long lastUpdated = System.currentTimeMillis();
+            topic.put("lastUpdated",lastUpdated);
+
             // put in most recent signature
             String signature = newArticleData.getString("signature");
             topic.put("lastSignature",signature);

@@ -217,9 +217,9 @@ public class ValuesAndUtil {
             @Override
             public int compare(JSONObject o1, JSONObject o2) {
                 try {
-                    Long l1 = o1.getLong("lastTimeStamp");
-                    Long l2 = o2.getLong("lastTimeStamp");
-                    return l2.compareTo(l1);
+                    Long t1 = o1.getLong("lastUpdated");
+                    Long t2 = o2.getLong("lastUpdated");
+                    return t2.compareTo(t1);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

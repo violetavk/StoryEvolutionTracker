@@ -1,6 +1,7 @@
 package com.storyevolutiontracker.util;
 
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -43,15 +44,19 @@ public class UpdateNewsSchedulingService extends IntentService {
         done = 0;
         numberUpdated = 0;
         this.intent = intent;
-        if(user.has("topics")) {
-            try {
-                topics = user.getJSONArray("topics");
-                refreshAllStories();
-            } catch (JSONException e) {
-                e.printStackTrace();
+        try {
+            if(user.has("topics") && user.getJSONArray("topics").length() > 0) {
+                try {
+                    topics = user.getJSONArray("topics");
+                    refreshAllStories();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                UpdateNewsReceiver.completeWakefulIntent(intent);
             }
-        } else {
-            UpdateNewsReceiver.completeWakefulIntent(intent);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
@@ -74,7 +79,6 @@ public class UpdateNewsSchedulingService extends IntentService {
         }
     }
 
-    // TODO not ideal using another thread here since this is already happening in the background
     private class DownloadNextArticleData extends AsyncTask<String, Void, String> {
 
         private String id;
@@ -102,11 +106,6 @@ public class UpdateNewsSchedulingService extends IntentService {
         Log.d("UNSS","Done " + done + " out of " + topics.length());
         if(done == topics.length()) {
             ValuesAndUtil.getInstance().saveUserData(user,getApplicationContext());
-            if(numberUpdated == 1) {
-                sendNotification("You have 1 new update.");
-            } else if(numberUpdated > 1) {
-                sendNotification("You have " + numberUpdated + " new updates.");
-            }
             Log.d("UNSS","Finished updating all articles (using alarm)");
             UpdateNewsReceiver.completeWakefulIntent(intent);
         }
@@ -130,10 +129,12 @@ public class UpdateNewsSchedulingService extends IntentService {
                     topic.put("timeline",timeline);
                     topic.put("lastTimeStamp",article.getLong("date"));
                     topic.put("lastSignature",article.getString("signature"));
+                    topic.put("lastUpdated",System.currentTimeMillis());
                     Log.d("SVF",topic.toString(2));
                     topics.put(articleId,topic);
                     user.put("topics",topics);
                     ValuesAndUtil.getInstance().saveUserData(user,getApplicationContext());
+                    sendNotification("Update: " + article.getString("signature"));
                 }
             }
         } catch (JSONException e) {
@@ -153,6 +154,7 @@ public class UpdateNewsSchedulingService extends IntentService {
                 .setSmallIcon(R.drawable.news_icon)
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcher))
                 .setContentTitle("Story Evolution Tracker")
+                .setDefaults(Notification.DEFAULT_ALL)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
                 .setContentText(msg)
                 .setAutoCancel(true);
