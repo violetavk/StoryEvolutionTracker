@@ -1,0 +1,170 @@
+.
+└── StoryEvolutionTracker
+    ├── Android
+    │   └── StoryEvolutionTracker
+    │       ├── app
+    │       │   ├── build.gradle
+    │       │   ├── proguard-rules.pro
+    │       │   └── src
+    │       │       ├── androidTest
+    │       │       │   └── java
+    │       │       │       └── com
+    │       │       │           └── storyevolutiontracker
+    │       │       │               └── ApplicationTest.java
+    │       │       ├── main
+    │       │       │   ├── AndroidManifest.xml
+    │       │       │   ├── java
+    │       │       │   │   └── com
+    │       │       │   │       └── storyevolutiontracker
+    │       │       │   │           ├── AddNewStory.java
+    │       │       │   │           ├── ConfirmArticle.java
+    │       │       │   │           ├── GetUserName.java
+    │       │       │   │           ├── MainActivity.java
+    │       │       │   │           ├── ManageStoriesAdapter.java
+    │       │       │   │           ├── NewsHomeScreen.java
+    │       │       │   │           ├── SettingsScreen.java
+    │       │       │   │           ├── StoriesViewAdapter.java
+    │       │       │   │           ├── TimelineViewAdapter.java
+    │       │       │   │           ├── ViewTimeline.java
+    │       │       │   │           ├── fragments
+    │       │       │   │           │   ├── AboutFragment.java
+    │       │       │   │           │   ├── HelpFragment.java
+    │       │       │   │           │   ├── ManageStoriesFragment.java
+    │       │       │   │           │   ├── StoriesViewFragment.java
+    │       │       │   │           │   └── UserProfileFragment.java
+    │       │       │   │           └── util
+    │       │       │   │               ├── RoundedBackgroundSpan.java
+    │       │       │   │               ├── UpdateNewsBootReceiver.java
+    │       │       │   │               ├── UpdateNewsReceiver.java
+    │       │       │   │               ├── UpdateNewsSchedulingService.java
+    │       │       │   │               └── ValuesAndUtil.java
+    │       │       │   └── res
+    │       │       │       ├── drawable
+    │       │       │       │   ├── ic_add_circle_black.xml
+    │       │       │       │   ├── ic_help_outline_black.xml
+    │       │       │       │   ├── ic_info_outline_black.xml
+    │       │       │       │   ├── ic_menu_manage.xml
+    │       │       │       │   ├── ic_menu_send.xml
+    │       │       │       │   ├── ic_menu_share.xml
+    │       │       │       │   ├── ic_person_outline_black.xml
+    │       │       │       │   ├── ic_share.xml
+    │       │       │       │   ├── ic_sort_black.xml
+    │       │       │       │   ├── ic_thumb_down.xml
+    │       │       │       │   ├── ic_thumb_up.xml
+    │       │       │       │   ├── news_icon.xml
+    │       │       │       │   ├── ripple.xml
+    │       │       │       │   └── side_nav_bar.xml
+    │       │       │       ├── layout
+    │       │       │       │   ├── activity_add_new_story.xml
+    │       │       │       │   ├── activity_confirm_article.xml
+    │       │       │       │   ├── activity_get_user_name.xml
+    │       │       │       │   ├── activity_main.xml
+    │       │       │       │   ├── activity_new_user_welcome.xml
+    │       │       │       │   ├── activity_news_home_screen.xml
+    │       │       │       │   ├── activity_settings_screen.xml
+    │       │       │       │   ├── activity_view_timeline.xml
+    │       │       │       │   ├── app_bar_news_home_screen.xml
+    │       │       │       │   ├── content_news_home_screen.xml
+    │       │       │       │   ├── fragment_about.xml
+    │       │       │       │   ├── fragment_help.xml
+    │       │       │       │   ├── fragment_manage_stories.xml
+    │       │       │       │   ├── fragment_stories_view.xml
+    │       │       │       │   ├── fragment_user_profile.xml
+    │       │       │       │   ├── item_timeline.xml
+    │       │       │       │   ├── manage_story_card.xml
+    │       │       │       │   ├── nav_header_news_home_screen.xml
+    │       │       │       │   └── story_card.xml
+    │       │       │       ├── menu
+    │       │       │       │   ├── activity_news_home_screen_drawer.xml
+    │       │       │       │   ├── menu_main.xml
+    │       │       │       │   └── news_home_screen.xml
+    │       │       │       ├── mipmap-hdpi
+    │       │       │       │   ├── ic_launcher.png
+    │       │       │       │   └── qm.png
+    │       │       │       ├── mipmap-mdpi
+    │       │       │       │   ├── ic_launcher.png
+    │       │       │       │   └── qm.png
+    │       │       │       ├── mipmap-xhdpi
+    │       │       │       │   ├── ic_launcher.png
+    │       │       │       │   └── qm.png
+    │       │       │       ├── mipmap-xxhdpi
+    │       │       │       │   ├── ic_launcher.png
+    │       │       │       │   └── qm.png
+    │       │       │       ├── mipmap-xxxhdpi
+    │       │       │       │   ├── ic_launcher.png
+    │       │       │       │   └── qm.png
+    │       │       │       ├── values
+    │       │       │       │   ├── arrays.xml
+    │       │       │       │   ├── colors.xml
+    │       │       │       │   ├── dimens.xml
+    │       │       │       │   ├── strings.xml
+    │       │       │       │   └── styles.xml
+    │       │       │       ├── values-v21
+    │       │       │       │   └── styles.xml
+    │       │       │       └── values-w820dp
+    │       │       │           └── dimens.xml
+    │       │       └── test
+    │       │           └── java
+    │       │               └── com
+    │       │                   └── storyevolutiontracker
+    │       │                       └── ExampleUnitTest.java
+    │       ├── build.gradle
+    │       ├── gradle
+    │       │   └── wrapper
+    │       │       ├── gradle-wrapper.jar
+    │       │       └── gradle-wrapper.properties
+    │       ├── gradle.properties
+    │       ├── gradlew
+    │       ├── gradlew.bat
+    │       └── settings.gradle
+    ├── README.md
+    ├── Reports
+    │   ├── Final
+    │   │   ├── Final\ report.tex
+    │   │   ├── img
+    │   │   │   ├── addNewStory.png
+    │   │   │   ├── bbcArticle.png
+    │   │   │   ├── kcl.png
+    │   │   │   ├── mainScreen.png
+    │   │   │   ├── manageStories.png
+    │   │   │   └── timeline.png
+    │   │   └── literature.bib
+    │   ├── Initial\ ideas
+    │   │   └── Initial\ description\ and\ ideas.tex
+    │   ├── Preliminary
+    │   │   ├── Preliminary\ Report.tex
+    │   │   ├── gantt.png
+    │   │   └── literature.bib
+    │   ├── Progress\ Report\ 1
+    │   │   └── Progress\ Report\ 1.tex
+    │   └── Progress\ Report\ 2
+    │       └── Progress\ Report\ 2.tex
+    └── server
+        ├── app.js
+        ├── htmlParser.js
+        ├── package.json
+        ├── parsers.js
+        ├── public
+        │   ├── index.html
+        │   ├── javascripts
+        │   │   ├── jquery-latest.js
+        │   │   └── sorttable.js
+        │   └── stylesheets
+        │       └── style.css
+        ├── routes
+        │   ├── crawler.html
+        │   ├── index.js
+        │   └── signatures.html
+        ├── scripts
+        │   └── www
+        ├── signatureGeneration.js
+        ├── storyevolutiontracker.js
+        ├── textProcessing.js
+        ├── util.js
+        ├── views
+        │   ├── error.jade
+        │   ├── index.jade
+        │   └── layout.jade
+        └── webCrawling.js
+
+47 directories, 120 files
