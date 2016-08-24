@@ -1,10 +1,13 @@
 package com.storyevolutiontracker;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RadioButton;
 
 import com.storyevolutiontracker.util.UpdateNewsReceiver;
@@ -55,11 +58,22 @@ public class SettingsScreen extends AppCompatActivity {
     }
 
     public void onDeleteAllDataClick(View view) {
-        ValuesAndUtil.getInstance().deleteUserData(getApplicationContext());
-        Intent intent = new Intent(this,MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        finish();
+        AlertDialog.Builder builder = new AlertDialog.Builder(SettingsScreen.this);
+        builder.setTitle("Delete all data?")
+                .setMessage("Are you sure you want to delete all your data? All stories will be deleted.")
+                .setPositiveButton("Delete All Data", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        ValuesAndUtil.getInstance().deleteUserData(getApplicationContext());
+                        Intent intent = new Intent(SettingsScreen.this,MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        finish();
+                    }
+                })
+                .setNegativeButton("Cancel",null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     public void onClickUpdateFrequency(View view) throws JSONException {

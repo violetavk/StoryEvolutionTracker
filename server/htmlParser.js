@@ -214,7 +214,7 @@ function fixImproperSplits(sentences) {
             let prevSentence = sentences[prevIndex];
             let newSentence = "";
             if(prevSentence.charAt(prevSentence.length-1) === ".") {
-                if(isURL) {
+                if(isURL || (util.isNumeric(curr))) {
                     // simply concat with nothing else, b/c it's actually a URL
                     newSentence = prevSentence.concat(curr);
                 } else {
