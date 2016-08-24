@@ -1,0 +1,44 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1.25in]{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{graphicx}
+\begin{document}
+\title{{\Large Story Evolution Tracker: Progress Report II}}
+\author{Violet Avkhukova -- 1573866\\k1594626@kcl.ac.uk -- Odinaldo Rodrigues}
+\date{\today}
+\maketitle
+
+%Configs:
+\setlength{\parskip}{-0.9em}
+\lstset{basicstyle=\ttfamily, breaklines=true}
+
+\section{Introduction}
+\paragraph{}
+This report will explain all work that happened since the first progress report. Sections include work done to extract topic words, crawling for new stories, progress on the Android application, and the next steps to take.
+
+\section{Retrieving topic words}
+\paragraph{}
+Steps have been taken to more accurately predict a group of topic words that portray what a specific news article is about. The words of the first bolded sentence on BBC News articles are given more importance; the average tfidf value multiplied by a factor is added to each word. Next, the first 50\% of topic words have a factor of the average tfidf added to them. This is so sentences closer to the beginning of the articles are favoured slightly more. Next, stemmed words are taken into account by distributing the sum of the tfidf values for the stem proportionally to the frequency of each word of the stem. Finally, the (word,tfidf) pairs are sorted in descending order of importance. This will allow for topic word selection first based on importance.
+\paragraph{}
+Topic words are retrieved by a function that recieves the tfidfs and a number parameter to determine how many words to get. Starting at the top of the tfidfs list, each word is classified into its part-of-speech by two libraries.  Valid types are nouns (singular and plural), proper nouns, and places. Invalid types are adjectives, numbers, and dates. If a word satisfies these conditions, it is added to an array of topic words. This is done until the requested number of topic words is reached. 
+
+\section{Crawler module}
+\paragraph{}
+I created a new module to find new articles for a news story. The first aspect of this module is crawling my local directory of saved news articles for suitable suggestions. First, a BBC news article is given (either local or online), parsed, and has topic words and a signature generated. Using the topic words, each locally stored news story headline is checked to see if it contains any of the topic words. If it does, it is added to a list of potential matches. Next, all potential articles are retrieved, parsed, and processed to obtain their topic words and dates written. Once each article is done, each article gets assigned similarity points based on how related its topic words are to the original article's. However, if a potential article is older than the original article, it is discared. Otherwise, if there is a match of topic words, the distance between the topic word in the orignal array and the same word in the current article's topic words is computed. Using a reciprocal function $\frac{number\,of\,topic\,words}{distance\,+\,1}$, the article's score is incremented by the result. Next, deductions are made to each article for each word that did not match any of the original topic words. The average of all similarity scores is computed and articles with scores above this are considered the most relevant. The next article to show to the user is finally determined, which is simply the article with the highest similarity score.
+\paragraph{}
+The second aspect of the crawler module is looking for new articles on the web. By passing in a list of topic words, the first three are taken to form a search criteria on the BBC website. An HTTP GET request is made with the search URL. Using the same cheerio DOM-tree querying library from before, I get the headline and date written from the search results for all potential articles on the page. If an article is older than the timestamp given, it is discarded to save on performance later on. Next, the same process is run to determine potential articles. However, an HTTP GET request is done for each potential article to get its data. Once each article is retrieved, the steps for computing similarity scores are the same as for local articles. In both cases, the new article's topic words, signature, timestamp, and headline are returned to the client.
+
+\section{Android application}
+\paragraph{}
+I have begun working on the Android application aspect of this project. By using Android Studio and preset screens (or activities), it is simple to piece the application bit by bit. The first question I had to tackle was how to model user information. I played around with MongoDB, a non-relational database, on my local machine to store user data, but then the question of authentication comes into play. However, to make the application as simple as possible, I've decided to simply use the device's internal storage to keep all user data. Ideally, it would be nice to have data stored in the cloud so the user can log-in from many places, but it would take too much time to develop. As a result, data will be stored in JSON format on the device, which is useful not only because of its simplicity but also because all news story processing returns data in JSON format. All news story processing will not happen on the device but on a server; the device will only get the data that is necessary for the user, meaning all intermediate steps do not get sent over the web. In general, the app will have several modes: looking at a list of all tracked stories, looking at a timeline of a specific story (with each node on the timeline an article with a signature and date), adding a new story, managing tracked stories, looking at user interests, and some simple settings. 
+ 
+\section{Overall Progress and Next Steps}
+\paragraph{}
+I have created a file called \lstinline|storyevolutiontracker.js| to simplify API calls necessary for story tracking. The single file holds references to all other modules necessary for each step of the requested process. Each exported function is named appropriately to describe which processes would happen. The next step will be integrating the Android application with server-side POST requests to get article data using those functions. I have obtained a server for these steps, which can be called over the web to do all processing.
+\paragraph{}
+Another thing to add to the system is the ability for users to give optional feedback on articles that have been selected. With this feedback, the topic words for a story can be more finely tuned and more relevant articles would be pulled in the future. Additionaly, a simple system can be built to display topics that the user has approved of in the past and make these count as the user's interests.
+\paragraph{}
+More generally, the next four weeks will be spent pulling the whole project together and focus will be shifted to gathering my ideas for the final report.
+
+\end{document}

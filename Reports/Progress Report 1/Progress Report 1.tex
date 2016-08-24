@@ -1,0 +1,42 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper]{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{graphicx}
+\begin{document}
+\title{\vspace{-2.5cm}{\Large Story Evolution Tracker: Progress Report I}\vspace{-0.5cm}}
+\author{Violet Avkhukova -- 1573866\\k1594626@kcl.ac.uk -- Odinaldo Rodrigues}
+\date{\vspace{-0.3cm}\today}
+\maketitle
+
+%Configs:
+\setlength{\parskip}{-0.9em}
+\lstset{basicstyle=\ttfamily, breaklines=true}
+
+\section{Introduction}
+\paragraph{}
+This report will explain all the work that has happened on this project since the preliminary report. To begin, the language of choice for this project is Javascript. This is because the main source of information comes from the Internet and Javascript is created for that kind of processing environment. It has the highest support for the types of operations that I want to perform. 
+
+\section{HTML Retrieval}
+\paragraph{}
+At first only URLs from the Internet were allowed. A GET request would retrieve the HTML source code for the page. To increase the ability for testing of the further steps, local files can now be parsed. A local file is defined as a web page that was saved from a browser to the local disk. In order to work with an offline file, the "URL" of the file must be given and should follow the pattern as so: \lstinline|"file:///.../a%20website.htm"|, which changes the protocol from http to file. The necessary url decoding is performed and the file is read. The HTML code that makes up the site is retrieved from storage and the rest of the operations can perform as normal. Having stored files means I can accurately measure progress without my sources changing to skew results.
+
+\section{HTML Parsing and Extraction}
+\paragraph{}
+The current supported websites for parsing are BBC News and BBC Sport. Even though they are from the same host, both had different names for the same parts of the article, like the headline and article body. A separate file, called parsers.js, contains parsers for all supported sources. All parsers use a library called cheerio, which functions very similarly to jQuery but on the node.js server-side. The retrieved html code is loaded into cheerio, so it can now be queried for different parts of the article using jQuery selectors. For example, on BBC News, the headline is always with the class name \lstinline|story-body__h1|. The text of the element is retrieved and therefore the headline. The article body is retrieved in the same way. However, on the BBC, there are sometimes \lstinline|<hr>| elements that function as an aside for an article or either the article ends after it. Parsing now does not include text from inside asides or after a final \lstinline|<hr>| element. Next, the article is tokenized into sentences. Sentences that were split too aggressively get put back together, like on URLs or people's names. Sentences with quotes from people are removed, including sentences that are inside a pair of quotes but not directly surrounded themselves. This is done so summary cohesion is not ruined by a sentence that would look like it does not belong. Sentences that have quotes for emphasis around some words remain.
+
+\section{Processing Text}
+Text processing follows parsing. Each sentence of the article gets tokenized into words and punctuation and gets represented as an array; each index is either a word or punctuation. A series of processing steps happens next. Modularity is considered so each processing step takes the sentence arrays as a parameter and returns modified sentence arrays. New processing steps can be created and added with ease. There are currently 5 processing steps. Proper nouns are detected by making the assumption that adjacent words that begin with a capital letter are related. Next, people's names are detected, like ``Mr. Name''. Hyphenated words, URLs, and numbers are also detected. After detecting these classes of words, tf-idf values are calculated. Next, word weights are adjusted by increasing the importance of words that are also found in the headline. More is to be done with this by also considering the bolded text found on BBC News. I will also attempt to detect important compound nouns that are not proper nouns, like ``EU referendum'', to more accurately predict topic words.
+
+\section{Signature Generation}
+\paragraph{}
+After each word is given an importance value, each sentence can be weighed to determine its cumulative importance. For each sentence's word (except stop words), the tf-idf values are added and the sentence's importance becomes that sum. To try to prevent only the longest sentences from being picked, each sentence tf-idf value is divided by the sentence's length in words, although this number can be played with. Finally, the top n sentences are taken, which is given by a parameter, and they become the summary. Currently I chose not to use the headline as one of the sentences because it always has a higher importance value and its written in a different style, so cohesion and readability would suffer. I might look into iterative shortening on the final summary to remove unnecessary words or clauses to make the summary shorter and more concise.
+
+\section{Web Client}
+\paragraph{}
+I created a webapp using Node.js and Express to aid development. It is a simple html page that displays all information that I store during calculations. It has a textfield to paste URLs into which creates a POST request on-submit. Ajax requests populate the page when there is a result of text processing. To avoid excessive Javascript callback nesting, I learned how to use Javascript ES6 Promises to make asynchronous code synchronous again. This improved modularity as processing steps can be added at any step. Current processing steps are parsing HTML, processing text, generating signatures, and sending the response. Also, to avoid copy-pasting links into the webapp, I used HTML5's browser localstorage capability to store links so that they remain persistent when refreshing the server and page. 
+\section{Overall Progress and Next Steps}
+\paragraph{}
+I aim to finish signatures by the end of the month of June. I will try some more optimizations to improve signature quality. Next, I will move onto actual story tracking and multi-document summarization to track how a story changes over time. This is important because work needs to start on the rest of the system. In general, I need to think about how to represent how to respresent stories, topics the user is interested in, and how to display articles and their changes.
+
+\end{document}
