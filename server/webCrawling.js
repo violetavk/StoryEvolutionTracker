@@ -165,7 +165,7 @@ function parseAllPotentialArticles(responses) {
                 }
                 toParse = file.link;
             }
-            console.log(toParse);
+            // console.log(toParse);
 
             storyevolutiontracker.parseAndGenerateSignature(toParse, function(res) {
                 allArticles.push(res);

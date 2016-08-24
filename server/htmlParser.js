@@ -11,7 +11,7 @@ let util = require("./util.js");
 /* the main function that initiates html parsing */
 exports.parseHTML = function(objects) {
     return new Promise(function(resolve, reject) {
-        console.log("-- HTML Parsing (with promises) --");
+        console.log("-- HTML Parsing (with promises):",objects.link," --");
         let bufferList = bl();
 
         let link = url.parse(objects.link);
@@ -49,6 +49,9 @@ exports.parseHTML = function(objects) {
 
         } else if(link.protocol === "http:") {
             // use GET request to get from internet
+            if(link.path.includes("/live/")) {
+                reject({error: "Live articles not suitable for tracking"});
+            }
             http.get(options, function(response) {
                 response.on("data", function(data) {
                     bufferList.append(data);
