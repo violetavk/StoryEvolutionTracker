@@ -34,126 +34,114 @@
     │       │           │               ├── UpdateNewsSchedulingService.java (code that executes when alarm goes off)
     │       │           │               └── ValuesAndUtil.java (contains various global values and utility functions)
     │       │           └── res
-    │       │               ├── drawable
-    │       │               │   ├── ic_add_circle_black.xml
-    │       │               │   ├── ic_help_outline_black.xml
-    │       │               │   ├── ic_info_outline_black.xml
-    │       │               │   ├── ic_menu_manage.xml
-    │       │               │   ├── ic_menu_send.xml
-    │       │               │   ├── ic_menu_share.xml
-    │       │               │   ├── ic_person_outline_black.xml
-    │       │               │   ├── ic_share.xml
-    │       │               │   ├── ic_sort_black.xml
-    │       │               │   ├── ic_thumb_down.xml
-    │       │               │   ├── ic_thumb_up.xml
-    │       │               │   ├── news_icon.xml
-    │       │               │   ├── ripple.xml
-    │       │               │   └── side_nav_bar.xml
+    │       │               ├── drawable (contains vector graphics for all icons and graphics, most part of android sdk)
+    │       │               │   ├── ic_add_circle_black.xml (circle with plus sign inside)
+    │       │               │   ├── ic_help_outline_black.xml (question mark icon)
+    │       │               │   ├── ic_info_outline_black.xml (circle with i inside it)
+    │       │               │   ├── ic_person_outline_black.xml (my profile icon)
+    │       │               │   ├── ic_share.xml (share icon in help screen)
+    │       │               │   ├── ic_sort_black.xml (manage stories icon)
+    │       │               │   ├── ic_thumb_down.xml (thumbs down icon)
+    │       │               │   ├── ic_thumb_up.xml (thumbs up icon)
+    │       │               │   ├── news_icon.xml (news icon used in notifications)
+    │       │               │   ├── ripple.xml (effect that happens when button is clicked)
+    │       │               │   └── side_nav_bar.xml (the gradient in the side menu, provided by Android Studio)
     │       │               ├── layout
-    │       │               │   ├── activity_add_new_story.xml
-    │       │               │   ├── activity_confirm_article.xml
-    │       │               │   ├── activity_get_user_name.xml
-    │       │               │   ├── activity_main.xml
-    │       │               │   ├── activity_new_user_welcome.xml
-    │       │               │   ├── activity_news_home_screen.xml
-    │       │               │   ├── activity_settings_screen.xml
-    │       │               │   ├── activity_view_timeline.xml
-    │       │               │   ├── app_bar_news_home_screen.xml
-    │       │               │   ├── content_news_home_screen.xml
-    │       │               │   ├── fragment_about.xml
-    │       │               │   ├── fragment_help.xml
-    │       │               │   ├── fragment_manage_stories.xml
-    │       │               │   ├── fragment_stories_view.xml
-    │       │               │   ├── fragment_user_profile.xml
-    │       │               │   ├── item_timeline.xml
-    │       │               │   ├── manage_story_card.xml
-    │       │               │   ├── nav_header_news_home_screen.xml
-    │       │               │   └── story_card.xml
+    │       │               │   ├── activity_add_new_story.xml (screen layout for adding new story)
+    │       │               │   ├── activity_confirm_article.xml (screen layout for confirming article)
+    │       │               │   ├── activity_get_user_name.xml (screen layout for getting user's name)
+    │       │               │   ├── activity_new_user_welcome.xml (layout for initial welcome screen for new users)
+    │       │               │   ├── activity_news_home_screen.xml (container for the navigation sidebar view)
+    │       │               │   ├── activity_settings_screen.xml (settings screen layout)
+    │       │               │   ├── activity_view_timeline.xml (contains the list view that will display timeline)
+    │       │               │   ├── app_bar_news_home_screen.xml (contains add new story button, menus, etc., provided by android studio)
+    │       │               │   ├── content_news_home_screen.xml (container that gets replaced by other screen when menu item selected)
+    │       │               │   ├── fragment_about.xml (layout for about screen)
+    │       │               │   ├── fragment_help.xml (layout for help screen)
+    │       │               │   ├── fragment_manage_stories.xml (layout for managing stories screen)
+    │       │               │   ├── fragment_stories_view.xml (layout for viewing all stories)
+    │       │               │   ├── fragment_user_profile.xml (layout for user profile)
+    │       │               │   ├── item_timeline.xml (defines what each item in timeline looks like; circle with lines provided by 'com.github.vipulasri:timelineview:1.0.3' dependency)
+    │       │               │   ├── manage_story_card.xml (defines what each manage story view looks like)
+    │       │               │   ├── nav_header_news_home_screen.xml (layout for top part of side navigation bar; provided by android studio)
+    │       │               │   └── story_card.xml (defines what each story looks like in main stories screen)
     │       │               ├── menu
-    │       │               │   ├── activity_news_home_screen_drawer.xml
-    │       │               │   ├── menu_main.xml
-    │       │               │   └── news_home_screen.xml
+    │       │               │   ├── activity_news_home_screen_drawer.xml (defines all menu items in side navigation)
+    │       │               │   └── news_home_screen.xml (contains all menu items in top-right menu, like settings)
     │       │               ├── mipmap-hdpi
-    │       │               │   ├── ic_launcher.png
-    │       │               │   └── qm.png
+    │       │               │   └── ic_launcher.png (high def app icon)
     │       │               ├── mipmap-mdpi
-    │       │               │   ├── ic_launcher.png
-    │       │               │   └── qm.png
+    │       │               │   └── ic_launcher.png (medium def app icon)
     │       │               ├── mipmap-xhdpi
-    │       │               │   ├── ic_launcher.png
-    │       │               │   └── qm.png
+    │       │               │   └── ic_launcher.png (extra-high def app icon)
     │       │               ├── mipmap-xxhdpi
-    │       │               │   ├── ic_launcher.png
-    │       │               │   └── qm.png
+    │       │               │   └── ic_launcher.png (extra-extra-high def app icon)
     │       │               ├── mipmap-xxxhdpi
-    │       │               │   ├── ic_launcher.png
-    │       │               │   └── qm.png
+    │       │               │   └── ic_launcher.png (extra-extra-extra high def app icon)
     │       │               ├── values
-    │       │               │   ├── arrays.xml
-    │       │               │   ├── colors.xml
-    │       │               │   ├── dimens.xml
-    │       │               │   ├── strings.xml
-    │       │               │   └── styles.xml
+    │       │               │   ├── arrays.xml (contains any global arrays)
+    │       │               │   ├── colors.xml (contains any colors to use, most provided by http://stackoverflow.com/questions/3769762/android-color-xml-resource-file)
+    │       │               │   ├── dimens.xml (contains any global dimensions, provided by android studio)
+    │       │               │   ├── strings.xml (contains all strings used by app)
+    │       │               │   └── styles.xml (contains global styles, provided by android studio)
     │       │               ├── values-v21
-    │       │               │   └── styles.xml
+    │       │               │   └── styles.xml (styles for sdk v21, provided by android studio)
     │       │               └── values-w820dp
-    │       │                   └── dimens.xml
-    │       ├── build.gradle
-    │       ├── gradle
+    │       │                   └── dimens.xml (dimens for a width of 820, provided by android studio)
+    │       ├── build.gradle (build script for android module in android studio, provided by android studio)
+    │       ├── gradle (directory provided by android studio, not modified by me)
     │       │   └── wrapper
     │       │       ├── gradle-wrapper.jar
     │       │       └── gradle-wrapper.properties
-    │       ├── gradle.properties
-    │       ├── gradlew
-    │       ├── gradlew.bat
-    │       └── settings.gradle
-    ├── Reports
-    │   ├── Final
-    │   │   ├── Final\ report.tex
-    │   │   ├── img
-    │   │   │   ├── addNewStory.png
-    │   │   │   ├── bbcArticle.png
-    │   │   │   ├── kcl.png
-    │   │   │   ├── mainScreen.png
-    │   │   │   ├── manageStories.png
-    │   │   │   └── timeline.png
-    │   │   └── literature.bib
+    │       ├── gradle.properties (gradle properties provided by android studio)
+    │       ├── gradlew (provided by android studio)
+    │       ├── gradlew.bat (provided by android studio)
+    │       └── settings.gradle (provided by android studio)
+    ├── Reports (contains all reports by me)
+    │   ├── Final (final report directory)
+    │   │   ├── Final\ report.tex (source code of final report)
+    │   │   ├── img (all images used by final report)
+    │   │   │   ├── addNewStory.png (screenshot of adding new story)
+    │   │   │   ├── bbcArticle.png (bbc article with annotations)
+    │   │   │   ├── kcl.png (kcl logo for cover page)
+    │   │   │   ├── mainScreen.png (main screen of app screenshot)
+    │   │   │   ├── manageStories.png (screenshot of manage stories screen)
+    │   │   │   └── timeline.png (screenshot of timeline view)
+    │   │   └── literature.bib (all sources cited here)
     │   ├── Initial\ ideas
-    │   │   └── Initial\ description\ and\ ideas.tex
+    │   │   └── Initial\ description\ and\ ideas.tex (some very initial ideas for project)
     │   ├── Preliminary
-    │   │   ├── Preliminary\ Report.tex
-    │   │   ├── gantt.png
+    │   │   ├── Preliminary\ Report.tex (preliminary report source)
+    │   │   ├── gantt.png (gantt chart for development)
     │   │   └── literature.bib
     │   ├── Progress\ Report\ 1
-    │   │   └── Progress\ Report\ 1.tex
+    │   │   └── Progress\ Report\ 1.tex (progress report 1 source)
     │   └── Progress\ Report\ 2
-    │       └── Progress\ Report\ 2.tex
-    └── server
-        ├── app.js
-        ├── htmlParser.js
-        ├── package.json
-        ├── parsers.js
-        ├── public
-        │   ├── index.html
-        │   ├── javascripts
-        │   │   ├── jquery-latest.js
-        │   │   └── sorttable.js
+    │       └── Progress\ Report\ 2.tex (progress report 2 source)
+    └── server (contains all back-end files, which were bulk of the project)
+        ├── app.js (defines app structure, provides by Express.js)
+        ├── htmlParser.js (performs all html retrieval, parsing, and some tokenizing)
+        ├── package.json (defines all project dependencies, use during building project)
+        ├── parsers.js (contains all parsers for bbc sources)
+        ├── public (for development webapp only)
+        │   ├── index.html (home page for webapp)
+        │   ├── javascripts (dependencies on external libraries for webapp)
+        │   │   ├── jquery-latest.js (jquery implementation)
+        │   │   └── sorttable.js (allows to sort tables in webapp)
         │   └── stylesheets
-        │       └── style.css
+        │       └── style.css (stylesheet for webapp)
         ├── routes
-        │   ├── crawler.html
-        │   ├── index.js
-        │   └── signatures.html
+        │   ├── crawler.html (local web crawler for webapp)
+        │   ├── index.js (receives all requests, either from android app or webapp)
+        │   └── signatures.html (signature generation dev portal for webapp)
         ├── scripts
-        │   └── www
-        ├── signatureGeneration.js
-        ├── storyevolutiontracker.js
-        ├── textProcessing.js
-        ├── util.js
-        ├── views
-        │   ├── error.jade
+        │   └── www (start script for webapp, provided by Express.js)
+        ├── signatureGeneration.js (performs signature generation using weighed words from prev. step)
+        ├── storyevolutiontracker.js (main api which contains operations that can be called)
+        ├── textProcessing.js (performs all tokenizing, word weighing of a news article)
+        ├── util.js (utility functions)
+        ├── views (some views provided by Express.js, not really used by me)
+        │   ├── error.jade (shows a well formatted 404 msg)
         │   ├── index.jade
         │   └── layout.jade
-        └── webCrawling.js
-
-47 directories, 120 files
+        └── webCrawling.js (finds new article relating to a story)
