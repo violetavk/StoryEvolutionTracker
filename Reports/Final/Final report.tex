@@ -63,7 +63,7 @@
 \begin{minipage}{0.7\textwidth}
 	\begin{flushleft}
 		\doublespacing
-		Violetta Avkhukova \\ 1573866 \\ Advanced Software Engineering \\ Story Evolution Tracker: Tracking and Summarizing News Stories \\ Dr. Odinaldo Rodrigues \\ 14,565
+		Violetta Avkhukova \\ 1573866 \\ Advanced Software Engineering \\ Story Evolution Tracker: Tracking and Summarizing News Stories \\ Dr. Odinaldo Rodrigues \\ 14,704
 	\end{flushleft}
 \end{minipage}
 % --- END info ---
@@ -676,6 +676,7 @@ Parameters & \parbox[t]{10cm}{\lstinline|url_field| (the URL to process, encoded
         "lastSignature": (string: signature of most recent article),
         "lastUpdated": (long: system time when the story was updated),
         "category": (section of BBC original article is from, news or sport),
+        "id": (random unique id assigned so notifications are optimized)
         "modifiedTopicWords": (object: tracks strength of topic words for user feedback),
         "timeline": (array: each development of the story; see the next section for schema of each index)
     }
@@ -770,8 +771,6 @@ Parameters & \parbox[t]{10cm}{\lstinline|url_field| (the URL to process, encoded
 \includecode{/Users/violet/Development/StoryEvolutionTracker/Android/StoryEvolutionTracker/app/src/main/java/com/storyevolutiontracker/util/RoundedBackgroundSpan.java}
 \subsection{AndroidManifest.xml}
 \includecode{/Users/violet/Development/StoryEvolutionTracker/Android/StoryEvolutionTracker/app/src/main/AndroidManifest.xml}
-\subsection{activity\_main.xml (res/layout)}
-\includecode{/Users/violet/Development/StoryEvolutionTracker/Android/StoryEvolutionTracker/app/src/main/res/layout/activity_main.xml}
 \subsection{activity\_new\_user\_welcome.xml (res/layout)}
 \includecode{/Users/violet/Development/StoryEvolutionTracker/Android/StoryEvolutionTracker/app/src/main/res/layout/activity_new_user_welcome.xml}
 \subsection{activity\_get\_user\_name.xml (res/layout)}
@@ -808,8 +807,6 @@ Parameters & \parbox[t]{10cm}{\lstinline|url_field| (the URL to process, encoded
 \includecode{/Users/violet/Development/StoryEvolutionTracker/Android/StoryEvolutionTracker/app/src/main/res/layout/story_card.xml}
 \subsection{activity\_news\_home\_screen\_drawer.xml (res/menu)}
 \includecode{/Users/violet/Development/StoryEvolutionTracker/Android/StoryEvolutionTracker/app/src/main/res/menu/activity_news_home_screen_drawer.xml}
-\subsection{menu\_main.xml (res/menu)}
-\includecode{/Users/violet/Development/StoryEvolutionTracker/Android/StoryEvolutionTracker/app/src/main/res/menu/menu_main.xml}
 \subsection{news\_home\_screen.xml (res/menu)}
 \includecode{/Users/violet/Development/StoryEvolutionTracker/Android/StoryEvolutionTracker/app/src/main/res/menu/news_home_screen.xml}
 \subsection{strings.xml (res/values)}
