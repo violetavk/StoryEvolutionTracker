@@ -1,5 +1,5 @@
 .
-└── StoryEvolutionTracker (main project folder)
+└── StoryEvolutionTracker (main project folder; this directory)
     ├── Android (all android app contents)
     │   └── StoryEvolutionTracker
     │       ├── app

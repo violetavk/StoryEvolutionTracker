@@ -1,5 +1,6 @@
 'use strict';
 exports.isStopWord = function(word) {
+    // thanks to stopword list at http://www.lextek.com/manuals/onix/stopwords1.html
     let stopWords = ["a","ago","about","above","across","after","again","against","all","almost","alone","along","already","also","although","always","among","an","and","another","any","anybody","anyone","anything",
     "anywhere","are","area","areas","around","as","ask","asked","asking","asks","at","away","b","back","backed","backing","backs","be","became","because","become","becomes","been","before","began","behind","being",
     "beings","best","better","between","big","both","but","by","c","came","can","cannot","case","cases","certain","certainly","clear","clearly","come","could","d","did","differ","different","differently","do","does","done",
