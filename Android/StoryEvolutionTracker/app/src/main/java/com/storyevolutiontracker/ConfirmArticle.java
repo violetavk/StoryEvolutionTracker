@@ -14,6 +14,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Random;
+
 public class ConfirmArticle extends AppCompatActivity {
 
     JSONObject newArticleData;
@@ -89,6 +91,11 @@ public class ConfirmArticle extends AppCompatActivity {
             // get category on bbc
             String category = newArticleData.getString("category");
             topic.put("category",category);
+
+            // assign random id to it for notifications later on
+            Random random = new Random();
+            int randomNumber = random.nextInt(10000000 - 1) + 1;
+            topic.put("id",randomNumber);
 
             // put in modified topic words
             JSONObject modifiedTopicWords = newArticleData.getJSONObject("topicWordsFreq");

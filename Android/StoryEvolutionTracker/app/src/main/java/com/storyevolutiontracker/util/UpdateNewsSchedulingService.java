@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -20,6 +21,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Random;
+
 /**
  * Created by violet on 08/08/2016.
  */
@@ -29,7 +32,6 @@ public class UpdateNewsSchedulingService extends IntentService {
     private JSONObject user;
     private JSONArray topics;
     private NotificationManager mNotificationManager;
-    public static final int NOTIFICATION_ID = 1;
     private Intent intent;
 
     public UpdateNewsSchedulingService() {
@@ -134,7 +136,7 @@ public class UpdateNewsSchedulingService extends IntentService {
                     topics.put(articleId,topic);
                     user.put("topics",topics);
                     ValuesAndUtil.getInstance().saveUserData(user,getApplicationContext());
-                    sendNotification("Update: " + article.getString("signature"));
+                    sendNotification(topic.getInt("id"),"Update: " + article.getString("signature"));
                 }
             }
         } catch (JSONException e) {
@@ -143,12 +145,11 @@ public class UpdateNewsSchedulingService extends IntentService {
         }
     }
 
-    private void sendNotification(String msg) {
+    private void sendNotification(int id, String msg) {
         mNotificationManager = (NotificationManager)
                 this.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MainActivity.class), 0);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.news_icon)
@@ -158,9 +159,8 @@ public class UpdateNewsSchedulingService extends IntentService {
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(msg))
                 .setContentText(msg)
                 .setAutoCancel(true);
-
         mBuilder.setContentIntent(contentIntent);
-        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+        mNotificationManager.notify(id, mBuilder.build());
     }
 
 }
