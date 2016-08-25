@@ -80,5 +80,6 @@ exports.containsWord = function(sentenceArray,word) {
 };
 
 exports.getAllPossibleDomains = function() {
+    // thanks to some from http://www.seobythesea.com/2006/01/googles-most-popular-and-least-popular-top-level-domains/ and https://en.wikipedia.org/wiki/List_of_Internet_top-level_domains
     return ["com","net","co","uk","ru","de","org","jp","fr","br","it","au","edu","gov","ch","us","ca","io"];
 };

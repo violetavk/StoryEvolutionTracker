@@ -1,5 +1,6 @@
 .
 └── StoryEvolutionTracker (main project folder; this directory)
+    ├── Story Evolution Tracker.apk (the executable to run on Android phones version)
     ├── Android (all android app contents)
     │   └── StoryEvolutionTracker
     │       ├── app
